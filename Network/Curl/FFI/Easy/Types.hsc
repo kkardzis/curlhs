@@ -25,8 +25,7 @@ import Foreign.Ptr
 
 
 -------------------------------------------------------------------------------
-data CCurl
-type CCURL = Ptr CCurl
+data CCURL
 
 type CCURLcode    = CInt
 type CCURLinfo    = CInt

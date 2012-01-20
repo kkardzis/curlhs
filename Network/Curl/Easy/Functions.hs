@@ -24,27 +24,27 @@ import Control.Exception (throwIO)
 import Network.Curl.Easy.Types
 import Network.Curl.Easy.Symbols
 
-import qualified Network.Curl.FFI.Easy as CF
+import Network.Curl.FFI.Easy
 
 
 -------------------------------------------------------------------------------
 curl_easy_getinfo_string :: CURL -> CURLinfo_S -> IO String
 curl_easy_getinfo_string curl info = alloca $ \ptr -> do
-  code <- fromCURLenum <$> CF.curl_easy_getinfo curl (toCURLenum info) ptr
+  code <- fromCURLenum <$> ccurl_easy_getinfo curl (toCURLenum info) ptr
   case code of
     CURLE_OK  -> peek ptr >>= peekCString
     otherwise -> throwIO code
 
 curl_easy_getinfo_long :: CURL -> CURLinfo_I -> IO Int
 curl_easy_getinfo_long curl info = alloca $ \ptr -> do
-  code <- fromCURLenum <$> CF.curl_easy_getinfo curl (toCURLenum info) ptr
+  code <- fromCURLenum <$> ccurl_easy_getinfo curl (toCURLenum info) ptr
   case code of
     CURLE_OK  -> peek ptr
     otherwise -> throwIO code
 
 curl_easy_getinfo_double :: CURL -> CURLinfo_D -> IO Double
 curl_easy_getinfo_double curl info = alloca $ \ptr -> do
-  code <- fromCURLenum <$> CF.curl_easy_getinfo curl (toCURLenum info) ptr
+  code <- fromCURLenum <$> ccurl_easy_getinfo curl (toCURLenum info) ptr
   case code of
     CURLE_OK  -> peek ptr
     otherwise -> throwIO code
@@ -55,28 +55,28 @@ curl_easy_getinfo_slist curl info = undefined
 
 -------------------------------------------------------------------------------
 curl_version :: IO String
-curl_version = CF.curl_version >>= peekCString
+curl_version = ccurl_version >>= peekCString
 
 curl_version_info :: CURLversion -> IO CURL_version_info_data
-curl_version_info v = CF.curl_version_info (fromH v) >>= peekCCURL
+curl_version_info v = ccurl_version_info (fromH v) >>= peekCCURL
 
 curl_easy_init :: IO CURL
-curl_easy_init = CF.curl_easy_init
+curl_easy_init = ccurl_easy_init
 
 curl_easy_cleanup :: CURL -> IO ()
-curl_easy_cleanup = CF.curl_easy_cleanup
+curl_easy_cleanup = ccurl_easy_cleanup
 
 curl_easy_reset :: CURL -> IO ()
-curl_easy_reset = CF.curl_easy_reset
+curl_easy_reset = ccurl_easy_reset
 
 curl_easy_perform :: CURL -> IO ()
 curl_easy_perform curl = do
-  code <- fromCURLenum <$> CF.curl_easy_perform curl
+  code <- fromCURLenum <$> ccurl_easy_perform curl
   case code of
     CURLE_OK  -> return ()
     otherwise -> throwIO code
 
 curl_easy_strerror :: CURLcode -> IO String
 curl_easy_strerror code =
-  CF.curl_easy_strerror (toCURLenum code) >>= peekCString
+  ccurl_easy_strerror (toCURLenum code) >>= peekCString
 

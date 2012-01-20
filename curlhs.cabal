@@ -1,0 +1,60 @@
+name:           curlhs
+version:        0.0.1
+author:         Krzysztof Kardzis <kkardzis@gmail.com>
+maintainer:     Krzysztof Kardzis <kkardzis@gmail.com>
+copyright:      Copyright © 2012 Krzysztof Kardzis
+-- license:     ISC License (MIT/BSD-style, see LICENSE file for details)
+license:        OtherLicense
+license-file:   LICENSE
+category:       Network
+stability:      Experimental
+build-type:     Simple
+cabal-version:  >=1.6
+tested-with:    GHC ==7.0.3
+
+synopsis:       libcurl bindings
+description:
+  This package provides a Haskell bindings to libcurl. It is basically a 1:1
+  mapping of libcurl's C API (please see <http://curl.haxx.se/libcurl/>).
+  .
+  libcurl is a free and easy-to-use client-side URL transfer library,
+  supporting DICT, FILE, FTP, FTPS, GOPHER, HTTP, HTTPS, IMAP, IMAPS, LDAP,
+  LDAPS, POP3, POP3S, RTMP, RTSP, SCP, SFTP, SMTP, SMTPS, TELNET and TFTP.
+  libcurl supports SSL certificates, HTTP POST, HTTP PUT, FTP uploading, HTTP
+  form based upload, proxies, cookies, user+password authentication (Basic,
+  Digest, NTLM, Negotiate, Kerberos), file transfer resume, http proxy
+  tunneling and more!
+  .
+  libcurl is highly portable, it builds and works identically on numerous
+  platforms, including Solaris, NetBSD, FreeBSD, OpenBSD, Darwin, HPUX, IRIX,
+  AIX, Tru64, Linux, UnixWare, HURD, Windows, Amiga, OS/2, BeOs, Mac OS X,
+  Ultrix, QNX, OpenVMS, RISC OS, Novell NetWare, DOS and more...
+  .
+  libcurl is free, thread-safe, IPv6 compatible, feature rich, well supported,
+  fast, thoroughly documented and is already used by many known, big and
+  successful companies and numerous applications. 
+
+library
+  extra-libraries: curl
+  build-tools:     hsc2hs
+
+  build-depends:
+    base   >= 4  &&  < 5
+
+  exposed-modules:
+    Network.Curl
+    Network.Curl.Easy
+    Network.Curl.Easy.Types
+    Network.Curl.Easy.Symbols
+    Network.Curl.Easy.Functions
+    Network.Curl.FFI.Easy
+    Network.Curl.FFI.Easy.Types
+    Network.Curl.FFI.Easy.Symbols
+    Network.Curl.FFI.Easy.Functions
+
+  other-modules:
+    Network.Curl.Easy.CURLenum
+    Network.Curl.Easy.CURLcode
+    Network.Curl.Easy.CURLinfo
+
+

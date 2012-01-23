@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Network.Curl
+-- Module      :  Network.Curlhs.CURLenum
 -- Copyright   :  Copyright © 2012 Krzysztof Kardzis
 -- License     :  ISC License (MIT/BSD-style, see LICENSE file for details)
 -- 
@@ -10,9 +10,16 @@
 --
 -------------------------------------------------------------------------------
 
-module Network.Curl
-  ( module Network.Curl.Easy
+module Network.Curlhs.CURLenum
+  ( CURLenum (..)
   ) where
 
-import Network.Curl.Easy
+import Foreign.C.Types
+
+
+-------------------------------------------------------------------------------
+class CURLenum a where
+  fromCURLenum :: CInt -> a
+  toCURLenum   :: a -> CInt
+
 

@@ -42,19 +42,17 @@ library
     base   >= 4  &&  < 5
 
   exposed-modules:
-    Network.Curl
-    Network.Curl.Easy
-    Network.Curl.Easy.Types
-    Network.Curl.Easy.Symbols
-    Network.Curl.Easy.Functions
-    Network.Curl.FFI.Easy
-    Network.Curl.FFI.Easy.Types
-    Network.Curl.FFI.Easy.Symbols
-    Network.Curl.FFI.Easy.Functions
+    Network.Curlhs
+    Network.Curlhs.Types
+    Network.Curlhs.Symbols
+    Network.Curlhs.Functions
+    Network.Curlhs.FFI.Types
+    Network.Curlhs.FFI.Symbols
+    Network.Curlhs.FFI.Functions
+    Network.Curlhs.FFI.Callbacks
 
   other-modules:
-    Network.Curl.Easy.CURLenum
-    Network.Curl.Easy.CURLcode
-    Network.Curl.Easy.CURLinfo
-
+    Network.Curlhs.CURLenum
+    Network.Curlhs.CURLcode
+    Network.Curlhs.CURLinfo
 

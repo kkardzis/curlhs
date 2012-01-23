@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Network.Curl.Easy.Functions
+-- Module      :  Network.Curlhs.Functions
 -- Copyright   :  Copyright © 2012 Krzysztof Kardzis
 -- License     :  ISC License (MIT/BSD-style, see LICENSE file for details)
 -- 
@@ -10,7 +10,7 @@
 --
 -------------------------------------------------------------------------------
 
-module Network.Curl.Easy.Functions where
+module Network.Curlhs.Functions where
 
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.C.String
@@ -21,10 +21,11 @@ import Foreign.Storable
 import Control.Applicative ((<$>))
 import Control.Exception (throwIO)
 
-import Network.Curl.Easy.Types
-import Network.Curl.Easy.Symbols
+import Network.Curlhs.Types
+import Network.Curlhs.Symbols
 
-import Network.Curl.FFI.Easy
+import Network.Curlhs.FFI.Types
+import Network.Curlhs.FFI.Functions
 
 
 -------------------------------------------------------------------------------

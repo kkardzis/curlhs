@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Network.Curl.Easy.CURLenum
+-- Module      :  Network.Curlhs.Symbols
 -- Copyright   :  Copyright © 2012 Krzysztof Kardzis
 -- License     :  ISC License (MIT/BSD-style, see LICENSE file for details)
 -- 
@@ -10,16 +10,13 @@
 --
 -------------------------------------------------------------------------------
 
-module Network.Curl.Easy.CURLenum
-  ( CURLenum (..)
+module Network.Curlhs.Symbols
+  ( module Network.Curlhs.CURLenum
+  , module Network.Curlhs.CURLcode
+  , module Network.Curlhs.CURLinfo
   ) where
 
-import Foreign.C.Types
-
-
--------------------------------------------------------------------------------
-class CURLenum a where
-  fromCURLenum :: CInt -> a
-  toCURLenum   :: a -> CInt
-
+import Network.Curlhs.CURLenum
+import Network.Curlhs.CURLcode
+import Network.Curlhs.CURLinfo
 

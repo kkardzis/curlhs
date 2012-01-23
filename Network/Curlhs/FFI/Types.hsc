@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Network.Curl.FFI.Easy.Types
+-- Module      :  Network.Curlhs.FFI.Types
 -- Copyright   :  Copyright © 2012 Krzysztof Kardzis
 -- License     :  ISC License (MIT/BSD-style, see LICENSE file for details)
 -- 
@@ -12,7 +12,7 @@
 
 {-# LANGUAGE EmptyDataDecls #-}
 
-module Network.Curl.FFI.Easy.Types where
+module Network.Curlhs.FFI.Types where
 
 import Control.Applicative ((<$>), (<*>))
 import Foreign.Storable

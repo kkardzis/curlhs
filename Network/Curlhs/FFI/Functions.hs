@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Network.Curl.FFI.Easy.Functions
+-- Module      :  Network.Curlhs.FFI.Functions
 -- Copyright   :  Copyright © 2012 Krzysztof Kardzis
 -- License     :  ISC License (MIT/BSD-style, see LICENSE file for details)
 -- 
@@ -12,13 +12,13 @@
 
 {-# LANGUAGE ForeignFunctionInterface #-}
 
-module Network.Curl.FFI.Easy.Functions where
+module Network.Curlhs.FFI.Functions where
 
 import Foreign.C.Types
 import Foreign.Ptr
 
-import Network.Curl.FFI.Easy.Callbacks
-import Network.Curl.FFI.Easy.Types
+import Network.Curlhs.FFI.Callbacks
+import Network.Curlhs.FFI.Types
 
 
 -------------------------------------------------------------------------------

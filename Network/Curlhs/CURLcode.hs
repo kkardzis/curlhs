@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Network.Curl.Easy.CURLcode
+-- Module      :  Network.Curlhs.CURLcode
 -- Copyright   :  Copyright © 2012 Krzysztof Kardzis
 -- License     :  ISC License (MIT/BSD-style, see LICENSE file for details)
 -- 
@@ -12,7 +12,7 @@
 
 {-# LANGUAGE DeriveDataTypeable #-}
 
-module Network.Curl.Easy.CURLcode
+module Network.Curlhs.CURLcode
   ( CURLcode (..)
   ) where
 
@@ -22,7 +22,7 @@ import Data.Tuple (swap)
 import Control.Exception
 import Data.Typeable
 
-import Network.Curl.Easy.CURLenum
+import Network.Curlhs.CURLenum
 
 
 -------------------------------------------------------------------------------

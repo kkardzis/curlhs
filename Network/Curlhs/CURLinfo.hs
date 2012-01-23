@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Network.Curl.Easy.CURLinfo
+-- Module      :  Network.Curlhs.CURLinfo
 -- Copyright   :  Copyright © 2012 Krzysztof Kardzis
 -- License     :  ISC License (MIT/BSD-style, see LICENSE file for details)
 -- 
@@ -10,14 +10,14 @@
 --
 -------------------------------------------------------------------------------
 
-module Network.Curl.Easy.CURLinfo
+module Network.Curlhs.CURLinfo
   ( CURLinfo_S (..), CURLinfo_I (..), CURLinfo_D (..), CURLinfo_L (..)
   ) where
 
 import Foreign.C.Types (CInt)
 import Data.Tuple (swap)
 
-import Network.Curl.Easy.CURLenum
+import Network.Curlhs.CURLenum
 
 
 -------------------------------------------------------------------------------

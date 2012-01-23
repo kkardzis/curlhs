@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Network.Curl.Easy.Symbols
+-- Module      :  Network.Curlhs
 -- Copyright   :  Copyright © 2012 Krzysztof Kardzis
 -- License     :  ISC License (MIT/BSD-style, see LICENSE file for details)
 -- 
@@ -10,13 +10,13 @@
 --
 -------------------------------------------------------------------------------
 
-module Network.Curl.Easy.Symbols
-  ( module Network.Curl.Easy.CURLenum
-  , module Network.Curl.Easy.CURLcode
-  , module Network.Curl.Easy.CURLinfo
+module Network.Curlhs
+  ( module Network.Curlhs.Types
+  , module Network.Curlhs.Symbols
+  , module Network.Curlhs.Functions
   ) where
 
-import Network.Curl.Easy.CURLenum
-import Network.Curl.Easy.CURLcode
-import Network.Curl.Easy.CURLinfo
+import Network.Curlhs.Types
+import Network.Curlhs.Symbols
+import Network.Curlhs.Functions
 

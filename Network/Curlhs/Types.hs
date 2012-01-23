@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Network.Curl.Easy.Types
+-- Module      :  Network.Curlhs.Types
 -- Copyright   :  Copyright © 2012 Krzysztof Kardzis
 -- License     :  ISC License (MIT/BSD-style, see LICENSE file for details)
 -- 
@@ -14,7 +14,7 @@
 {-# LANGUAGE TypeSynonymInstances  #-}
 {-# LANGUAGE FlexibleInstances     #-}
 
-module Network.Curl.Easy.Types
+module Network.Curlhs.Types
   ( PeekCCURL (..), FromC (..), FromH (..), CURL
   , CURLversion (..), CURL_version_info_data (..)
   , CURL_slist
@@ -29,8 +29,8 @@ import Foreign.Ptr
 import Data.Tuple (swap)
 import Data.Bits
 
-import Network.Curl.FFI.Easy.Types
-import Network.Curl.FFI.Easy.Symbols
+import Network.Curlhs.FFI.Types
+import Network.Curlhs.FFI.Symbols
 
 
 -------------------------------------------------------------------------------

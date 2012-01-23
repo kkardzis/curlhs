@@ -16,7 +16,6 @@ module Network.Curl.FFI.Easy.Types where
 
 import Control.Applicative ((<$>), (<*>))
 import Foreign.Storable
-import Foreign.C.String
 import Foreign.C.Types
 import Foreign.Ptr
 
@@ -59,12 +58,6 @@ instance Storable CCURL_httppost where
   poke _ _    = undefined
   peek ptr    = undefined
 
---type CCURL_progress_callback
---  = Ptr a -> CDouble -> CDouble -> CDouble -> CDouble -> IO CInt
-
---type CCURL_write_callback
---  = Ptr CChar -> CSize -> CSize -> Ptr a -> IO CSize
-
 type CCURLfiletype = CInt
 
 data CCURL_fileinfo = CCURL_fileinfo
@@ -93,25 +86,7 @@ instance Storable CCURL_fileinfo where
   poke _ _    = undefined
   peek ptr    = undefined
 
---type CCURL_chunk_bgn_callback
---  = Ptr a -> Ptr a -> CInt -> IO CLong
-
---type CCURL_chunk_end_callback
---  = Ptr a -> IO CLong
-
---type CCURL_fnmatch_callback
---  = Ptr a -> Ptr CChar -> Ptr CChar -> IO CInt
-
---type CCURL_seek_callback
---  = Ptr a -> CCURL_off_t -> CInt -> IO CInt
-
---type CCURL_read_callback
---  = Ptr CChar -> CSize -> CSize -> Ptr a -> IO CSize
-
 type CCURLsocktype = CInt
-
---type CCURL_sockopt_callback
---  = Ptr a -> CCURL_socket_t -> CCURLsocktype -> IO CInt
 
 data CCURL_sockaddr = CCURL_sockaddr
   { ccurl_sockaddr_family   :: CInt
@@ -127,46 +102,13 @@ instance Storable CCURL_sockaddr where
   poke _ _    = undefined
   peek ptr    = undefined
 
---type CCURL_opensocket_callback
---  = Ptr a -> CCURLsocktype -> Ptr CCURL_sockaddr -> IO CCURL_socket_t
-
---type CCURL_closesocket_callback
---  = Ptr a -> CCURL_socket_t -> IO CInt
-
 type CCURLioerr = CInt
 
 type CCURLiocmd = CInt
 
---type CCURL_ioctl_callback
---  = Ptr CCURL -> CInt -> Ptr a -> IO CCURLioerr
-
---type CCURL_malloc_callback
---  = CSize -> IO (Ptr a)
-
---type CCURL_free_callback
---  = Ptr a -> IO ()
-
---type CCURL_realloc_callback
---  = Ptr a -> CSize -> IO (Ptr a)
-
---type CCURL_strdup_callback
---  = Ptr CChar -> IO (Ptr CChar)
-
---type CCURL_calloc_callback
---  = CSize -> CSize -> IO (Ptr a)
-
 type CCURL_infotype = CInt
 
---type CCURL_debug_callback
---  = Ptr CCURL -> CCURL_infotype -> Ptr CChar -> CSize -> Ptr a -> IO CInt
-
 type CCURLcode = CInt
-
---type CCURL_conv_callback
---  = Ptr CChar -> CSize -> IO CCURLcode
-
---type CCURL_ssl_ctx_callback
---  = Ptr CCURL -> Ptr a -> Ptr a -> IO CCURLcode
 
 type CCURL_proxytype = CInt
 
@@ -187,10 +129,6 @@ instance Storable CCURL_khkey where
 type CCURL_khstat = CInt
 
 type CCURL_khmatch = CInt
-
---type CCURL_sshkey_callback
---  = Ptr CCURL -> Ptr CCURL_khkey -> Ptr CCURL_khkey
---    -> CCURL_khmatch -> Ptr a -> IO CInt
 
 type CCURL_usessl = CInt
 
@@ -227,9 +165,6 @@ instance Storable CCURL_forms where
 
 type CCURLformcode = CInt
 
---type CCURL_formget_callback
---  = Ptr a -> Ptr CChar -> CSize -> IO CSize
-
 data CCURL_slist = CCURL_slist
   { ccurl_slist_data :: Ptr CChar
   , ccurl_slist_next :: Ptr CCURL_slist
@@ -261,12 +196,6 @@ type CCURL_closepolicy = CInt
 type CCURL_lock_data = CInt
 
 type CCURL_lock_access = CInt
-
---type CCURL_lock_function
---  = Ptr CCURL -> CCURL_lock_data -> CCURL_lock_access -> Ptr a -> IO ()
-
---type CCURL_unlock_function
---  = Ptr CCURL -> CCURL_lock_data -> Ptr a -> IO ()
 
 data CCURLSH
 

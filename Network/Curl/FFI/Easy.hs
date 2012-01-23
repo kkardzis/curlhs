@@ -14,9 +14,11 @@ module Network.Curl.FFI.Easy
   ( module Network.Curl.FFI.Easy.Types
   , module Network.Curl.FFI.Easy.Symbols
   , module Network.Curl.FFI.Easy.Functions
+  , module Network.Curl.FFI.Easy.Callbacks
   ) where
 
 import Network.Curl.FFI.Easy.Types
 import Network.Curl.FFI.Easy.Symbols
 import Network.Curl.FFI.Easy.Functions
+import Network.Curl.FFI.Easy.Callbacks
 

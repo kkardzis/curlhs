@@ -17,6 +17,7 @@ module Network.Curl.FFI.Easy.Functions where
 import Foreign.C.Types
 import Foreign.Ptr
 
+import Network.Curl.FFI.Easy.Callbacks
 import Network.Curl.FFI.Easy.Types
 
 

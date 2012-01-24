@@ -26,16 +26,58 @@ import Foreign.Ptr
 -------------------------------------------------------------------------------
 -- from "curlbuild.h"
 -------------------------------------------------------------------------------
-type CCURL_socket_t = CInt  -- or SOCKET?? -- TODO
-
-type CCURL_off_t  = CLLong  -- ??
+type CCURL_socket_t = CInt    -- or SOCKET?? -- TODO
+type CCURL_off_t    = CLLong  -- ??
 
 
 -------------------------------------------------------------------------------
--- from "curl.h"
+-- simple types from "curl.h"
 -------------------------------------------------------------------------------
 data CCURL
+data CCURLSH
 
+newtype CCURLfiletype      = CCURLfiletype      CInt deriving (Eq, Show)
+newtype CCURLsocktype      = CCURLsocktype      CInt deriving (Eq, Show)
+newtype CCURLioerr         = CCURLioerr         CInt deriving (Eq, Show)
+newtype CCURLiocmd         = CCURLiocmd         CInt deriving (Eq, Show)
+newtype CCURL_infotype     = CCURL_infotype     CInt deriving (Eq, Show)
+newtype CCURLcode          = CCURLcode          CInt deriving (Eq, Show)
+newtype CCURL_proxytype    = CCURL_proxytype    CInt deriving (Eq, Show)
+newtype CCURL_khtype       = CCURL_khtype       CInt deriving (Eq, Show)
+newtype CCURL_khstat       = CCURL_khstat       CInt deriving (Eq, Show)
+newtype CCURL_khmatch      = CCURL_khmatch      CInt deriving (Eq, Show)
+newtype CCURL_usessl       = CCURL_usessl       CInt deriving (Eq, Show)
+newtype CCURL_ftpccc       = CCURL_ftpccc       CInt deriving (Eq, Show)
+newtype CCURL_ftpauth      = CCURL_ftpauth      CInt deriving (Eq, Show)
+newtype CCURL_ftpcreatedir = CCURL_ftpcreatedir CInt deriving (Eq, Show)
+newtype CCURL_ftpmethod    = CCURL_ftpmethod    CInt deriving (Eq, Show)
+newtype CCURLoption        = CCURLoption        CInt deriving (Eq, Show)
+newtype CCURL_http_version = CCURL_http_version CInt deriving (Eq, Show)
+newtype CCURL_rtspreq      = CCURL_rtspreq      CInt deriving (Eq, Show)
+newtype CCURL_netrc_option = CCURL_netrc_option CInt deriving (Eq, Show)
+newtype CCURL_sslversion   = CCURL_sslversion   CInt deriving (Eq, Show)
+newtype CCURL_tlsauth      = CCURL_tlsauth      CInt deriving (Eq, Show)
+newtype CCURL_timecond     = CCURL_timecond     CInt deriving (Eq, Show)
+newtype CCURLformoption    = CCURLformoption    CInt deriving (Eq, Show)
+newtype CCURLformcode      = CCURLformcode      CInt deriving (Eq, Show)
+newtype CCURLinfo          = CCURLinfo          CInt deriving (Eq, Show)
+newtype CCURL_closepolicy  = CCURL_closepolicy  CInt deriving (Eq, Show)
+newtype CCURL_lock_data    = CCURL_lock_data    CInt deriving (Eq, Show)
+newtype CCURL_lock_access  = CCURL_lock_access  CInt deriving (Eq, Show)
+newtype CCURLversion       = CCURLversion       CInt deriving (Eq, Show)
+newtype CCURLSHcode        = CCURLSHcode        CInt deriving (Eq, Show)
+newtype CCURLSHoption      = CCURLSHoption      CInt deriving (Eq, Show)
+
+instance Storable CCURLversion where
+  sizeOf _    = #{size    CURLversion}
+  alignment _ = #{alignof CURLversion}
+  poke _ _    = undefined
+  peek ptr    = CCURLversion <$> peek (castPtr ptr)
+
+
+-------------------------------------------------------------------------------
+-- struct types from "curl.h"
+-------------------------------------------------------------------------------
 data CCURL_httppost = CCURL_httppost
   { ccurl_httppost_next           :: Ptr CCURL_httppost
   , ccurl_httppost_name           :: Ptr CChar
@@ -58,8 +100,8 @@ instance Storable CCURL_httppost where
   poke _ _    = undefined
   peek ptr    = undefined
 
-type CCURLfiletype = CInt
 
+-------------------------------------------------------------------------------
 data CCURL_fileinfo = CCURL_fileinfo
   { ccurl_fileinfo_filename       :: Ptr CChar
   , ccurl_fileinfo_filetype       :: CCURLfiletype
@@ -86,8 +128,8 @@ instance Storable CCURL_fileinfo where
   poke _ _    = undefined
   peek ptr    = undefined
 
-type CCURLsocktype = CInt
 
+-------------------------------------------------------------------------------
 data CCURL_sockaddr = CCURL_sockaddr
   { ccurl_sockaddr_family   :: CInt
   , ccurl_sockaddr_socktype :: CInt
@@ -102,18 +144,8 @@ instance Storable CCURL_sockaddr where
   poke _ _    = undefined
   peek ptr    = undefined
 
-type CCURLioerr = CInt
 
-type CCURLiocmd = CInt
-
-type CCURL_infotype = CInt
-
-type CCURLcode = CInt
-
-type CCURL_proxytype = CInt
-
-type CCURL_khtype = CInt
-
+-------------------------------------------------------------------------------
 data CCURL_khkey = CCURL_khkey
   { ccurl_khkey_key     :: Ptr CChar
   , ccurl_khkey_len     :: CSize
@@ -126,32 +158,8 @@ instance Storable CCURL_khkey where
   poke _ _    = undefined
   peek ptr    = undefined
 
-type CCURL_khstat = CInt
 
-type CCURL_khmatch = CInt
-
-type CCURL_usessl = CInt
-
-type CCURL_ftpccc = CInt
-
-type CCURL_ftpauth = CInt
-
-type CCURL_ftpcreatedir = CInt
-
-type CCURL_ftpmethod = CInt
-
-type CCURLoption = CInt
-
---type CCURL_http_version = CInt -- ??
---type CCURL_rtspreq = CInt -- ??
---type CCURL_netrc_option = CInt -- ??
---type CCURL_sslversion = CInt -- ??
---type CCURL_tlsauth = CInt -- ??
-
-type CCURL_timecond = CInt
-
-type CCURLformoption = CInt
-
+-------------------------------------------------------------------------------
 data CCURL_forms = CCURL_forms
   { ccurl_forms_option :: CCURLformoption
   , ccurl_forms_value  :: Ptr CChar
@@ -163,8 +171,8 @@ instance Storable CCURL_forms where
   poke _ _    = undefined
   peek ptr    = undefined
 
-type CCURLformcode = CInt
 
+-------------------------------------------------------------------------------
 data CCURL_slist = CCURL_slist
   { ccurl_slist_data :: Ptr CChar
   , ccurl_slist_next :: Ptr CCURL_slist
@@ -178,6 +186,8 @@ instance Storable CCURL_slist where
     <$> #{peek struct curl_slist, data} ptr
     <*> #{peek struct curl_slist, next} ptr
 
+
+-------------------------------------------------------------------------------
 data CCURL_certinfo = CCURL_certinfo
   { ccurl_certinfo_num_of_certs :: CInt
   , ccurl_certinfo_certinfo     :: Ptr (Ptr CCURL_slist)
@@ -189,22 +199,8 @@ instance Storable CCURL_certinfo where
   poke _ _    = undefined
   peek ptr    = undefined
 
-type CCURLinfo = CInt
 
-type CCURL_closepolicy = CInt
-
-type CCURL_lock_data = CInt
-
-type CCURL_lock_access = CInt
-
-data CCURLSH
-
-type CCURLSHcode = CInt
-
-type CCURLSHoption = CInt
-
-type CCURLversion = CInt
-
+-------------------------------------------------------------------------------
 data CCURL_version_info_data = CCURL_version_info_data
   { ccurl_version_info_data_age             :: CCURLversion
   , ccurl_version_info_data_version         :: Ptr CChar

@@ -44,7 +44,6 @@ library
   exposed-modules:
     Network.Curlhs
     Network.Curlhs.Types
-    Network.Curlhs.Symbols
     Network.Curlhs.Functions
     Network.Curlhs.FFI.Types
     Network.Curlhs.FFI.Symbols
@@ -52,7 +51,4 @@ library
     Network.Curlhs.FFI.Callbacks
 
   other-modules:
-    Network.Curlhs.CURLenum
-    Network.Curlhs.CURLcode
-    Network.Curlhs.CURLinfo
 

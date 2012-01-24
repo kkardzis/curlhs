@@ -12,11 +12,9 @@
 
 module Network.Curlhs
   ( module Network.Curlhs.Types
-  , module Network.Curlhs.Symbols
   , module Network.Curlhs.Functions
   ) where
 
 import Network.Curlhs.Types
-import Network.Curlhs.Symbols
 import Network.Curlhs.Functions
 

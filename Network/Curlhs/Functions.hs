@@ -21,37 +21,38 @@ import Foreign.Storable
 import Control.Applicative ((<$>))
 import Control.Exception (throwIO)
 
-import Network.Curlhs.Types
-import Network.Curlhs.Symbols
-
 import Network.Curlhs.FFI.Types
 import Network.Curlhs.FFI.Functions
 
+import Network.Curlhs.Types
+
 
 -------------------------------------------------------------------------------
+{-
 curl_easy_getinfo_string :: CURL -> CURLinfo_S -> IO String
 curl_easy_getinfo_string curl info = alloca $ \ptr -> do
-  code <- fromCURLenum <$> ccurl_easy_getinfo curl (toCURLenum info) ptr
+  code <- fromC <$> ccurl_easy_getinfo curl (fromH info) ptr
   case code of
     CURLE_OK  -> peek ptr >>= peekCString
     otherwise -> throwIO code
 
 curl_easy_getinfo_long :: CURL -> CURLinfo_I -> IO Int
 curl_easy_getinfo_long curl info = alloca $ \ptr -> do
-  code <- fromCURLenum <$> ccurl_easy_getinfo curl (toCURLenum info) ptr
+  code <- fromC <$> ccurl_easy_getinfo curl (fromH info) ptr
   case code of
     CURLE_OK  -> peek ptr
     otherwise -> throwIO code
 
 curl_easy_getinfo_double :: CURL -> CURLinfo_D -> IO Double
 curl_easy_getinfo_double curl info = alloca $ \ptr -> do
-  code <- fromCURLenum <$> ccurl_easy_getinfo curl (toCURLenum info) ptr
+  code <- fromC <$> ccurl_easy_getinfo curl (fromH info) ptr
   case code of
     CURLE_OK  -> peek ptr
     otherwise -> throwIO code
 
 curl_easy_getinfo_slist :: CURL -> CURLinfo_L -> IO CURL_slist
 curl_easy_getinfo_slist curl info = undefined
+-}
 
 
 -------------------------------------------------------------------------------
@@ -72,12 +73,12 @@ curl_easy_reset = ccurl_easy_reset
 
 curl_easy_perform :: CURL -> IO ()
 curl_easy_perform curl = do
-  code <- fromCURLenum <$> ccurl_easy_perform curl
+  code <- fromC <$> ccurl_easy_perform curl
   case code of
     CURLE_OK  -> return ()
     otherwise -> throwIO code
 
 curl_easy_strerror :: CURLcode -> IO String
 curl_easy_strerror code =
-  ccurl_easy_strerror (toCURLenum code) >>= peekCString
+  ccurl_easy_strerror (fromH code) >>= peekCString
 

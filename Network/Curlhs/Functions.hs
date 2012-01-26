@@ -10,6 +10,9 @@
 --
 -------------------------------------------------------------------------------
 
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
+
 module Network.Curlhs.Functions where
 
 import Foreign.Marshal.Alloc (alloca)
@@ -26,29 +29,26 @@ import Network.Curlhs.Types
 
 
 -------------------------------------------------------------------------------
-curl_easy_getinfo'S :: CURL -> CURLinfo'S -> IO String
-curl_easy_getinfo'S curl info = alloca $ \ptr -> do
-  code <- fromC <$> ccurl_easy_getinfo curl (fromH info) ptr
-  if (code == CURLE_OK)
-    then peek ptr >>= peekCString
-    else throwIO code
+class CURLinfo a b where
+  curl_easy_getinfo :: CURL -> a -> IO b
 
-curl_easy_getinfo'I :: CURL -> CURLinfo'I -> IO Int
-curl_easy_getinfo'I curl info = alloca $ \ptr -> do
-  code <- fromC <$> ccurl_easy_getinfo curl (fromH info) ptr
-  if (code == CURLE_OK)
-    then peek ptr
-    else throwIO code
+instance CURLinfo CURLinfo'S String where
+  curl_easy_getinfo curl info = alloca $ \ptr -> do
+    code <- fromC <$> ccurl_easy_getinfo curl (fromH info) ptr
+    ifOK code $ peek ptr >>= peekCString
 
-curl_easy_getinfo'D :: CURL -> CURLinfo'D -> IO Double
-curl_easy_getinfo'D curl info = alloca $ \ptr -> do
-  code <- fromC <$> ccurl_easy_getinfo curl (fromH info) ptr
-  if (code == CURLE_OK)
-    then peek ptr
-    else throwIO code
+instance CURLinfo CURLinfo'I Int where
+  curl_easy_getinfo curl info = alloca $ \ptr -> do
+    code <- fromC <$> ccurl_easy_getinfo curl (fromH info) ptr
+    ifOK code $ peek ptr
 
---curl_easy_getinfo'L :: CURL -> CURLinfo'L -> IO [String]
---curl_easy_getinfo'L curl info = undefined
+instance CURLinfo CURLinfo'D Double where
+  curl_easy_getinfo curl info = alloca $ \ptr -> do
+    code <- fromC <$> ccurl_easy_getinfo curl (fromH info) ptr
+    ifOK code $ peek ptr
+
+--instance CURLinfo CURLinfo'L [String] where
+--  curl_easy_getinfo curl info = undefined
 
 
 -------------------------------------------------------------------------------
@@ -70,11 +70,15 @@ curl_easy_reset = ccurl_easy_reset
 curl_easy_perform :: CURL -> IO ()
 curl_easy_perform curl = do
   code <- fromC <$> ccurl_easy_perform curl
-  if (code == CURLE_OK)
-    then return ()
-    else throwIO code
+  ifOK code $ return ()
 
 curl_easy_strerror :: CURLcode -> IO String
 curl_easy_strerror code =
   ccurl_easy_strerror (fromH code) >>= peekCString
+
+
+-------------------------------------------------------------------------------
+ifOK :: CURLcode -> IO a -> IO a
+ifOK CURLE_OK action = action
+ifOK code     _      = throwIO code
 

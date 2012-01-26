@@ -14,14 +14,11 @@ module Network.Curlhs.Functions where
 
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.C.String
-import Foreign.C.Types
-import Foreign.Ptr
 import Foreign.Storable
 
 import Control.Applicative ((<$>))
 import Control.Exception (throwIO)
 
-import Network.Curlhs.FFI.Types
 import Network.Curlhs.FFI.Functions
 
 import Network.Curlhs.TypesH
@@ -32,26 +29,26 @@ import Network.Curlhs.Types
 curl_easy_getinfo'S :: CURL -> CURLinfo'S -> IO String
 curl_easy_getinfo'S curl info = alloca $ \ptr -> do
   code <- fromC <$> ccurl_easy_getinfo curl (fromH info) ptr
-  case code of
-    CURLE_OK  -> peek ptr >>= peekCString
-    otherwise -> throwIO code
+  if (code == CURLE_OK)
+    then peek ptr >>= peekCString
+    else throwIO code
 
 curl_easy_getinfo'I :: CURL -> CURLinfo'I -> IO Int
 curl_easy_getinfo'I curl info = alloca $ \ptr -> do
   code <- fromC <$> ccurl_easy_getinfo curl (fromH info) ptr
-  case code of
-    CURLE_OK  -> peek ptr
-    otherwise -> throwIO code
+  if (code == CURLE_OK)
+    then peek ptr
+    else throwIO code
 
 curl_easy_getinfo'D :: CURL -> CURLinfo'D -> IO Double
 curl_easy_getinfo'D curl info = alloca $ \ptr -> do
   code <- fromC <$> ccurl_easy_getinfo curl (fromH info) ptr
-  case code of
-    CURLE_OK  -> peek ptr
-    otherwise -> throwIO code
+  if (code == CURLE_OK)
+    then peek ptr
+    else throwIO code
 
-curl_easy_getinfo'L :: CURL -> CURLinfo'L -> IO [String]
-curl_easy_getinfo'L curl info = undefined
+--curl_easy_getinfo'L :: CURL -> CURLinfo'L -> IO [String]
+--curl_easy_getinfo'L curl info = undefined
 
 
 -------------------------------------------------------------------------------
@@ -73,9 +70,9 @@ curl_easy_reset = ccurl_easy_reset
 curl_easy_perform :: CURL -> IO ()
 curl_easy_perform curl = do
   code <- fromC <$> ccurl_easy_perform curl
-  case code of
-    CURLE_OK  -> return ()
-    otherwise -> throwIO code
+  if (code == CURLE_OK)
+    then return ()
+    else throwIO code
 
 curl_easy_strerror :: CURLcode -> IO String
 curl_easy_strerror code =

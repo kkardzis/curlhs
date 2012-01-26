@@ -98,7 +98,7 @@ instance Storable CCURL_httppost where
   sizeOf _    = #{size    struct curl_httppost}
   alignment _ = #{alignof struct curl_httppost}
   poke _ _    = undefined
-  peek ptr    = undefined
+  peek _      = undefined
 
 
 -------------------------------------------------------------------------------
@@ -126,7 +126,7 @@ instance Storable CCURL_fileinfo where
   sizeOf _    = #{size    struct curl_fileinfo}
   alignment _ = #{alignof struct curl_fileinfo}
   poke _ _    = undefined
-  peek ptr    = undefined
+  peek _      = undefined
 
 
 -------------------------------------------------------------------------------
@@ -142,7 +142,7 @@ instance Storable CCURL_sockaddr where
   sizeOf _    = #{size    struct curl_sockaddr}
   alignment _ = #{alignof struct curl_sockaddr}
   poke _ _    = undefined
-  peek ptr    = undefined
+  peek _      = undefined
 
 
 -------------------------------------------------------------------------------
@@ -156,7 +156,7 @@ instance Storable CCURL_khkey where
   sizeOf _    = #{size    struct curl_khkey}
   alignment _ = #{alignof struct curl_khkey}
   poke _ _    = undefined
-  peek ptr    = undefined
+  peek _      = undefined
 
 
 -------------------------------------------------------------------------------
@@ -169,7 +169,7 @@ instance Storable CCURL_forms where
   sizeOf _    = #{size    struct curl_forms}
   alignment _ = #{alignof struct curl_forms}
   poke _ _    = undefined
-  peek ptr    = undefined
+  peek _      = undefined
 
 
 -------------------------------------------------------------------------------
@@ -197,7 +197,7 @@ instance Storable CCURL_certinfo where
   sizeOf _    = #{size    struct curl_certinfo}
   alignment _ = #{alignof struct curl_certinfo}
   poke _ _    = undefined
-  peek ptr    = undefined
+  peek _      = undefined
 
 
 -------------------------------------------------------------------------------

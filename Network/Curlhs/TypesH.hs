@@ -32,6 +32,9 @@ class FromH h c where
 findWithDef :: (Eq a) => b -> a -> [(a, b)] -> b
 findWithDef def key table = maybe def id $ lookup key table
 
+cError :: String -> a
 cError s = error $ "FromC "++s++": bad argument"
+
+hError :: String -> a
 hError s = error $ "FromH "++s++": incomplete lookup table"
 

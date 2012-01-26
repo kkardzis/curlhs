@@ -37,6 +37,7 @@ description:
 library
   extra-libraries: curl
   build-tools:     hsc2hs
+  ghc-options:     -Wall -fwarn-tabs
 
   build-depends:
     base   >= 4  &&  < 5
@@ -52,4 +53,8 @@ library
 
   other-modules:
     Network.Curlhs.TypesH
+
+source-repository head
+  type:     git
+  location: https://github.com/kkardzis/curlhs.git
 

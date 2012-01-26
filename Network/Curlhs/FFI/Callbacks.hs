@@ -14,10 +14,10 @@
 
 module Network.Curlhs.FFI.Callbacks where
 
-import Foreign.C.Types
-import Foreign.Ptr
+--import Foreign.C.Types
+--import Foreign.Ptr
 
-import Network.Curlhs.FFI.Types
+--import Network.Curlhs.FFI.Types
 
 
 -------------------------------------------------------------------------------

@@ -17,7 +17,7 @@ module Network.Curlhs.FFI.Functions where
 import Foreign.C.Types
 import Foreign.Ptr
 
-import Network.Curlhs.FFI.Callbacks
+--import Network.Curlhs.FFI.Callbacks
 import Network.Curlhs.FFI.Types
 
 

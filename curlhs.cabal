@@ -51,4 +51,5 @@ library
     Network.Curlhs.FFI.Callbacks
 
   other-modules:
+    Network.Curlhs.TypesH
 

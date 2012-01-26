@@ -24,6 +24,7 @@ import Control.Exception (throwIO)
 import Network.Curlhs.FFI.Types
 import Network.Curlhs.FFI.Functions
 
+import Network.Curlhs.TypesH
 import Network.Curlhs.Types
 
 

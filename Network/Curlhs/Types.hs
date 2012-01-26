@@ -11,15 +11,12 @@
 -------------------------------------------------------------------------------
 
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
-{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE DeriveDataTypeable    #-}
 
 module Network.Curlhs.Types
-  ( PeekCCURL (..), FromC (..), FromH (..), CURL, CURLcode (..)
+  ( CURL, CURLcode (..)
   , CURLinfo'S (..), CURLinfo'I (..), CURLinfo'D (..), CURLinfo'L (..)
   , CURLversion (..), CURL_version_info_data (..)
-  , CURL_slist
   ) where
 
 import Control.Applicative ((<$>), (<*>))
@@ -37,20 +34,10 @@ import Data.Bits
 import Network.Curlhs.FFI.Types
 import Network.Curlhs.FFI.Symbols
 
-
--------------------------------------------------------------------------------
-class PeekCCURL c h where
-  peekCCURL :: Ptr c -> IO h
-
-class FromC c h where
-  fromC :: c -> h
-
-class FromH h c where
-  fromH :: h -> c
+import Network.Curlhs.TypesH
 
 
 -------------------------------------------------------------------------------
-type CURL_slist = ()
 type CURL = Ptr CCURL
 
 
@@ -475,13 +462,4 @@ peekCStringMaybe ptr =
 
 peekCIntegral :: (Num h, Integral c) => c -> IO h
 peekCIntegral = return . fromIntegral
-
-
-
--------------------------------------------------------------------------------
-findWithDef :: (Eq a) => b -> a -> [(a, b)] -> b
-findWithDef def key table = maybe def id $ lookup key table
-
-cError s = error $ "FromC "++s++": bad argument"
-hError s = error $ "FromH "++s++": incomplete lookup table"
 

@@ -28,31 +28,29 @@ import Network.Curlhs.Types
 
 
 -------------------------------------------------------------------------------
-{-
-curl_easy_getinfo_string :: CURL -> CURLinfo_S -> IO String
-curl_easy_getinfo_string curl info = alloca $ \ptr -> do
+curl_easy_getinfo'S :: CURL -> CURLinfo'S -> IO String
+curl_easy_getinfo'S curl info = alloca $ \ptr -> do
   code <- fromC <$> ccurl_easy_getinfo curl (fromH info) ptr
   case code of
     CURLE_OK  -> peek ptr >>= peekCString
     otherwise -> throwIO code
 
-curl_easy_getinfo_long :: CURL -> CURLinfo_I -> IO Int
-curl_easy_getinfo_long curl info = alloca $ \ptr -> do
+curl_easy_getinfo'I :: CURL -> CURLinfo'I -> IO Int
+curl_easy_getinfo'I curl info = alloca $ \ptr -> do
   code <- fromC <$> ccurl_easy_getinfo curl (fromH info) ptr
   case code of
     CURLE_OK  -> peek ptr
     otherwise -> throwIO code
 
-curl_easy_getinfo_double :: CURL -> CURLinfo_D -> IO Double
-curl_easy_getinfo_double curl info = alloca $ \ptr -> do
+curl_easy_getinfo'D :: CURL -> CURLinfo'D -> IO Double
+curl_easy_getinfo'D curl info = alloca $ \ptr -> do
   code <- fromC <$> ccurl_easy_getinfo curl (fromH info) ptr
   case code of
     CURLE_OK  -> peek ptr
     otherwise -> throwIO code
 
-curl_easy_getinfo_slist :: CURL -> CURLinfo_L -> IO CURL_slist
-curl_easy_getinfo_slist curl info = undefined
--}
+curl_easy_getinfo'L :: CURL -> CURLinfo'L -> IO [String]
+curl_easy_getinfo'L curl info = undefined
 
 
 -------------------------------------------------------------------------------

@@ -43,18 +43,18 @@ class CURLinfo a b where
 
 instance CURLinfo CURLinfo'S String where
   curl_easy_getinfo curl info = alloca $ \ptr -> do
-    code <- fromC <$> ccurl_easy_getinfo curl (fromH info) ptr
+    code <- fromC <$> ccurl_easy_getinfo'S curl (fromH info) ptr
     ifOK code $ peek ptr >>= peekCString
 
 instance CURLinfo CURLinfo'I Int where
   curl_easy_getinfo curl info = alloca $ \ptr -> do
-    code <- fromC <$> ccurl_easy_getinfo curl (fromH info) ptr
-    ifOK code $ peek ptr
+    code <- fromC <$> ccurl_easy_getinfo'I curl (fromH info) ptr
+    ifOK code $ fromIntegral <$> peek ptr
 
 instance CURLinfo CURLinfo'D Double where
   curl_easy_getinfo curl info = alloca $ \ptr -> do
-    code <- fromC <$> ccurl_easy_getinfo curl (fromH info) ptr
-    ifOK code $ peek ptr
+    code <- fromC <$> ccurl_easy_getinfo'D curl (fromH info) ptr
+    ifOK code $ realToFrac <$> peek ptr
 
 --instance CURLinfo CURLinfo'L [String] where
 --  curl_easy_getinfo curl info = undefined

@@ -20,7 +20,7 @@ module Network.Curlhs.Functions
   , curl_easy_cleanup
   , curl_easy_reset
   , curl_easy_perform
-  , curl_easy_getinfo
+  , curl_easy_getinfo, CURLinfo
   , curl_easy_strerror
   ) where
 
@@ -38,26 +38,29 @@ import Network.Curlhs.Types
 
 
 -------------------------------------------------------------------------------
-class CURLinfo a b where
-  curl_easy_getinfo :: CURL -> a -> IO b
+curl_easy_getinfo :: CURLinfo info a => CURL -> info -> IO a
+curl_easy_getinfo = getinfo
+
+class CURLinfo info a where
+  getinfo :: CURL -> info -> IO a
 
 instance CURLinfo CURLinfo'S String where
-  curl_easy_getinfo curl info = alloca $ \ptr -> do
+  getinfo curl info = alloca $ \ptr -> do
     code <- fromC <$> ccurl_easy_getinfo'S curl (fromH info) ptr
-    ifOK code $ peek ptr >>= peekCString
+    ifOK code (peek ptr >>= peekCString)
 
 instance CURLinfo CURLinfo'I Int where
-  curl_easy_getinfo curl info = alloca $ \ptr -> do
+  getinfo curl info = alloca $ \ptr -> do
     code <- fromC <$> ccurl_easy_getinfo'I curl (fromH info) ptr
-    ifOK code $ fromIntegral <$> peek ptr
+    ifOK code (fromIntegral <$> peek ptr)
 
 instance CURLinfo CURLinfo'D Double where
-  curl_easy_getinfo curl info = alloca $ \ptr -> do
+  getinfo curl info = alloca $ \ptr -> do
     code <- fromC <$> ccurl_easy_getinfo'D curl (fromH info) ptr
-    ifOK code $ realToFrac <$> peek ptr
+    ifOK code (realToFrac <$> peek ptr)
 
 --instance CURLinfo CURLinfo'L [String] where
---  curl_easy_getinfo curl info = undefined
+--  getinfo curl info = undefined
 
 
 -------------------------------------------------------------------------------

@@ -14,8 +14,12 @@
 {-# LANGUAGE DeriveDataTypeable    #-}
 
 module Network.Curlhs.Types
-  ( CURL, CURLcode (..)
-  , CURLinfo'S (..), CURLinfo'I (..), CURLinfo'D (..), CURLinfo'L (..)
+  ( CURL
+  , CURLcode (..)
+  , CURLinfo'S (..)
+  , CURLinfo'I (..)
+  , CURLinfo'D (..)
+  , CURLinfo'L (..)
   , CURLversion (..), CURL_version_info_data (..)
   ) where
 

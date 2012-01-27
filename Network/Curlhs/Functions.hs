@@ -13,7 +13,16 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
 
-module Network.Curlhs.Functions where
+module Network.Curlhs.Functions
+  ( curl_version
+  , curl_version_info
+  , curl_easy_init
+  , curl_easy_cleanup
+  , curl_easy_reset
+  , curl_easy_perform
+  , curl_easy_getinfo
+  , curl_easy_strerror
+  ) where
 
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.C.String

@@ -175,28 +175,28 @@ foreign import ccall "curl_easy_init"
 foreign import ccall "curl_easy_setopt"
   ccurl_easy_setopt_long
     :: Ptr CCURL
-    -> CCURLoption
+    -> CCURLoption_I
     -> CLong
     -> IO CCURLcode
 
 foreign import ccall "curl_easy_setopt"
   ccurl_easy_setopt_ptr
     :: Ptr CCURL
-    -> CCURLoption
+    -> CCURLoption_P
     -> Ptr a
     -> IO CCURLcode
 
 foreign import ccall "curl_easy_setopt"
   ccurl_easy_setopt_fptr
     :: Ptr CCURL
-    -> CCURLoption
+    -> CCURLoption_F
     -> FunPtr a
     -> IO CCURLcode
 
 foreign import ccall "curl_easy_setopt"
   ccurl_easy_setopt_off_t
     :: Ptr CCURL
-    -> CCURLoption
+    -> CCURLoption_O
     -> CCURL_off_t
     -> IO CCURLcode
 

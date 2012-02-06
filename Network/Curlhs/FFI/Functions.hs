@@ -173,51 +173,51 @@ foreign import ccall "curl_easy_init"
     :: IO (Ptr CCURL)
 
 foreign import ccall "curl_easy_setopt"
-  ccurl_easy_setopt'I32
+  ccurl_easy_setopt'Int32
     :: Ptr CCURL
-    -> CCURLoption_I32
+    -> CCURLoption'Int32
     -> CLong
     -> IO CCURLcode
 
 foreign import ccall "curl_easy_setopt"
-  ccurl_easy_setopt'I64
+  ccurl_easy_setopt'Int64
     :: Ptr CCURL
-    -> CCURLoption_I64
+    -> CCURLoption'Int64
     -> CCURL_off_t
     -> IO CCURLcode
 
 foreign import ccall "curl_easy_setopt"
   ccurl_easy_setopt'String
     :: Ptr CCURL
-    -> CCURLoption_String
+    -> CCURLoption'String
     -> Ptr CChar
     -> IO CCURLcode
 
 foreign import ccall "curl_easy_setopt"
   ccurl_easy_setopt'SList
     :: Ptr CCURL
-    -> CCURLoption_SList
+    -> CCURLoption'SList
     -> Ptr CCURL_slist
     -> IO CCURLcode
 
 foreign import ccall "curl_easy_setopt"
   ccurl_easy_setopt'File
     :: Ptr CCURL
-    -> CCURLoption_File
+    -> CCURLoption'File
     -> Ptr CFile
     -> IO CCURLcode
 
 foreign import ccall "curl_easy_setopt"
   ccurl_easy_setopt'Ptr_a
     :: Ptr CCURL
-    -> CCURLoption_Ptr_a
+    -> CCURLoption'Ptr_a
     -> Ptr a
     -> IO CCURLcode
 
 foreign import ccall "curl_easy_setopt"
   ccurl_easy_setopt'FunPtr
     :: Ptr CCURL
-    -> CCURLoption_FunPtr
+    -> CCURLoption'FunPtr
     -> FunPtr a
     -> IO CCURLcode
 

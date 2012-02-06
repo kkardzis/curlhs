@@ -15,7 +15,26 @@ module Network.Curlhs.FFI.Symbols where
 import Network.Curlhs.FFI.Types
 import Foreign.C.Types
 
-#{include "curl/curl.h"}
+#include "curl/curl.h"
+
+#define CURL_7_20_0 0x071400
+#define CURL_7_20_1 0x071401
+#define CURL_7_21_0 0x071500
+#define CURL_7_21_1 0x071501
+#define CURL_7_21_2 0x071502
+#define CURL_7_21_3 0x071503
+#define CURL_7_21_4 0x071504
+#define CURL_7_21_5 0x071505
+#define CURL_7_21_6 0x071506
+#define CURL_7_21_7 0x071507
+#define CURL_7_22_0 0x071600
+#define CURL_7_23_0 0x071700
+#define CURL_7_23_1 0x071701
+#define CURL_7_24_0 0x071800
+
+#define hsc_symbol(name, type) \
+  printf("c" #name " :: " #type "\n"); \
+  printf("c" #name " =  " #type " "); hsc_const(name);
 
 
 -------------------------------------------------------------------------------
@@ -151,238 +170,238 @@ libCURL_VERSION_PATCH = #{const LIBCURL_VERSION_PATCH}
   }
 
 
-#{enum CCURLoption_I32, CCURLoption_I32
-  , cCURLOPT_PORT                    = CURLOPT_PORT
-  , cCURLOPT_TIMEOUT                 = CURLOPT_TIMEOUT
-  , cCURLOPT_INFILESIZE              = CURLOPT_INFILESIZE
-  , cCURLOPT_LOW_SPEED_LIMIT         = CURLOPT_LOW_SPEED_LIMIT
-  , cCURLOPT_LOW_SPEED_TIME          = CURLOPT_LOW_SPEED_TIME
-  , cCURLOPT_RESUME_FROM             = CURLOPT_RESUME_FROM
-  , cCURLOPT_CRLF                    = CURLOPT_CRLF
-  , cCURLOPT_SSLVERSION              = CURLOPT_SSLVERSION
-  , cCURLOPT_TIMECONDITION           = CURLOPT_TIMECONDITION
-  , cCURLOPT_TIMEVALUE               = CURLOPT_TIMEVALUE
-  , cCURLOPT_VERBOSE                 = CURLOPT_VERBOSE
-  , cCURLOPT_HEADER                  = CURLOPT_HEADER
-  , cCURLOPT_NOPROGRESS              = CURLOPT_NOPROGRESS
-  , cCURLOPT_NOBODY                  = CURLOPT_NOBODY
-  , cCURLOPT_FAILONERROR             = CURLOPT_FAILONERROR
-  , cCURLOPT_UPLOAD                  = CURLOPT_UPLOAD
-  , cCURLOPT_POST                    = CURLOPT_POST
-  , cCURLOPT_DIRLISTONLY             = CURLOPT_DIRLISTONLY
-  , cCURLOPT_APPEND                  = CURLOPT_APPEND
-  , cCURLOPT_NETRC                   = CURLOPT_NETRC
-  , cCURLOPT_FOLLOWLOCATION          = CURLOPT_FOLLOWLOCATION
-  , cCURLOPT_TRANSFERTEXT            = CURLOPT_TRANSFERTEXT
-  , cCURLOPT_PUT                     = CURLOPT_PUT
-  , cCURLOPT_AUTOREFERER             = CURLOPT_AUTOREFERER
-  , cCURLOPT_PROXYPORT               = CURLOPT_PROXYPORT
-  , cCURLOPT_POSTFIELDSIZE           = CURLOPT_POSTFIELDSIZE
-  , cCURLOPT_HTTPPROXYTUNNEL         = CURLOPT_HTTPPROXYTUNNEL
-  , cCURLOPT_SSL_VERIFYPEER          = CURLOPT_SSL_VERIFYPEER
-  , cCURLOPT_MAXREDIRS               = CURLOPT_MAXREDIRS
-  , cCURLOPT_FILETIME                = CURLOPT_FILETIME
-  , cCURLOPT_MAXCONNECTS             = CURLOPT_MAXCONNECTS
-  , cCURLOPT_CLOSEPOLICY             = CURLOPT_CLOSEPOLICY
-  , cCURLOPT_FRESH_CONNECT           = CURLOPT_FRESH_CONNECT
-  , cCURLOPT_FORBID_REUSE            = CURLOPT_FORBID_REUSE
-  , cCURLOPT_CONNECTTIMEOUT          = CURLOPT_CONNECTTIMEOUT
-  , cCURLOPT_HTTPGET                 = CURLOPT_HTTPGET
-  , cCURLOPT_SSL_VERIFYHOST          = CURLOPT_SSL_VERIFYHOST
-  , cCURLOPT_HTTP_VERSION            = CURLOPT_HTTP_VERSION
-  , cCURLOPT_FTP_USE_EPSV            = CURLOPT_FTP_USE_EPSV
-  , cCURLOPT_SSLENGINE_DEFAULT       = CURLOPT_SSLENGINE_DEFAULT
-  , cCURLOPT_DNS_USE_GLOBAL_CACHE    = CURLOPT_DNS_USE_GLOBAL_CACHE
-  , cCURLOPT_DNS_CACHE_TIMEOUT       = CURLOPT_DNS_CACHE_TIMEOUT
-  , cCURLOPT_COOKIESESSION           = CURLOPT_COOKIESESSION
-  , cCURLOPT_BUFFERSIZE              = CURLOPT_BUFFERSIZE
-  , cCURLOPT_NOSIGNAL                = CURLOPT_NOSIGNAL
-  , cCURLOPT_PROXYTYPE               = CURLOPT_PROXYTYPE
-  , cCURLOPT_UNRESTRICTED_AUTH       = CURLOPT_UNRESTRICTED_AUTH
-  , cCURLOPT_FTP_USE_EPRT            = CURLOPT_FTP_USE_EPRT
-  , cCURLOPT_HTTPAUTH                = CURLOPT_HTTPAUTH
-  , cCURLOPT_FTP_CREATE_MISSING_DIRS = CURLOPT_FTP_CREATE_MISSING_DIRS
-  , cCURLOPT_PROXYAUTH               = CURLOPT_PROXYAUTH
-  , cCURLOPT_FTP_RESPONSE_TIMEOUT    = CURLOPT_FTP_RESPONSE_TIMEOUT
-  , cCURLOPT_IPRESOLVE               = CURLOPT_IPRESOLVE
-  , cCURLOPT_MAXFILESIZE             = CURLOPT_MAXFILESIZE
-  , cCURLOPT_USE_SSL                 = CURLOPT_USE_SSL
-  , cCURLOPT_TCP_NODELAY             = CURLOPT_TCP_NODELAY
-  , cCURLOPT_FTPSSLAUTH              = CURLOPT_FTPSSLAUTH
-  , cCURLOPT_IGNORE_CONTENT_LENGTH   = CURLOPT_IGNORE_CONTENT_LENGTH
-  , cCURLOPT_FTP_SKIP_PASV_IP        = CURLOPT_FTP_SKIP_PASV_IP
-  , cCURLOPT_FTP_FILEMETHOD          = CURLOPT_FTP_FILEMETHOD
-  , cCURLOPT_LOCALPORT               = CURLOPT_LOCALPORT
-  , cCURLOPT_LOCALPORTRANGE          = CURLOPT_LOCALPORTRANGE
-  , cCURLOPT_CONNECT_ONLY            = CURLOPT_CONNECT_ONLY
-  , cCURLOPT_SSL_SESSIONID_CACHE     = CURLOPT_SSL_SESSIONID_CACHE
-  , cCURLOPT_SSH_AUTH_TYPES          = CURLOPT_SSH_AUTH_TYPES
-  , cCURLOPT_FTP_SSL_CCC             = CURLOPT_FTP_SSL_CCC
-  , cCURLOPT_TIMEOUT_MS              = CURLOPT_TIMEOUT_MS
-  , cCURLOPT_CONNECTTIMEOUT_MS       = CURLOPT_CONNECTTIMEOUT_MS
-  , cCURLOPT_HTTP_TRANSFER_DECODING  = CURLOPT_HTTP_TRANSFER_DECODING
-  , cCURLOPT_HTTP_CONTENT_DECODING   = CURLOPT_HTTP_CONTENT_DECODING
-  , cCURLOPT_NEW_FILE_PERMS          = CURLOPT_NEW_FILE_PERMS
-  , cCURLOPT_NEW_DIRECTORY_PERMS     = CURLOPT_NEW_DIRECTORY_PERMS
-  , cCURLOPT_POSTREDIR               = CURLOPT_POSTREDIR
-  , cCURLOPT_PROXY_TRANSFER_MODE     = CURLOPT_PROXY_TRANSFER_MODE
-  , cCURLOPT_ADDRESS_SCOPE           = CURLOPT_ADDRESS_SCOPE
-  , cCURLOPT_CERTINFO                = CURLOPT_CERTINFO
-  , cCURLOPT_TFTP_BLKSIZE            = CURLOPT_TFTP_BLKSIZE
-  , cCURLOPT_SOCKS5_GSSAPI_NEC       = CURLOPT_SOCKS5_GSSAPI_NEC
-  , cCURLOPT_PROTOCOLS               = CURLOPT_PROTOCOLS
-  , cCURLOPT_REDIR_PROTOCOLS         = CURLOPT_REDIR_PROTOCOLS
-  , cCURLOPT_FTP_USE_PRET            = CURLOPT_FTP_USE_PRET
-  , cCURLOPT_RTSP_REQUEST            = CURLOPT_RTSP_REQUEST
-  , cCURLOPT_RTSP_CLIENT_CSEQ        = CURLOPT_RTSP_CLIENT_CSEQ
-  , cCURLOPT_RTSP_SERVER_CSEQ        = CURLOPT_RTSP_SERVER_CSEQ
-  , cCURLOPT_WILDCARDMATCH           = CURLOPT_WILDCARDMATCH
-  } 
 
-#if LIBCURL_VERSION_NUM >= 0x071506
-#{enum CCURLoption_I32, CCURLoption_I32
-  , cCURLOPT_TRANSFER_ENCODING       = CURLOPT_TRANSFER_ENCODING
-  } 
+
+-------------------------------------------------------------------------------
+#define hsc_curlopt(name, type) \
+  printf("c" #name " :: CCURLoption'" #type "\n"); \
+  printf("c" #name " =  CCURLoption'" #type " "); hsc_const(name);
+
+#if LIBCURL_VERSION_NUM >= CURL_7_20_0
+#{curlopt CURLOPT_FILE                       , File   }
+#{curlopt CURLOPT_URL                        , String }
+#{curlopt CURLOPT_PORT                       , Int32  }
+#{curlopt CURLOPT_PROXY                      , String }
+#{curlopt CURLOPT_USERPWD                    , String }
+#{curlopt CURLOPT_PROXYUSERPWD               , String }
+#{curlopt CURLOPT_RANGE                      , String }
+#{curlopt CURLOPT_INFILE                     , File   }
+#{curlopt CURLOPT_ERRORBUFFER                , String }
+#{curlopt CURLOPT_WRITEFUNCTION              , FunPtr }
+#{curlopt CURLOPT_READFUNCTION               , FunPtr }
+#{curlopt CURLOPT_TIMEOUT                    , Int32  }
+#{curlopt CURLOPT_INFILESIZE                 , Int32  }
+#{curlopt CURLOPT_POSTFIELDS                 , Ptr_a  }
+#{curlopt CURLOPT_REFERER                    , String }
+#{curlopt CURLOPT_FTPPORT                    , String }
+#{curlopt CURLOPT_USERAGENT                  , String }
+#{curlopt CURLOPT_LOW_SPEED_LIMIT            , Int32  }
+#{curlopt CURLOPT_LOW_SPEED_TIME             , Int32  }
+#{curlopt CURLOPT_RESUME_FROM                , Int32  }
+#{curlopt CURLOPT_COOKIE                     , String }
+#{curlopt CURLOPT_HTTPHEADER                 , SList  }
+#{curlopt CURLOPT_HTTPPOST                   , HTTPP  }
+#{curlopt CURLOPT_SSLCERT                    , String }
+#{curlopt CURLOPT_KEYPASSWD                  , String }
+#{curlopt CURLOPT_CRLF                       , Int32  }
+#{curlopt CURLOPT_QUOTE                      , SList  }
+#{curlopt CURLOPT_WRITEHEADER                , Ptr_a  }
+#{curlopt CURLOPT_COOKIEFILE                 , String }
+#{curlopt CURLOPT_SSLVERSION                 , Int32  }
+#{curlopt CURLOPT_TIMECONDITION              , Int32  }
+#{curlopt CURLOPT_TIMEVALUE                  , Int32  }
+#{curlopt CURLOPT_CUSTOMREQUEST              , String }
+#{curlopt CURLOPT_STDERR                     , File   }
+#{curlopt CURLOPT_POSTQUOTE                  , SList  }
+#{curlopt CURLOPT_WRITEINFO                  , String }
+#{curlopt CURLOPT_VERBOSE                    , Int32  }
+#{curlopt CURLOPT_HEADER                     , Int32  }
+#{curlopt CURLOPT_NOPROGRESS                 , Int32  }
+#{curlopt CURLOPT_NOBODY                     , Int32  }
+#{curlopt CURLOPT_FAILONERROR                , Int32  }
+#{curlopt CURLOPT_UPLOAD                     , Int32  }
+#{curlopt CURLOPT_POST                       , Int32  }
+#{curlopt CURLOPT_DIRLISTONLY                , Int32  }
+#{curlopt CURLOPT_APPEND                     , Int32  }
+#{curlopt CURLOPT_NETRC                      , Int32  }
+#{curlopt CURLOPT_FOLLOWLOCATION             , Int32  }
+#{curlopt CURLOPT_TRANSFERTEXT               , Int32  }
+#{curlopt CURLOPT_PUT                        , Int32  }
+#{curlopt CURLOPT_PROGRESSFUNCTION           , FunPtr }
+#{curlopt CURLOPT_PROGRESSDATA               , Ptr_a  }
+#{curlopt CURLOPT_AUTOREFERER                , Int32  }
+#{curlopt CURLOPT_PROXYPORT                  , Int32  }
+#{curlopt CURLOPT_POSTFIELDSIZE              , Int32  }
+#{curlopt CURLOPT_HTTPPROXYTUNNEL            , Int32  }
+#{curlopt CURLOPT_INTERFACE                  , String }
+#{curlopt CURLOPT_KRBLEVEL                   , String }
+#{curlopt CURLOPT_SSL_VERIFYPEER             , Int32  }
+#{curlopt CURLOPT_CAINFO                     , String }
+#{curlopt CURLOPT_MAXREDIRS                  , Int32  }
+#{curlopt CURLOPT_FILETIME                   , Int32  }
+#{curlopt CURLOPT_TELNETOPTIONS              , SList  }
+#{curlopt CURLOPT_MAXCONNECTS                , Int32  }
+#{curlopt CURLOPT_CLOSEPOLICY                , Int32  }
+#{curlopt CURLOPT_FRESH_CONNECT              , Int32  }
+#{curlopt CURLOPT_FORBID_REUSE               , Int32  }
+#{curlopt CURLOPT_RANDOM_FILE                , String }
+#{curlopt CURLOPT_EGDSOCKET                  , String }
+#{curlopt CURLOPT_CONNECTTIMEOUT             , Int32  }
+#{curlopt CURLOPT_HEADERFUNCTION             , FunPtr }
+#{curlopt CURLOPT_HTTPGET                    , Int32  }
+#{curlopt CURLOPT_SSL_VERIFYHOST             , Int32  }
+#{curlopt CURLOPT_COOKIEJAR                  , String }
+#{curlopt CURLOPT_SSL_CIPHER_LIST            , String }
+#{curlopt CURLOPT_HTTP_VERSION               , Int32  }
+#{curlopt CURLOPT_FTP_USE_EPSV               , Int32  }
+#{curlopt CURLOPT_SSLCERTTYPE                , String }
+#{curlopt CURLOPT_SSLKEY                     , String }
+#{curlopt CURLOPT_SSLKEYTYPE                 , String }
+#{curlopt CURLOPT_SSLENGINE                  , String }
+#{curlopt CURLOPT_SSLENGINE_DEFAULT          , Int32  }
+#{curlopt CURLOPT_DNS_USE_GLOBAL_CACHE       , Int32  }
+#{curlopt CURLOPT_DNS_CACHE_TIMEOUT          , Int32  }
+#{curlopt CURLOPT_PREQUOTE                   , SList  }
+#{curlopt CURLOPT_DEBUGFUNCTION              , FunPtr }
+#{curlopt CURLOPT_DEBUGDATA                  , Ptr_a  }
+#{curlopt CURLOPT_COOKIESESSION              , Int32  }
+#{curlopt CURLOPT_CAPATH                     , String }
+#{curlopt CURLOPT_BUFFERSIZE                 , Int32  }
+#{curlopt CURLOPT_NOSIGNAL                   , Int32  }
+#{curlopt CURLOPT_SHARE                      , Share  }
+#{curlopt CURLOPT_PROXYTYPE                  , Int32  }
+#if LIBCURL_VERSION_NUM < CURL_7_21_6
+#{curlopt CURLOPT_ENCODING                   , String }
+#endif
+#{curlopt CURLOPT_PRIVATE                    , Ptr_a  }
+#{curlopt CURLOPT_HTTP200ALIASES             , SList  }
+#{curlopt CURLOPT_UNRESTRICTED_AUTH          , Int32  }
+#{curlopt CURLOPT_FTP_USE_EPRT               , Int32  }
+#{curlopt CURLOPT_HTTPAUTH                   , Int32  }
+#{curlopt CURLOPT_SSL_CTX_FUNCTION           , FunPtr }
+#{curlopt CURLOPT_SSL_CTX_DATA               , Ptr_a  }
+#{curlopt CURLOPT_FTP_CREATE_MISSING_DIRS    , Int32  }
+#{curlopt CURLOPT_PROXYAUTH                  , Int32  }
+#{curlopt CURLOPT_FTP_RESPONSE_TIMEOUT       , Int32  }
+#{curlopt CURLOPT_IPRESOLVE                  , Int32  }
+#{curlopt CURLOPT_MAXFILESIZE                , Int32  }
+#{curlopt CURLOPT_INFILESIZE_LARGE           , Int64  }
+#{curlopt CURLOPT_RESUME_FROM_LARGE          , Int64  }
+#{curlopt CURLOPT_MAXFILESIZE_LARGE          , Int64  }
+#{curlopt CURLOPT_NETRC_FILE                 , String }
+#{curlopt CURLOPT_USE_SSL                    , Int32  }
+#{curlopt CURLOPT_POSTFIELDSIZE_LARGE        , Int64  }
+#{curlopt CURLOPT_TCP_NODELAY                , Int32  }
+#{curlopt CURLOPT_FTPSSLAUTH                 , Int32  }
+#{curlopt CURLOPT_IOCTLFUNCTION              , FunPtr }
+#{curlopt CURLOPT_IOCTLDATA                  , Ptr_a  }
+#{curlopt CURLOPT_FTP_ACCOUNT                , String }
+#{curlopt CURLOPT_COOKIELIST                 , String }
+#{curlopt CURLOPT_IGNORE_CONTENT_LENGTH      , Int32  }
+#{curlopt CURLOPT_FTP_SKIP_PASV_IP           , Int32  }
+#{curlopt CURLOPT_FTP_FILEMETHOD             , Int32  }
+#{curlopt CURLOPT_LOCALPORT                  , Int32  }
+#{curlopt CURLOPT_LOCALPORTRANGE             , Int32  }
+#{curlopt CURLOPT_CONNECT_ONLY               , Int32  }
+#{curlopt CURLOPT_CONV_FROM_NETWORK_FUNCTION , FunPtr }
+#{curlopt CURLOPT_CONV_TO_NETWORK_FUNCTION   , FunPtr }
+#{curlopt CURLOPT_CONV_FROM_UTF8_FUNCTION    , FunPtr }
+#{curlopt CURLOPT_MAX_SEND_SPEED_LARGE       , Int64  }
+#{curlopt CURLOPT_MAX_RECV_SPEED_LARGE       , Int64  }
+#{curlopt CURLOPT_FTP_ALTERNATIVE_TO_USER    , String }
+#{curlopt CURLOPT_SOCKOPTFUNCTION            , FunPtr }
+#{curlopt CURLOPT_SOCKOPTDATA                , Ptr_a  }
+#{curlopt CURLOPT_SSL_SESSIONID_CACHE        , Int32  }
+#{curlopt CURLOPT_SSH_AUTH_TYPES             , Int32  }
+#{curlopt CURLOPT_SSH_PUBLIC_KEYFILE         , String }
+#{curlopt CURLOPT_SSH_PRIVATE_KEYFILE        , String }
+#{curlopt CURLOPT_FTP_SSL_CCC                , Int32  }
+#{curlopt CURLOPT_TIMEOUT_MS                 , Int32  }
+#{curlopt CURLOPT_CONNECTTIMEOUT_MS          , Int32  }
+#{curlopt CURLOPT_HTTP_TRANSFER_DECODING     , Int32  }
+#{curlopt CURLOPT_HTTP_CONTENT_DECODING      , Int32  }
+#{curlopt CURLOPT_NEW_FILE_PERMS             , Int32  }
+#{curlopt CURLOPT_NEW_DIRECTORY_PERMS        , Int32  }
+#{curlopt CURLOPT_POSTREDIR                  , Int32  }
+#{curlopt CURLOPT_SSH_HOST_PUBLIC_KEY_MD5    , String }
+#{curlopt CURLOPT_OPENSOCKETFUNCTION         , FunPtr }
+#{curlopt CURLOPT_OPENSOCKETDATA             , Ptr_a  }
+#{curlopt CURLOPT_COPYPOSTFIELDS             , String }
+#{curlopt CURLOPT_PROXY_TRANSFER_MODE        , Int32  }
+#{curlopt CURLOPT_SEEKFUNCTION               , FunPtr }
+#{curlopt CURLOPT_SEEKDATA                   , Ptr_a  }
+#{curlopt CURLOPT_CRLFILE                    , String }
+#{curlopt CURLOPT_ISSUERCERT                 , String }
+#{curlopt CURLOPT_ADDRESS_SCOPE              , Int32  }
+#{curlopt CURLOPT_CERTINFO                   , Int32  }
+#{curlopt CURLOPT_USERNAME                   , String }
+#{curlopt CURLOPT_PASSWORD                   , String }
+#{curlopt CURLOPT_PROXYUSERNAME              , String }
+#{curlopt CURLOPT_PROXYPASSWORD              , String }
+#{curlopt CURLOPT_NOPROXY                    , String }
+#{curlopt CURLOPT_TFTP_BLKSIZE               , Int32  }
+#{curlopt CURLOPT_SOCKS5_GSSAPI_SERVICE      , String }
+#{curlopt CURLOPT_SOCKS5_GSSAPI_NEC          , Int32  }
+#{curlopt CURLOPT_PROTOCOLS                  , Int32  }
+#{curlopt CURLOPT_REDIR_PROTOCOLS            , Int32  }
+#{curlopt CURLOPT_SSH_KNOWNHOSTS             , String }
+#{curlopt CURLOPT_SSH_KEYFUNCTION            , FunPtr }
+#{curlopt CURLOPT_SSH_KEYDATA                , Ptr_a  }
+#{curlopt CURLOPT_MAIL_FROM                  , String }
+#{curlopt CURLOPT_MAIL_RCPT                  , SList  }
+#{curlopt CURLOPT_FTP_USE_PRET               , Int32  }
+#{curlopt CURLOPT_RTSP_REQUEST               , Int32  }
+#{curlopt CURLOPT_RTSP_SESSION_ID            , String }
+#{curlopt CURLOPT_RTSP_STREAM_URI            , String }
+#{curlopt CURLOPT_RTSP_TRANSPORT             , String }
+#{curlopt CURLOPT_RTSP_CLIENT_CSEQ           , Int32  }
+#{curlopt CURLOPT_RTSP_SERVER_CSEQ           , Int32  }
+#{curlopt CURLOPT_INTERLEAVEDATA             , Ptr_a  }
+#{curlopt CURLOPT_INTERLEAVEFUNCTION         , FunPtr }
 #endif
 
-#if LIBCURL_VERSION_NUM >= 0x071600
-#{enum CCURLoption_I32, CCURLoption_I32
-  , cCURLOPT_GSSAPI_DELEGATION       = CURLOPT_GSSAPI_DELEGATION
-  } 
+#if LIBCURL_VERSION_NUM >= CURL_7_21_0
+#{curlopt CURLOPT_WILDCARDMATCH              , Int32  }
+#{curlopt CURLOPT_CHUNK_BGN_FUNCTION         , FunPtr }
+#{curlopt CURLOPT_CHUNK_END_FUNCTION         , FunPtr }
+#{curlopt CURLOPT_FNMATCH_FUNCTION           , FunPtr }
+#{curlopt CURLOPT_CHUNK_DATA                 , Ptr_a  }
+#{curlopt CURLOPT_FNMATCH_DATA               , Ptr_a  }
+#endif
+
+#if LIBCURL_VERSION_NUM >= CURL_7_21_3
+#{curlopt CURLOPT_RESOLVE                    , SList  }
+#endif
+
+#if LIBCURL_VERSION_NUM >= CURL_7_21_4
+#{curlopt CURLOPT_TLSAUTH_USERNAME           , String }
+#{curlopt CURLOPT_TLSAUTH_PASSWORD           , String }
+#{curlopt CURLOPT_TLSAUTH_TYPE               , String }
+#endif
+
+#if LIBCURL_VERSION_NUM >= CURL_7_21_6
+#{curlopt CURLOPT_ACCEPT_ENCODING            , String }
+#{curlopt CURLOPT_TRANSFER_ENCODING          , Int32  }
+#endif
+
+#if LIBCURL_VERSION_NUM >= CURL_7_21_7
+#{curlopt CURLOPT_CLOSESOCKETFUNCTION        , FunPtr }
+#{curlopt CURLOPT_CLOSESOCKETDATA            , Ptr_a  }
+#endif
+
+#if LIBCURL_VERSION_NUM >= CURL_7_22_0
+#{curlopt CURLOPT_GSSAPI_DELEGATION          , Int32  }
+#endif
+
+#if LIBCURL_VERSION_NUM >= CURL_7_24_0
+#{curlopt CURLOPT_DNS_SERVERS                , String }
+#{curlopt CURLOPT_ACCEPTTIMEOUT_MS           , Int32  }
 #endif
 
 
-#{enum CCURLoption_I64, CCURLoption_I64
-  , cCURLOPT_INFILESIZE_LARGE     = CURLOPT_INFILESIZE_LARGE
-  , cCURLOPT_RESUME_FROM_LARGE    = CURLOPT_RESUME_FROM_LARGE
-  , cCURLOPT_MAXFILESIZE_LARGE    = CURLOPT_MAXFILESIZE_LARGE
-  , cCURLOPT_POSTFIELDSIZE_LARGE  = CURLOPT_POSTFIELDSIZE_LARGE
-  , cCURLOPT_MAX_SEND_SPEED_LARGE = CURLOPT_MAX_SEND_SPEED_LARGE
-  , cCURLOPT_MAX_RECV_SPEED_LARGE = CURLOPT_MAX_RECV_SPEED_LARGE
-  }
-
-#{enum CCURLoption_String, CCURLoption_String
-  , cCURLOPT_URL                     = CURLOPT_URL
-  , cCURLOPT_PROXY                   = CURLOPT_PROXY
-  , cCURLOPT_USERPWD                 = CURLOPT_USERPWD
-  , cCURLOPT_PROXYUSERPWD            = CURLOPT_PROXYUSERPWD
-  , cCURLOPT_RANGE                   = CURLOPT_RANGE
-  , cCURLOPT_ERRORBUFFER             = CURLOPT_ERRORBUFFER
-  , cCURLOPT_REFERER                 = CURLOPT_REFERER
-  , cCURLOPT_FTPPORT                 = CURLOPT_FTPPORT
-  , cCURLOPT_USERAGENT               = CURLOPT_USERAGENT
-  , cCURLOPT_COOKIE                  = CURLOPT_COOKIE
-  , cCURLOPT_SSLCERT                 = CURLOPT_SSLCERT
-  , cCURLOPT_KEYPASSWD               = CURLOPT_KEYPASSWD
-  , cCURLOPT_COOKIEFILE              = CURLOPT_COOKIEFILE
-  , cCURLOPT_CUSTOMREQUEST           = CURLOPT_CUSTOMREQUEST
-  , cCURLOPT_INTERFACE               = CURLOPT_INTERFACE
-  , cCURLOPT_KRBLEVEL                = CURLOPT_KRBLEVEL
-  , cCURLOPT_CAINFO                  = CURLOPT_CAINFO
-  , cCURLOPT_RANDOM_FILE             = CURLOPT_RANDOM_FILE
-  , cCURLOPT_EGDSOCKET               = CURLOPT_EGDSOCKET
-  , cCURLOPT_COOKIEJAR               = CURLOPT_COOKIEJAR
-  , cCURLOPT_SSL_CIPHER_LIST         = CURLOPT_SSL_CIPHER_LIST
-  , cCURLOPT_SSLCERTTYPE             = CURLOPT_SSLCERTTYPE
-  , cCURLOPT_SSLKEY                  = CURLOPT_SSLKEY
-  , cCURLOPT_SSLKEYTYPE              = CURLOPT_SSLKEYTYPE
-  , cCURLOPT_SSLENGINE               = CURLOPT_SSLENGINE
-  , cCURLOPT_CAPATH                  = CURLOPT_CAPATH
-  , cCURLOPT_NETRC_FILE              = CURLOPT_NETRC_FILE
-  , cCURLOPT_FTP_ACCOUNT             = CURLOPT_FTP_ACCOUNT
-  , cCURLOPT_COOKIELIST              = CURLOPT_COOKIELIST
-  , cCURLOPT_FTP_ALTERNATIVE_TO_USER = CURLOPT_FTP_ALTERNATIVE_TO_USER
-  , cCURLOPT_SSH_PUBLIC_KEYFILE      = CURLOPT_SSH_PUBLIC_KEYFILE
-  , cCURLOPT_SSH_PRIVATE_KEYFILE     = CURLOPT_SSH_PRIVATE_KEYFILE
-  , cCURLOPT_SSH_HOST_PUBLIC_KEY_MD5 = CURLOPT_SSH_HOST_PUBLIC_KEY_MD5
-  , cCURLOPT_COPYPOSTFIELDS          = CURLOPT_COPYPOSTFIELDS
-  , cCURLOPT_CRLFILE                 = CURLOPT_CRLFILE
-  , cCURLOPT_ISSUERCERT              = CURLOPT_ISSUERCERT
-  , cCURLOPT_USERNAME                = CURLOPT_USERNAME
-  , cCURLOPT_PASSWORD                = CURLOPT_PASSWORD
-  , cCURLOPT_PROXYUSERNAME           = CURLOPT_PROXYUSERNAME
-  , cCURLOPT_PROXYPASSWORD           = CURLOPT_PROXYPASSWORD
-  , cCURLOPT_NOPROXY                 = CURLOPT_NOPROXY
-  , cCURLOPT_SOCKS5_GSSAPI_SERVICE   = CURLOPT_SOCKS5_GSSAPI_SERVICE
-  , cCURLOPT_SSH_KNOWNHOSTS          = CURLOPT_SSH_KNOWNHOSTS
-  , cCURLOPT_MAIL_FROM               = CURLOPT_MAIL_FROM
-  , cCURLOPT_RTSP_SESSION_ID         = CURLOPT_RTSP_SESSION_ID
-  , cCURLOPT_RTSP_STREAM_URI         = CURLOPT_RTSP_STREAM_URI
-  , cCURLOPT_RTSP_TRANSPORT          = CURLOPT_RTSP_TRANSPORT
-  }
-
-#{enum CCURLoption_SList, CCURLoption_SList
-  , cCURLOPT_HTTPHEADER              = CURLOPT_HTTPHEADER
-  , cCURLOPT_QUOTE                   = CURLOPT_QUOTE
-  , cCURLOPT_POSTQUOTE               = CURLOPT_POSTQUOTE
-  , cCURLOPT_TELNETOPTIONS           = CURLOPT_TELNETOPTIONS
-  , cCURLOPT_PREQUOTE                = CURLOPT_PREQUOTE
-  , cCURLOPT_HTTP200ALIASES          = CURLOPT_HTTP200ALIASES
-  , cCURLOPT_MAIL_RCPT               = CURLOPT_MAIL_RCPT
-  , cCURLOPT_RESOLVE                 = CURLOPT_RESOLVE
-  }
-
-#{enum CCURLoption_File, CCURLoption_File
-  , cCURLOPT_FILE                    = CURLOPT_FILE
-  , cCURLOPT_INFILE                  = CURLOPT_INFILE
-  , cCURLOPT_STDERR                  = CURLOPT_STDERR
-  }
-
-#{enum CCURLoption_HTTPP, CCURLoption_HTTPP
-  , cCURLOPT_HTTPPOST                = CURLOPT_HTTPPOST
-  }
-
-#{enum CCURLoption_Share, CCURLoption_Share
-  , cCURLOPT_SHARE                   = CURLOPT_SHARE
-  }
-
-#{enum CCURLoption_Ptr_a, CCURLoption_Ptr_a
-  , cCURLOPT_POSTFIELDS              = CURLOPT_POSTFIELDS
-  , cCURLOPT_WRITEHEADER             = CURLOPT_WRITEHEADER
-  , cCURLOPT_WRITEINFO               = CURLOPT_WRITEINFO
-  , cCURLOPT_PROGRESSDATA            = CURLOPT_PROGRESSDATA
-  , cCURLOPT_DEBUGDATA               = CURLOPT_DEBUGDATA
-  , cCURLOPT_PRIVATE                 = CURLOPT_PRIVATE
-  , cCURLOPT_SSL_CTX_DATA            = CURLOPT_SSL_CTX_DATA
-  , cCURLOPT_IOCTLDATA               = CURLOPT_IOCTLDATA
-  , cCURLOPT_SOCKOPTDATA             = CURLOPT_SOCKOPTDATA
-  , cCURLOPT_OPENSOCKETDATA          = CURLOPT_OPENSOCKETDATA
-  , cCURLOPT_SEEKDATA                = CURLOPT_SEEKDATA
-  , cCURLOPT_SSH_KEYDATA             = CURLOPT_SSH_KEYDATA
-  , cCURLOPT_INTERLEAVEDATA          = CURLOPT_INTERLEAVEDATA
-  , cCURLOPT_CHUNK_DATA              = CURLOPT_CHUNK_DATA
-  , cCURLOPT_FNMATCH_DATA            = CURLOPT_FNMATCH_DATA
-  }
---  , cCURLOPT_ACCEPT_ENCODING         = CURLOPT_ACCEPT_ENCODING
---  , cCURLOPT_TLSAUTH_USERNAME        = CURLOPT_TLSAUTH_USERNAME
---  , cCURLOPT_TLSAUTH_PASSWORD        = CURLOPT_TLSAUTH_PASSWORD
---  , cCURLOPT_TLSAUTH_TYPE            = CURLOPT_TLSAUTH_TYPE
---  , cCURLOPT_CLOSESOCKETDATA         = CURLOPT_CLOSESOCKETDATA
 
 
-#{enum CCURLoption_FunPtr, CCURLoption_FunPtr
-  , cCURLOPT_WRITEFUNCTION              = CURLOPT_WRITEFUNCTION
-  , cCURLOPT_READFUNCTION               = CURLOPT_READFUNCTION
-  , cCURLOPT_PROGRESSFUNCTION           = CURLOPT_PROGRESSFUNCTION
-  , cCURLOPT_HEADERFUNCTION             = CURLOPT_HEADERFUNCTION
-  , cCURLOPT_DEBUGFUNCTION              = CURLOPT_DEBUGFUNCTION
-  , cCURLOPT_SSL_CTX_FUNCTION           = CURLOPT_SSL_CTX_FUNCTION
-  , cCURLOPT_IOCTLFUNCTION              = CURLOPT_IOCTLFUNCTION
-  , cCURLOPT_CONV_FROM_NETWORK_FUNCTION = CURLOPT_CONV_FROM_NETWORK_FUNCTION
-  , cCURLOPT_CONV_TO_NETWORK_FUNCTION   = CURLOPT_CONV_TO_NETWORK_FUNCTION
-  , cCURLOPT_CONV_FROM_UTF8_FUNCTION    = CURLOPT_CONV_FROM_UTF8_FUNCTION
-  , cCURLOPT_SOCKOPTFUNCTION            = CURLOPT_SOCKOPTFUNCTION
-  , cCURLOPT_OPENSOCKETFUNCTION         = CURLOPT_OPENSOCKETFUNCTION
-  , cCURLOPT_SEEKFUNCTION               = CURLOPT_SEEKFUNCTION
-  , cCURLOPT_SSH_KEYFUNCTION            = CURLOPT_SSH_KEYFUNCTION
-  , cCURLOPT_INTERLEAVEFUNCTION         = CURLOPT_INTERLEAVEFUNCTION
-  , cCURLOPT_CHUNK_BGN_FUNCTION         = CURLOPT_CHUNK_BGN_FUNCTION
-  , cCURLOPT_CHUNK_END_FUNCTION         = CURLOPT_CHUNK_END_FUNCTION
-  , cCURLOPT_FNMATCH_FUNCTION           = CURLOPT_FNMATCH_FUNCTION
-  }
---  , cCURLOPT_CLOSESOCKETFUNCTION        = CURLOPT_CLOSESOCKETFUNCTION
-
-
+-------------------------------------------------------------------------------
 #{enum CCURLinfo_S, CCURLinfo_S
   , cCURLINFO_EFFECTIVE_URL           = CURLINFO_EFFECTIVE_URL
   , cCURLINFO_CONTENT_TYPE            = CURLINFO_CONTENT_TYPE

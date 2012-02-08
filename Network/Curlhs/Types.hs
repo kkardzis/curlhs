@@ -226,13 +226,13 @@ data CURLinfo'S
   | CURLINFO_LOCAL_IP
   deriving (Eq, Show)
 
-instance FromC CCURLinfo_S CURLinfo'S where
+instance FromC CCURLinfo'S CURLinfo'S where
   fromC x = findWithDef (cError "CCURLinfo'S") x $ map swap knownCURLinfo'S
 
-instance FromH CURLinfo'S CCURLinfo_S where
+instance FromH CURLinfo'S CCURLinfo'S where
   fromH x = findWithDef (hError "CURLinfo'S") x knownCURLinfo'S
 
-knownCURLinfo'S :: [(CURLinfo'S, CCURLinfo_S)]
+knownCURLinfo'S :: [(CURLinfo'S, CCURLinfo'S)]
 knownCURLinfo'S =
   [ (CURLINFO_EFFECTIVE_URL  , cCURLINFO_EFFECTIVE_URL  )
   , (CURLINFO_CONTENT_TYPE   , cCURLINFO_CONTENT_TYPE   )
@@ -266,13 +266,13 @@ data CURLinfo'I
   | CURLINFO_LOCAL_PORT
   deriving (Eq, Show)
 
-instance FromC CCURLinfo_I CURLinfo'I where
+instance FromC CCURLinfo'I CURLinfo'I where
   fromC x = findWithDef (cError "CCURLinfo'I") x $ map swap knownCURLinfo'I
 
-instance FromH CURLinfo'I CCURLinfo_I where
+instance FromH CURLinfo'I CCURLinfo'I where
   fromH x = findWithDef (hError "CURLinfo'I") x knownCURLinfo'I
 
-knownCURLinfo'I :: [(CURLinfo'I, CCURLinfo_I)]
+knownCURLinfo'I :: [(CURLinfo'I, CCURLinfo'I)]
 knownCURLinfo'I =
   [ (CURLINFO_RESPONSE_CODE   , cCURLINFO_RESPONSE_CODE   )
   , (CURLINFO_HEADER_SIZE     , cCURLINFO_HEADER_SIZE     )
@@ -311,13 +311,13 @@ data CURLinfo'D
   | CURLINFO_APPCONNECT_TIME
   deriving (Eq, Show)
 
-instance FromC CCURLinfo_D CURLinfo'D where
+instance FromC CCURLinfo'D CURLinfo'D where
   fromC x = findWithDef (cError "CCURLinfo'D") x $ map swap knownCURLinfo'D
 
-instance FromH CURLinfo'D CCURLinfo_D where
+instance FromH CURLinfo'D CCURLinfo'D where
   fromH x = findWithDef (hError "CURLinfo'D") x knownCURLinfo'D
 
-knownCURLinfo'D :: [(CURLinfo'D, CCURLinfo_D)]
+knownCURLinfo'D :: [(CURLinfo'D, CCURLinfo'D)]
 knownCURLinfo'D =
   [ (CURLINFO_TOTAL_TIME             , cCURLINFO_TOTAL_TIME             )
   , (CURLINFO_NAMELOOKUP_TIME        , cCURLINFO_NAMELOOKUP_TIME        )
@@ -341,13 +341,13 @@ data CURLinfo'L
   | CURLINFO_CERTINFO
   deriving (Eq, Show)
 
-instance FromC CCURLinfo_L CURLinfo'L where
+instance FromC CCURLinfo'L CURLinfo'L where
   fromC x = findWithDef (cError "CCURLinfo'L") x $ map swap knownCURLinfo'L
 
-instance FromH CURLinfo'L CCURLinfo_L where
+instance FromH CURLinfo'L CCURLinfo'L where
   fromH x = findWithDef (hError "CURLinfo'L") x knownCURLinfo'L
 
-knownCURLinfo'L :: [(CURLinfo'L, CCURLinfo_L)]
+knownCURLinfo'L :: [(CURLinfo'L, CCURLinfo'L)]
 knownCURLinfo'L =
   [ (CURLINFO_SSL_ENGINES, cCURLINFO_SSL_ENGINES)
   , (CURLINFO_COOKIELIST , cCURLINFO_COOKIELIST )

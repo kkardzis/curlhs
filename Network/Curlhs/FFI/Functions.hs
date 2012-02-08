@@ -234,28 +234,28 @@ foreign import ccall "curl_easy_cleanup"
 foreign import ccall "curl_easy_getinfo"
   ccurl_easy_getinfo'S
     :: Ptr CCURL
-    -> CCURLinfo_S
+    -> CCURLinfo'S
     -> Ptr (Ptr CChar)
     -> IO CCURLcode
 
 foreign import ccall "curl_easy_getinfo"
   ccurl_easy_getinfo'I
     :: Ptr CCURL
-    -> CCURLinfo_I
+    -> CCURLinfo'I
     -> Ptr CLong
     -> IO CCURLcode
 
 foreign import ccall "curl_easy_getinfo"
   ccurl_easy_getinfo'D
     :: Ptr CCURL
-    -> CCURLinfo_D
+    -> CCURLinfo'D
     -> Ptr CDouble
     -> IO CCURLcode
 
 foreign import ccall "curl_easy_getinfo"
   ccurl_easy_getinfo'L
     :: Ptr CCURL
-    -> CCURLinfo_L
+    -> CCURLinfo'L
     -> Ptr (Ptr CCURL_slist)
     -> IO CCURLcode
 

@@ -12,8 +12,8 @@
 
 module Network.Curlhs.FFI.Symbols where
 
-import Network.Curlhs.FFI.Types
-import Foreign.C.Types
+import Foreign.C.Types (CInt)
+import Network.Curlhs.FFI.TypesH
 
 
 -------------------------------------------------------------------------------

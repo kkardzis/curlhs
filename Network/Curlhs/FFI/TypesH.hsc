@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Network.Curlhs.FFI.Types
+-- Module      :  Network.Curlhs.FFI.TypesH
 -- Copyright   :  Copyright © 2012 Krzysztof Kardzis
 -- License     :  ISC License (MIT/BSD-style, see LICENSE file for details)
 -- 
@@ -12,12 +12,14 @@
 
 {-# LANGUAGE EmptyDataDecls #-}
 
-module Network.Curlhs.FFI.Types where
+module Network.Curlhs.FFI.TypesH where
+
+import Foreign.C.Types (CChar, CInt, CUInt, CLong, CLLong, CSize, CTime)
+import Foreign.Storable (Storable (..))
+import Foreign.Ptr (Ptr, castPtr)
 
 import Control.Applicative ((<$>), (<*>))
-import Foreign.Storable
-import Foreign.C.Types
-import Foreign.Ptr
+
 
 #{include "curl/curl.h"}
 #{let alignof type = "(%ld)", (long) offsetof (struct {char x; type y;}, y)}

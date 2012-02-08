@@ -53,6 +53,7 @@ library
 
   other-modules:
     Network.Curlhs.TypesH
+    Network.Curlhs.FFI.TypesH
 
 source-repository head
   type:     git

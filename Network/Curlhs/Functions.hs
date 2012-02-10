@@ -20,6 +20,7 @@ module Network.Curlhs.Functions
   , curl_easy_cleanup
   , curl_easy_reset
   , curl_easy_perform
+  , curl_easy_setopt, CURLoption
   , curl_easy_getinfo, CURLinfo
   , curl_easy_strerror
   ) where
@@ -35,6 +36,21 @@ import Network.Curlhs.FFI.Functions
 
 import Network.Curlhs.TypesH
 import Network.Curlhs.Types
+
+
+-------------------------------------------------------------------------------
+curl_easy_setopt :: CURLoption opt a => CURL -> opt -> a -> IO ()
+curl_easy_setopt = setopt
+
+class CURLoption opt a where
+  setopt :: CURL -> opt -> a -> IO ()
+
+instance CURLoption CURLoption'S String where
+  setopt curl opt val = withCString val $ \ptr -> do
+    code <- fromC <$> ccurl_easy_setopt'String curl (fromH opt) ptr
+    ifOK code $ return ()
+
+
 
 
 -------------------------------------------------------------------------------

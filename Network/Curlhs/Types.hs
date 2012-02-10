@@ -16,6 +16,7 @@
 module Network.Curlhs.Types
   ( CURL
   , CURLcode (..)
+  , CURLoption'S (..)
   , CURLinfo'S (..)
   , CURLinfo'I (..)
   , CURLinfo'D (..)
@@ -212,6 +213,28 @@ knownCURLcode =
   , (CURLE_FTP_BAD_FILE_LIST       , cCURLE_FTP_BAD_FILE_LIST       )
   , (CURLE_CHUNK_FAILED            , cCURLE_CHUNK_FAILED            )
   ]
+
+
+
+-------------------------------------------------------------------------------
+data CURLoption'S
+  = CURLOPT_URL
+  deriving (Eq, Show)
+
+instance FromC CCURLoption'String CURLoption'S where
+  fromC x = findWithDef (cError "CCURLoption'S") x $ map swap knownCURLoption'S
+
+instance FromH CURLoption'S CCURLoption'String where
+  fromH x = findWithDef (hError "CURLoption'S") x knownCURLoption'S
+
+knownCURLoption'S :: [(CURLoption'S, CCURLoption'String)]
+knownCURLoption'S =
+  [ (CURLOPT_URL  , cCURLOPT_URL  )
+  ]
+
+
+
+
 
 
 -------------------------------------------------------------------------------

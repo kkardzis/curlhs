@@ -16,11 +16,8 @@
 module Network.Curlhs.Types
   ( CURL
   , CURLcode (..)
+  , CURLinfo (..)
   , CURLoption'S (..)
-  , CURLinfo'S (..)
-  , CURLinfo'I (..)
-  , CURLinfo'D (..)
-  , CURLinfo'L (..)
   , CURLversion (..), CURL_version_info_data (..)
   ) where
 
@@ -33,6 +30,7 @@ import Foreign.Ptr
 import Control.Exception
 import Data.Typeable
 
+import Data.Time (UTCTime)
 import Data.Tuple (swap)
 import Data.Bits
 
@@ -234,148 +232,52 @@ knownCURLoption'S =
 
 
 
-
-
-
 -------------------------------------------------------------------------------
-data CURLinfo'S
-  = CURLINFO_EFFECTIVE_URL
-  | CURLINFO_CONTENT_TYPE
-  | CURLINFO_PRIVATE
-  | CURLINFO_FTP_ENTRY_PATH
-  | CURLINFO_REDIRECT_URL
-  | CURLINFO_PRIMARY_IP
-  | CURLINFO_RTSP_SESSION_ID
-  | CURLINFO_LOCAL_IP
-  deriving (Eq, Show)
+data CURLinfo = CURLinfo
+  { curlinfo_effective_url           :: String
+  , curlinfo_response_code           :: Maybe Int
+  , curlinfo_http_connectcode        :: Maybe Int
+  , curlinfo_filetime                :: Maybe UTCTime
+  , curlinfo_total_time              :: Double
+  , curlinfo_namelookup_time         :: Double
+  , curlinfo_connect_time            :: Double
+  , curlinfo_appconnect_time         :: Double
+  , curlinfo_pretransfer_time        :: Double
+  , curlinfo_starttransfer_time      :: Double
+  , curlinfo_redirect_time           :: Double
+  , curlinfo_redirect_count          :: Int
+  , curlinfo_redirect_url            :: Maybe String
+  , curlinfo_size_upload             :: Double
+  , curlinfo_size_download           :: Double
+  , curlinfo_speed_download          :: Double
+  , curlinfo_speed_upload            :: Double
+  , curlinfo_header_size             :: Int  -- Int32??
+  , curlinfo_request_size            :: Int  -- Int32??
+  , curlinfo_ssl_verifyresult        :: Int  -- Bool??
+--  , curlinfo_ssl_engines             :: [String]
+  , curlinfo_content_length_download :: Maybe Double
+  , curlinfo_content_length_upload   :: Maybe Double
+  , curlinfo_content_type            :: Maybe String
+--  , curlinfo_private                 :: String   -- void??
+--  , curlinfo_httpauth_avail          :: Int      -- [CURLauth]
+--  , curlinfo_proxyauth_avail         :: Int      -- [CURLauth]
+--  , curlinfo_os_errno                :: Int      -- Maybe Int??
+  , curlinfo_num_connects            :: Int
+  , curlinfo_primary_ip              :: String
+  , curlinfo_primary_port            :: Int
+  , curlinfo_local_ip                :: String
+  , curlinfo_local_port              :: Int
+--  , curlinfo_cookielist              :: [String] -- Maybe [String]
+--  , curlinfo_lastsocket              :: Int      -- Maybe Int/CURLsocket??
+  , curlinfo_ftp_entry_path          :: Maybe String
+--  , curlinfo_certinfo                :: [String] -- curl_certinfo??
+  , curlinfo_condition_unmet         :: Bool
+  , curlinfo_rtsp_session_id         :: Maybe String
+  , curlinfo_rtsp_client_cseq        :: Int  --Int32??
+  , curlinfo_rtsp_server_cseq        :: Int  --Int32??
+  , curlinfo_rtsp_cseq_recv          :: Int  --Int32??
+  } deriving (Show)
 
-instance FromC CCURLinfo'S CURLinfo'S where
-  fromC x = findWithDef (cError "CCURLinfo'S") x $ map swap knownCURLinfo'S
-
-instance FromH CURLinfo'S CCURLinfo'S where
-  fromH x = findWithDef (hError "CURLinfo'S") x knownCURLinfo'S
-
-knownCURLinfo'S :: [(CURLinfo'S, CCURLinfo'S)]
-knownCURLinfo'S =
-  [ (CURLINFO_EFFECTIVE_URL  , cCURLINFO_EFFECTIVE_URL  )
-  , (CURLINFO_CONTENT_TYPE   , cCURLINFO_CONTENT_TYPE   )
-  , (CURLINFO_PRIVATE        , cCURLINFO_PRIVATE        )
-  , (CURLINFO_FTP_ENTRY_PATH , cCURLINFO_FTP_ENTRY_PATH )
-  , (CURLINFO_REDIRECT_URL   , cCURLINFO_REDIRECT_URL   )
-  , (CURLINFO_PRIMARY_IP     , cCURLINFO_PRIMARY_IP     )
-  , (CURLINFO_RTSP_SESSION_ID, cCURLINFO_RTSP_SESSION_ID)
-  , (CURLINFO_LOCAL_IP       , cCURLINFO_LOCAL_IP       )
-  ]
-
-
-data CURLinfo'I
-  = CURLINFO_RESPONSE_CODE
-  | CURLINFO_HEADER_SIZE
-  | CURLINFO_REQUEST_SIZE
-  | CURLINFO_SSL_VERIFYRESULT
-  | CURLINFO_FILETIME
-  | CURLINFO_REDIRECT_COUNT
-  | CURLINFO_HTTP_CONNECTCODE
-  | CURLINFO_HTTPAUTH_AVAIL
-  | CURLINFO_PROXYAUTH_AVAIL
-  | CURLINFO_OS_ERRNO
-  | CURLINFO_NUM_CONNECTS
-  | CURLINFO_LASTSOCKET
-  | CURLINFO_CONDITION_UNMET
-  | CURLINFO_RTSP_CLIENT_CSEQ
-  | CURLINFO_RTSP_SERVER_CSEQ
-  | CURLINFO_RTSP_CSEQ_RECV
-  | CURLINFO_PRIMARY_PORT
-  | CURLINFO_LOCAL_PORT
-  deriving (Eq, Show)
-
-instance FromC CCURLinfo'I CURLinfo'I where
-  fromC x = findWithDef (cError "CCURLinfo'I") x $ map swap knownCURLinfo'I
-
-instance FromH CURLinfo'I CCURLinfo'I where
-  fromH x = findWithDef (hError "CURLinfo'I") x knownCURLinfo'I
-
-knownCURLinfo'I :: [(CURLinfo'I, CCURLinfo'I)]
-knownCURLinfo'I =
-  [ (CURLINFO_RESPONSE_CODE   , cCURLINFO_RESPONSE_CODE   )
-  , (CURLINFO_HEADER_SIZE     , cCURLINFO_HEADER_SIZE     )
-  , (CURLINFO_REQUEST_SIZE    , cCURLINFO_REQUEST_SIZE    )
-  , (CURLINFO_SSL_VERIFYRESULT, cCURLINFO_SSL_VERIFYRESULT)
-  , (CURLINFO_FILETIME        , cCURLINFO_FILETIME        )
-  , (CURLINFO_REDIRECT_COUNT  , cCURLINFO_REDIRECT_COUNT  )
-  , (CURLINFO_HTTP_CONNECTCODE, cCURLINFO_HTTP_CONNECTCODE)
-  , (CURLINFO_HTTPAUTH_AVAIL  , cCURLINFO_HTTPAUTH_AVAIL  )
-  , (CURLINFO_PROXYAUTH_AVAIL , cCURLINFO_PROXYAUTH_AVAIL )
-  , (CURLINFO_OS_ERRNO        , cCURLINFO_OS_ERRNO        )
-  , (CURLINFO_NUM_CONNECTS    , cCURLINFO_NUM_CONNECTS    )
-  , (CURLINFO_LASTSOCKET      , cCURLINFO_LASTSOCKET      )
-  , (CURLINFO_CONDITION_UNMET , cCURLINFO_CONDITION_UNMET )
-  , (CURLINFO_RTSP_CLIENT_CSEQ, cCURLINFO_RTSP_CLIENT_CSEQ)
-  , (CURLINFO_RTSP_SERVER_CSEQ, cCURLINFO_RTSP_SERVER_CSEQ)
-  , (CURLINFO_RTSP_CSEQ_RECV  , cCURLINFO_RTSP_CSEQ_RECV  )
-  , (CURLINFO_PRIMARY_PORT    , cCURLINFO_PRIMARY_PORT    )
-  , (CURLINFO_LOCAL_PORT      , cCURLINFO_LOCAL_PORT      )
-  ]
-
-
-data CURLinfo'D
-  = CURLINFO_TOTAL_TIME
-  | CURLINFO_NAMELOOKUP_TIME
-  | CURLINFO_CONNECT_TIME
-  | CURLINFO_PRETRANSFER_TIME
-  | CURLINFO_SIZE_UPLOAD
-  | CURLINFO_SIZE_DOWNLOAD
-  | CURLINFO_SPEED_DOWNLOAD
-  | CURLINFO_SPEED_UPLOAD
-  | CURLINFO_CONTENT_LENGTH_DOWNLOAD
-  | CURLINFO_CONTENT_LENGTH_UPLOAD
-  | CURLINFO_STARTTRANSFER_TIME
-  | CURLINFO_REDIRECT_TIME
-  | CURLINFO_APPCONNECT_TIME
-  deriving (Eq, Show)
-
-instance FromC CCURLinfo'D CURLinfo'D where
-  fromC x = findWithDef (cError "CCURLinfo'D") x $ map swap knownCURLinfo'D
-
-instance FromH CURLinfo'D CCURLinfo'D where
-  fromH x = findWithDef (hError "CURLinfo'D") x knownCURLinfo'D
-
-knownCURLinfo'D :: [(CURLinfo'D, CCURLinfo'D)]
-knownCURLinfo'D =
-  [ (CURLINFO_TOTAL_TIME             , cCURLINFO_TOTAL_TIME             )
-  , (CURLINFO_NAMELOOKUP_TIME        , cCURLINFO_NAMELOOKUP_TIME        )
-  , (CURLINFO_CONNECT_TIME           , cCURLINFO_CONNECT_TIME           )
-  , (CURLINFO_PRETRANSFER_TIME       , cCURLINFO_PRETRANSFER_TIME       )
-  , (CURLINFO_SIZE_UPLOAD            , cCURLINFO_SIZE_UPLOAD            )
-  , (CURLINFO_SIZE_DOWNLOAD          , cCURLINFO_SIZE_DOWNLOAD          )
-  , (CURLINFO_SPEED_DOWNLOAD         , cCURLINFO_SPEED_DOWNLOAD         )
-  , (CURLINFO_SPEED_UPLOAD           , cCURLINFO_SPEED_UPLOAD           )
-  , (CURLINFO_CONTENT_LENGTH_DOWNLOAD, cCURLINFO_CONTENT_LENGTH_DOWNLOAD)
-  , (CURLINFO_CONTENT_LENGTH_UPLOAD  , cCURLINFO_CONTENT_LENGTH_UPLOAD  )
-  , (CURLINFO_STARTTRANSFER_TIME     , cCURLINFO_STARTTRANSFER_TIME     )
-  , (CURLINFO_REDIRECT_TIME          , cCURLINFO_REDIRECT_TIME          )
-  , (CURLINFO_APPCONNECT_TIME        , cCURLINFO_APPCONNECT_TIME        )
-  ]
-
-
-data CURLinfo'L
-  = CURLINFO_SSL_ENGINES
-  | CURLINFO_COOKIELIST
-  | CURLINFO_CERTINFO
-  deriving (Eq, Show)
-
-instance FromC CCURLinfo'L CURLinfo'L where
-  fromC x = findWithDef (cError "CCURLinfo'L") x $ map swap knownCURLinfo'L
-
-instance FromH CURLinfo'L CCURLinfo'L where
-  fromH x = findWithDef (hError "CURLinfo'L") x knownCURLinfo'L
-
-knownCURLinfo'L :: [(CURLinfo'L, CCURLinfo'L)]
-knownCURLinfo'L =
-  [ (CURLINFO_SSL_ENGINES, cCURLINFO_SSL_ENGINES)
-  , (CURLINFO_COOKIELIST , cCURLINFO_COOKIELIST )
-  , (CURLINFO_CERTINFO   , cCURLINFO_CERTINFO   )
-  ]
 
 
 -------------------------------------------------------------------------------

@@ -99,7 +99,7 @@ curl_easy_getinfo curl = CURLinfo
   <*> curl_easy_getinfo'I curl cCURLINFO_HEADER_SIZE
   <*> curl_easy_getinfo'I curl cCURLINFO_REQUEST_SIZE
   <*> curl_easy_getinfo'I curl cCURLINFO_SSL_VERIFYRESULT
---  <*> curl_easy_getinfo'L curl cCURLINFO_SSL_ENGINES    -- [String]
+  <*> curl_easy_getinfo'L curl cCURLINFO_SSL_ENGINES
   <*> getinfo'ContentLen  curl cCURLINFO_CONTENT_LENGTH_DOWNLOAD
   <*> getinfo'ContentLen  curl cCURLINFO_CONTENT_LENGTH_UPLOAD
   <*> getinfo'MString     curl cCURLINFO_CONTENT_TYPE
@@ -112,7 +112,7 @@ curl_easy_getinfo curl = CURLinfo
   <*> curl_easy_getinfo'I curl cCURLINFO_PRIMARY_PORT
   <*> curl_easy_getinfo'S curl cCURLINFO_LOCAL_IP
   <*> curl_easy_getinfo'I curl cCURLINFO_LOCAL_PORT
---  <*> curl_easy_getinfo'L curl cCURLINFO_COOKIELIST     -- [String]
+  <*> curl_easy_getinfo'L curl cCURLINFO_COOKIELIST
 --  <*> curl_easy_getinfo'I curl cCURLINFO_LASTSOCKET
   <*> getinfo'MString     curl cCURLINFO_FTP_ENTRY_PATH
 --  <*> curl_easy_getinfo'L curl cCURLINFO_CERTINFO       -- [String]
@@ -137,17 +137,20 @@ curl_easy_getinfo'D curl info = alloca $ \ptr -> do
   code <- fromC <$> ccurl_easy_getinfo'D curl info ptr
   ifOK code (realToFrac <$> peek ptr)
 
---curl_easy_getinfo'L :: CURL -> CCURLinfo'L -> IO [String]
---curl_easy_getinfo'L curl info = undefined
+curl_easy_getinfo'L :: CURL -> CCURLinfo'L -> IO [String]
+curl_easy_getinfo'L curl info = alloca $ \ptr -> do
+  code <- fromC <$> ccurl_easy_getinfo'L curl info ptr
+  ifOK code $ peek ptr >>= \slist -> do
+    strings <- peek'CCURL_slist slist
+    ccurl_slist_free_all slist
+    return strings
 
 getinfo'MString :: CURL -> CCURLinfo'S -> IO (Maybe String)
 getinfo'MString curl info = alloca $ \ptr -> do
   code <- fromC <$> ccurl_easy_getinfo'S curl info ptr
-  ifOK code $ do
-    csptr <- peek ptr
-    if (csptr == nullPtr)
-      then return Nothing
-      else Just <$> peekCString csptr
+  ifOK code $ peek ptr >>= \csptr -> if (csptr /= nullPtr)
+    then Just <$> peekCString csptr
+    else return Nothing
 
 getinfo'RespCode :: CURL -> CCURLinfo'I -> IO (Maybe Int)
 getinfo'RespCode curl info = do
@@ -170,7 +173,19 @@ getinfo'TimeCond :: CURL -> CCURLinfo'I -> IO Bool
 getinfo'TimeCond curl info = toEnum <$> curl_easy_getinfo'I curl info
 
 
+
+-------------------------------------------------------------------------------
+peek'CCURL_slist :: Ptr CCURL_slist -> IO [String]
+peek'CCURL_slist ptr =
+  if (ptr == nullPtr) then return [] else peek ptr >>= \cval -> do
+    slist_head <- peekCString      $ ccurl_slist_data cval
+    slist_tail <- peek'CCURL_slist $ ccurl_slist_next cval
+    return (slist_head : slist_tail)
+
+
+
 {-
+-------------------------------------------------------------------------------
 infotest0 = do
   curl <- curl_easy_init
   info <- curl_easy_getinfo curl

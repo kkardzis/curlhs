@@ -254,7 +254,7 @@ data CURLinfo = CURLinfo
   , curlinfo_header_size             :: Int  -- Int32??
   , curlinfo_request_size            :: Int  -- Int32??
   , curlinfo_ssl_verifyresult        :: Int  -- Bool??
---  , curlinfo_ssl_engines             :: [String]
+  , curlinfo_ssl_engines             :: [String]
   , curlinfo_content_length_download :: Maybe Double
   , curlinfo_content_length_upload   :: Maybe Double
   , curlinfo_content_type            :: Maybe String
@@ -267,7 +267,7 @@ data CURLinfo = CURLinfo
   , curlinfo_primary_port            :: Int
   , curlinfo_local_ip                :: String
   , curlinfo_local_port              :: Int
---  , curlinfo_cookielist              :: [String] -- Maybe [String]
+  , curlinfo_cookielist              :: [String] -- Maybe [String]??
 --  , curlinfo_lastsocket              :: Int      -- Maybe Int/CURLsocket??
   , curlinfo_ftp_entry_path          :: Maybe String
 --  , curlinfo_certinfo                :: [String] -- curl_certinfo??

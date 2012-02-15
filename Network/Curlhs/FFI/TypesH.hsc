@@ -210,7 +210,9 @@ instance Storable CCURL_certinfo where
   sizeOf _    = #{size    struct curl_certinfo}
   alignment _ = #{alignof struct curl_certinfo}
   poke _ _    = undefined
-  peek _      = undefined
+  peek ptr    = CCURL_certinfo
+    <$> #{peek struct curl_certinfo, num_of_certs} ptr
+    <*> #{peek struct curl_certinfo, certinfo    } ptr
 
 
 -------------------------------------------------------------------------------

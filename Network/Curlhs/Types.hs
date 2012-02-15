@@ -270,7 +270,7 @@ data CURLinfo = CURLinfo
   , curlinfo_cookielist              :: [String] -- Maybe [String]??
 --  , curlinfo_lastsocket              :: Int      -- Maybe Int/CURLsocket??
   , curlinfo_ftp_entry_path          :: Maybe String
---  , curlinfo_certinfo                :: [String] -- curl_certinfo??
+  , curlinfo_certinfo                :: [[String]]
   , curlinfo_condition_unmet         :: Bool
   , curlinfo_rtsp_session_id         :: Maybe String
   , curlinfo_rtsp_client_cseq        :: Int  --Int32??

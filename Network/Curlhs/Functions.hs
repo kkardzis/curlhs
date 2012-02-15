@@ -115,7 +115,7 @@ curl_easy_getinfo curl = CURLinfo
   <*> curl_easy_getinfo'L curl cCURLINFO_COOKIELIST
 --  <*> curl_easy_getinfo'I curl cCURLINFO_LASTSOCKET
   <*> getinfo'MString     curl cCURLINFO_FTP_ENTRY_PATH
---  <*> curl_easy_getinfo'L curl cCURLINFO_CERTINFO       -- [String]
+  <*> getinfo'CertInfo    curl cCURLINFO_CERTINFO
   <*> getinfo'TimeCond    curl cCURLINFO_CONDITION_UNMET
   <*> getinfo'MString     curl cCURLINFO_RTSP_SESSION_ID
   <*> curl_easy_getinfo'I curl cCURLINFO_RTSP_CLIENT_CSEQ
@@ -144,6 +144,11 @@ curl_easy_getinfo'L curl info = alloca $ \ptr -> do
     strings <- peek'CCURL_slist slist
     ccurl_slist_free_all slist
     return strings
+
+getinfo'CertInfo :: CURL -> CCURLinfo'L -> IO [[String]]
+getinfo'CertInfo curl info = alloca $ \ptr -> do
+  code <- fromC <$> ccurl_easy_getinfo'L curl info ptr
+  ifOK code (peek (castPtr ptr) >>= peek'CCURL_certinfo)
 
 getinfo'MString :: CURL -> CCURLinfo'S -> IO (Maybe String)
 getinfo'MString curl info = alloca $ \ptr -> do
@@ -177,10 +182,20 @@ getinfo'TimeCond curl info = toEnum <$> curl_easy_getinfo'I curl info
 -------------------------------------------------------------------------------
 peek'CCURL_slist :: Ptr CCURL_slist -> IO [String]
 peek'CCURL_slist ptr =
-  if (ptr == nullPtr) then return [] else peek ptr >>= \cval -> do
-    slist_head <- peekCString      $ ccurl_slist_data cval
-    slist_tail <- peek'CCURL_slist $ ccurl_slist_next cval
+  if (ptr == nullPtr) then return [] else peek ptr >>= \slist -> do
+    slist_head <- peekCString      $ ccurl_slist_data slist
+    slist_tail <- peek'CCURL_slist $ ccurl_slist_next slist
     return (slist_head : slist_tail)
+
+peek'CCURL_certinfo :: Ptr CCURL_certinfo -> IO [[String]]
+peek'CCURL_certinfo ptr =
+  if (ptr == nullPtr) then return [] else peek ptr >>= \certinfo -> do
+    let numOfCerts = fromIntegral $ ccurl_certinfo_num_of_certs certinfo
+    let size = sizeOf (undefined :: Ptr CCURL_slist)
+    let ptr0 = ccurl_certinfo_certinfo certinfo
+    let ptrs = map (\i -> plusPtr ptr0 (i * size)) [0 .. (numOfCerts - 1)]
+    mapM (\sptr -> peek sptr >>= peek'CCURL_slist) ptrs
+
 
 
 
@@ -195,6 +210,7 @@ infotest0 = do
 infotest1 url = do
   curl <- curl_easy_init
   curl_easy_setopt curl CURLOPT_URL url
+  ccurl_easy_setopt'Int32 curl cCURLOPT_CERTINFO 1
   curl_easy_perform curl
   info <- curl_easy_getinfo curl
   curl_easy_cleanup curl

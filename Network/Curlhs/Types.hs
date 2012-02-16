@@ -16,6 +16,7 @@
 module Network.Curlhs.Types
   ( CURL
   , CURLcode (..)
+  , CURLauth (..)
   , CURLinfo (..)
   , CURLoption'S (..)
   , CURLversion (..), CURL_version_info_data (..)
@@ -215,6 +216,18 @@ knownCURLcode =
 
 
 -------------------------------------------------------------------------------
+data CURLauth
+  = CURLAUTH_BASIC
+  | CURLAUTH_DIGEST
+  | CURLAUTH_DIGEST_IE
+  | CURLAUTH_GSSNEGOTIATE
+  | CURLAUTH_NTLM
+  | CURLAUTH_NTLM_WB
+  deriving (Eq, Show)
+
+
+
+-------------------------------------------------------------------------------
 data CURLoption'S
   = CURLOPT_URL
   deriving (Eq, Show)
@@ -259,8 +272,8 @@ data CURLinfo = CURLinfo
   , curlinfo_content_length_upload   :: Maybe Double
   , curlinfo_content_type            :: Maybe String
 --  , curlinfo_private                 :: String   -- void??
---  , curlinfo_httpauth_avail          :: Int      -- [CURLauth]
---  , curlinfo_proxyauth_avail         :: Int      -- [CURLauth]
+  , curlinfo_httpauth_avail          :: [CURLauth]
+  , curlinfo_proxyauth_avail         :: [CURLauth]
 --  , curlinfo_os_errno                :: Int      -- Maybe Int??
   , curlinfo_num_connects            :: Int
   , curlinfo_primary_ip              :: String

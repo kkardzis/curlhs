@@ -35,6 +35,8 @@ import Control.Exception (throwIO)
 
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 import Data.Time.Clock (UTCTime)
+import Data.Maybe (mapMaybe)
+import Data.Bits ((.&.))
 
 import Network.Curlhs.FFI.Functions
 import Network.Curlhs.FFI.Symbols
@@ -103,9 +105,9 @@ curl_easy_getinfo curl = CURLinfo
   <*> getinfo'ContentLen  curl cCURLINFO_CONTENT_LENGTH_DOWNLOAD
   <*> getinfo'ContentLen  curl cCURLINFO_CONTENT_LENGTH_UPLOAD
   <*> getinfo'MString     curl cCURLINFO_CONTENT_TYPE
---  <*> curl_easy_getinfo'S curl cCURLINFO_PRIVATE        -- String
---  <*> curl_easy_getinfo'I curl cCURLINFO_HTTPAUTH_AVAIL
---  <*> curl_easy_getinfo'I curl cCURLINFO_PROXYAUTH_AVAIL
+--  <*> curl_easy_getinfo'S curl cCURLINFO_PRIVATE
+  <*> getinfo'CurlAuth    curl cCURLINFO_HTTPAUTH_AVAIL
+  <*> getinfo'CurlAuth    curl cCURLINFO_PROXYAUTH_AVAIL
 --  <*> curl_easy_getinfo'I curl cCURLINFO_OS_ERRNO
   <*> curl_easy_getinfo'I curl cCURLINFO_NUM_CONNECTS
   <*> curl_easy_getinfo'S curl cCURLINFO_PRIMARY_IP
@@ -177,6 +179,17 @@ getinfo'ContentLen curl info = do
 getinfo'TimeCond :: CURL -> CCURLinfo'I -> IO Bool
 getinfo'TimeCond curl info = toEnum <$> curl_easy_getinfo'I curl info
 
+getinfo'CurlAuth :: CURL -> CCURLinfo'I -> IO [CURLauth]
+getinfo'CurlAuth curl info = do
+  mask <- fromIntegral <$> curl_easy_getinfo'I curl info
+  return $ mapMaybe (\(v, b) -> if (mask .&. b == 0) then Nothing else Just v)
+    [ (CURLAUTH_BASIC       , cCURLAUTH_BASIC       )
+    , (CURLAUTH_DIGEST      , cCURLAUTH_DIGEST      )
+    , (CURLAUTH_DIGEST_IE   , cCURLAUTH_DIGEST_IE   )
+    , (CURLAUTH_GSSNEGOTIATE, cCURLAUTH_GSSNEGOTIATE)
+    , (CURLAUTH_NTLM        , cCURLAUTH_NTLM        )
+--    , (CURLAUTH_NTLM_WB     , cCURLAUTH_NTLM_WB     )
+    ]
 
 
 -------------------------------------------------------------------------------

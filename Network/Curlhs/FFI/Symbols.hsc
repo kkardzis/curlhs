@@ -186,6 +186,27 @@ libCURL_VERSION_PATCH = #{const LIBCURL_VERSION_PATCH}
 
 
 
+-------------------------------------------------------------------------------
+#if LIBCURL_VERSION_NUM >= CURL_7_20_0
+#{cconst CURLAUTH_NONE        , CInt}
+#{cconst CURLAUTH_BASIC       , CInt}
+#{cconst CURLAUTH_DIGEST      , CInt}
+#{cconst CURLAUTH_GSSNEGOTIATE, CInt}
+#{cconst CURLAUTH_NTLM        , CInt}
+#{cconst CURLAUTH_DIGEST_IE   , CInt}
+#{cconst CURLAUTH_ANY         , CInt}
+#{cconst CURLAUTH_ANYSAFE     , CInt}
+#endif
+
+#if LIBCURL_VERSION_NUM >= CURL_7_21_3
+#{cconst CURLAUTH_ONLY        , CInt}
+#endif
+
+#if LIBCURL_VERSION_NUM >= CURL_7_22_0
+#{cconst CURLAUTH_NTLM_WB     , CInt}
+#endif
+
+
 
 -------------------------------------------------------------------------------
 #define hsc_curlopt(name, type) \

@@ -15,7 +15,7 @@
 module Network.Curlhs.FFI.Functions where
 
 import Foreign.C.Types (CChar, CInt, CLong, CDouble, CSize, CFile, CTime)
-import Foreign.Ptr (Ptr, FunPtr)
+import Foreign.Ptr     (Ptr, FunPtr)
 
 --import Network.Curlhs.FFI.Callbacks
 import Network.Curlhs.FFI.Types
@@ -232,31 +232,38 @@ foreign import ccall "curl_easy_cleanup"
     -> IO ()
 
 foreign import ccall "curl_easy_getinfo"
-  ccurl_easy_getinfo'S
+  ccurl_easy_getinfo'CString
     :: Ptr CCURL
-    -> CCURLinfo'S
+    -> CCURLinfo'CString
     -> Ptr (Ptr CChar)
     -> IO CCURLcode
 
 foreign import ccall "curl_easy_getinfo"
-  ccurl_easy_getinfo'I
+  ccurl_easy_getinfo'CDouble
     :: Ptr CCURL
-    -> CCURLinfo'I
-    -> Ptr CLong
-    -> IO CCURLcode
-
-foreign import ccall "curl_easy_getinfo"
-  ccurl_easy_getinfo'D
-    :: Ptr CCURL
-    -> CCURLinfo'D
+    -> CCURLinfo'CDouble
     -> Ptr CDouble
     -> IO CCURLcode
 
 foreign import ccall "curl_easy_getinfo"
-  ccurl_easy_getinfo'L
+  ccurl_easy_getinfo'CLong
     :: Ptr CCURL
-    -> CCURLinfo'L
+    -> CCURLinfo'CLong
+    -> Ptr CLong
+    -> IO CCURLcode
+
+foreign import ccall "curl_easy_getinfo"
+  ccurl_easy_getinfo'SList
+    :: Ptr CCURL
+    -> CCURLinfo'SList
     -> Ptr (Ptr CCURL_slist)
+    -> IO CCURLcode
+
+foreign import ccall "curl_easy_getinfo"
+  ccurl_easy_getinfo'CertI
+    :: Ptr CCURL
+    -> CCURLinfo'CertI
+    -> Ptr (Ptr CCURL_certinfo)
     -> IO CCURLcode
 
 foreign import ccall "curl_easy_duphandle"

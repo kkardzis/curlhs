@@ -51,10 +51,11 @@ module Network.Curlhs.FFI.Types
   , CCURL_timecond
   , CCURLformoption
   , CCURLformcode
-  , CCURLinfo'S
-  , CCURLinfo'I
-  , CCURLinfo'D
-  , CCURLinfo'L
+  , CCURLinfo'CString
+  , CCURLinfo'CDouble
+  , CCURLinfo'CLong
+  , CCURLinfo'SList
+  , CCURLinfo'CertI
   , CCURL_closepolicy
   , CCURL_lock_data
   , CCURL_lock_access

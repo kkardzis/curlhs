@@ -22,21 +22,21 @@ module Network.Curlhs.Types
   , CURLversion (..), CURL_version_info_data (..)
   ) where
 
+import Foreign.Storable (peek, sizeOf)
+import Foreign.C.String (CString, peekCString)
+import Foreign.C.Types  (CUInt)
+import Foreign.Ptr      (Ptr, nullPtr, plusPtr)
+
+import Data.Typeable (Typeable)
+import Data.Tuple    (swap)
+import Data.Time     (UTCTime)
+import Data.Bits     ((.&.), shiftR)
+
 import Control.Applicative ((<$>), (<*>))
-import Foreign.Storable
-import Foreign.C.String
-import Foreign.C.Types
-import Foreign.Ptr
+import Control.Exception   (Exception)
 
-import Control.Exception
-import Data.Typeable
-
-import Data.Time (UTCTime)
-import Data.Tuple (swap)
-import Data.Bits
-
-import Network.Curlhs.FFI.Types
 import Network.Curlhs.FFI.Symbols
+import Network.Curlhs.FFI.Types
 
 import Network.Curlhs.TypesH
 
@@ -264,8 +264,8 @@ data CURLinfo = CURLinfo
   , curlinfo_size_download           :: Double
   , curlinfo_speed_download          :: Double
   , curlinfo_speed_upload            :: Double
-  , curlinfo_header_size             :: Int  -- Int32??
-  , curlinfo_request_size            :: Int  -- Int32??
+  , curlinfo_header_size             :: Int
+  , curlinfo_request_size            :: Int
   , curlinfo_ssl_verifyresult        :: Int  -- Bool??
   , curlinfo_ssl_engines             :: [String]
   , curlinfo_content_length_download :: Maybe Double
@@ -274,21 +274,21 @@ data CURLinfo = CURLinfo
 --  , curlinfo_private                 :: String   -- void??
   , curlinfo_httpauth_avail          :: [CURLauth]
   , curlinfo_proxyauth_avail         :: [CURLauth]
---  , curlinfo_os_errno                :: Int      -- Maybe Int??
+  , curlinfo_os_errno                :: Int
   , curlinfo_num_connects            :: Int
   , curlinfo_primary_ip              :: String
   , curlinfo_primary_port            :: Int
   , curlinfo_local_ip                :: String
   , curlinfo_local_port              :: Int
-  , curlinfo_cookielist              :: [String] -- Maybe [String]??
---  , curlinfo_lastsocket              :: Int      -- Maybe Int/CURLsocket??
+  , curlinfo_cookielist              :: [String]
+  , curlinfo_lastsocket              :: Maybe Int
   , curlinfo_ftp_entry_path          :: Maybe String
   , curlinfo_certinfo                :: [[String]]
   , curlinfo_condition_unmet         :: Bool
   , curlinfo_rtsp_session_id         :: Maybe String
-  , curlinfo_rtsp_client_cseq        :: Int  --Int32??
-  , curlinfo_rtsp_server_cseq        :: Int  --Int32??
-  , curlinfo_rtsp_cseq_recv          :: Int  --Int32??
+  , curlinfo_rtsp_client_cseq        :: Int
+  , curlinfo_rtsp_server_cseq        :: Int
+  , curlinfo_rtsp_cseq_recv          :: Int
   } deriving (Show)
 
 

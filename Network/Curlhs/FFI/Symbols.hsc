@@ -13,6 +13,7 @@
 module Network.Curlhs.FFI.Symbols where
 
 import Foreign.C.Types (CInt)
+
 import Network.Curlhs.FFI.TypesH
 
 
@@ -443,51 +444,51 @@ libCURL_VERSION_PATCH = #{const LIBCURL_VERSION_PATCH}
   printf("c" #name " =  CCURLinfo'" #type " "); hsc_const(name);
 
 #if LIBCURL_VERSION_NUM >= CURL_7_20_0
-#{curlinfo CURLINFO_EFFECTIVE_URL          , S}
-#{curlinfo CURLINFO_RESPONSE_CODE          , I}
-#{curlinfo CURLINFO_TOTAL_TIME             , D}
-#{curlinfo CURLINFO_NAMELOOKUP_TIME        , D}
-#{curlinfo CURLINFO_CONNECT_TIME           , D}
-#{curlinfo CURLINFO_PRETRANSFER_TIME       , D}
-#{curlinfo CURLINFO_SIZE_UPLOAD            , D}
-#{curlinfo CURLINFO_SIZE_DOWNLOAD          , D}
-#{curlinfo CURLINFO_SPEED_DOWNLOAD         , D}
-#{curlinfo CURLINFO_SPEED_UPLOAD           , D}
-#{curlinfo CURLINFO_HEADER_SIZE            , I}
-#{curlinfo CURLINFO_REQUEST_SIZE           , I}
-#{curlinfo CURLINFO_SSL_VERIFYRESULT       , I}
-#{curlinfo CURLINFO_FILETIME               , I}
-#{curlinfo CURLINFO_CONTENT_LENGTH_DOWNLOAD, D}
-#{curlinfo CURLINFO_CONTENT_LENGTH_UPLOAD  , D}
-#{curlinfo CURLINFO_STARTTRANSFER_TIME     , D}
-#{curlinfo CURLINFO_CONTENT_TYPE           , S}
-#{curlinfo CURLINFO_REDIRECT_TIME          , D}
-#{curlinfo CURLINFO_REDIRECT_COUNT         , I}
-#{curlinfo CURLINFO_PRIVATE                , S}
-#{curlinfo CURLINFO_HTTP_CONNECTCODE       , I}
-#{curlinfo CURLINFO_HTTPAUTH_AVAIL         , I}
-#{curlinfo CURLINFO_PROXYAUTH_AVAIL        , I}
-#{curlinfo CURLINFO_OS_ERRNO               , I}
-#{curlinfo CURLINFO_NUM_CONNECTS           , I}
-#{curlinfo CURLINFO_SSL_ENGINES            , L}
-#{curlinfo CURLINFO_COOKIELIST             , L}
-#{curlinfo CURLINFO_LASTSOCKET             , I}
-#{curlinfo CURLINFO_FTP_ENTRY_PATH         , S}
-#{curlinfo CURLINFO_REDIRECT_URL           , S}
-#{curlinfo CURLINFO_PRIMARY_IP             , S}
-#{curlinfo CURLINFO_APPCONNECT_TIME        , D}
-#{curlinfo CURLINFO_CERTINFO               , L}
-#{curlinfo CURLINFO_CONDITION_UNMET        , I}
-#{curlinfo CURLINFO_RTSP_SESSION_ID        , S}
-#{curlinfo CURLINFO_RTSP_CLIENT_CSEQ       , I}
-#{curlinfo CURLINFO_RTSP_SERVER_CSEQ       , I}
-#{curlinfo CURLINFO_RTSP_CSEQ_RECV         , I}
+#{curlinfo CURLINFO_EFFECTIVE_URL          , CString}
+#{curlinfo CURLINFO_RESPONSE_CODE          , CLong  }
+#{curlinfo CURLINFO_TOTAL_TIME             , CDouble}
+#{curlinfo CURLINFO_NAMELOOKUP_TIME        , CDouble}
+#{curlinfo CURLINFO_CONNECT_TIME           , CDouble}
+#{curlinfo CURLINFO_PRETRANSFER_TIME       , CDouble}
+#{curlinfo CURLINFO_SIZE_UPLOAD            , CDouble}
+#{curlinfo CURLINFO_SIZE_DOWNLOAD          , CDouble}
+#{curlinfo CURLINFO_SPEED_DOWNLOAD         , CDouble}
+#{curlinfo CURLINFO_SPEED_UPLOAD           , CDouble}
+#{curlinfo CURLINFO_HEADER_SIZE            , CLong  }
+#{curlinfo CURLINFO_REQUEST_SIZE           , CLong  }
+#{curlinfo CURLINFO_SSL_VERIFYRESULT       , CLong  }
+#{curlinfo CURLINFO_FILETIME               , CLong  }
+#{curlinfo CURLINFO_CONTENT_LENGTH_DOWNLOAD, CDouble}
+#{curlinfo CURLINFO_CONTENT_LENGTH_UPLOAD  , CDouble}
+#{curlinfo CURLINFO_STARTTRANSFER_TIME     , CDouble}
+#{curlinfo CURLINFO_CONTENT_TYPE           , CString}
+#{curlinfo CURLINFO_REDIRECT_TIME          , CDouble}
+#{curlinfo CURLINFO_REDIRECT_COUNT         , CLong  }
+#{curlinfo CURLINFO_PRIVATE                , CString}
+#{curlinfo CURLINFO_HTTP_CONNECTCODE       , CLong  }
+#{curlinfo CURLINFO_HTTPAUTH_AVAIL         , CLong  }
+#{curlinfo CURLINFO_PROXYAUTH_AVAIL        , CLong  }
+#{curlinfo CURLINFO_OS_ERRNO               , CLong  }
+#{curlinfo CURLINFO_NUM_CONNECTS           , CLong  }
+#{curlinfo CURLINFO_SSL_ENGINES            , SList  }
+#{curlinfo CURLINFO_COOKIELIST             , SList  }
+#{curlinfo CURLINFO_LASTSOCKET             , CLong  }
+#{curlinfo CURLINFO_FTP_ENTRY_PATH         , CString}
+#{curlinfo CURLINFO_REDIRECT_URL           , CString}
+#{curlinfo CURLINFO_PRIMARY_IP             , CString}
+#{curlinfo CURLINFO_APPCONNECT_TIME        , CDouble}
+#{curlinfo CURLINFO_CERTINFO               , CertI  }
+#{curlinfo CURLINFO_CONDITION_UNMET        , CLong  }
+#{curlinfo CURLINFO_RTSP_SESSION_ID        , CString}
+#{curlinfo CURLINFO_RTSP_CLIENT_CSEQ       , CLong  }
+#{curlinfo CURLINFO_RTSP_SERVER_CSEQ       , CLong  }
+#{curlinfo CURLINFO_RTSP_CSEQ_RECV         , CLong  }
 #endif
 
 #if LIBCURL_VERSION_NUM >= CURL_7_21_0
-#{curlinfo CURLINFO_PRIMARY_PORT           , I}
-#{curlinfo CURLINFO_LOCAL_IP               , S}
-#{curlinfo CURLINFO_LOCAL_PORT             , I}
+#{curlinfo CURLINFO_PRIMARY_PORT           , CLong  }
+#{curlinfo CURLINFO_LOCAL_IP               , CString}
+#{curlinfo CURLINFO_LOCAL_PORT             , CLong  }
 #endif
 
 

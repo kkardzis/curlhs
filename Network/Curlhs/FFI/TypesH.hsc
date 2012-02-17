@@ -14,9 +14,9 @@
 
 module Network.Curlhs.FFI.TypesH where
 
-import Foreign.C.Types (CChar, CInt, CUInt, CLong, CLLong, CSize, CTime)
+import Foreign.C.Types  (CChar, CInt, CUInt, CLong, CLLong, CSize, CTime)
 import Foreign.Storable (Storable (..))
-import Foreign.Ptr (Ptr, castPtr)
+import Foreign.Ptr      (Ptr, castPtr)
 
 import Control.Applicative ((<$>), (<*>))
 
@@ -70,10 +70,11 @@ newtype CCURL_tlsauth      = CCURL_tlsauth      CInt deriving (Eq, Show)
 newtype CCURL_timecond     = CCURL_timecond     CInt deriving (Eq, Show)
 newtype CCURLformoption    = CCURLformoption    CInt deriving (Eq, Show)
 newtype CCURLformcode      = CCURLformcode      CInt deriving (Eq, Show)
-newtype CCURLinfo'S        = CCURLinfo'S        CInt deriving (Eq, Show)
-newtype CCURLinfo'I        = CCURLinfo'I        CInt deriving (Eq, Show)
-newtype CCURLinfo'D        = CCURLinfo'D        CInt deriving (Eq, Show)
-newtype CCURLinfo'L        = CCURLinfo'L        CInt deriving (Eq, Show)
+newtype CCURLinfo'CString  = CCURLinfo'CString  CInt deriving (Eq, Show)
+newtype CCURLinfo'CDouble  = CCURLinfo'CDouble  CInt deriving (Eq, Show)
+newtype CCURLinfo'CLong    = CCURLinfo'CLong    CInt deriving (Eq, Show)
+newtype CCURLinfo'SList    = CCURLinfo'SList    CInt deriving (Eq, Show)
+newtype CCURLinfo'CertI    = CCURLinfo'CertI    CInt deriving (Eq, Show)
 newtype CCURL_closepolicy  = CCURL_closepolicy  CInt deriving (Eq, Show)
 newtype CCURL_lock_data    = CCURL_lock_data    CInt deriving (Eq, Show)
 newtype CCURL_lock_access  = CCURL_lock_access  CInt deriving (Eq, Show)

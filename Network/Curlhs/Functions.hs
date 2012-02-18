@@ -112,7 +112,8 @@ curl_easy_strerror code =
   ccurl_easy_strerror (fromH code) >>= peekCString
 
 curl_easy_init :: IO CURL
-curl_easy_init = ccurl_easy_init
+curl_easy_init = ccurl_easy_init >>= \curl ->
+  if (curl /= nullPtr) then return curl else throwIO CURLE_FAILED_INIT
 
 curl_easy_cleanup :: CURL -> IO ()
 curl_easy_cleanup = ccurl_easy_cleanup

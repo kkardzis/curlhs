@@ -19,21 +19,17 @@ module Network.Curlhs.Types
   , CURLauth (..)
   , CURLinfo (..)
   , CURLoption'S (..)
-  , CURLversion (..), CURL_version_info_data (..)
+  , CURL_version_info_data (..)
+  , CURL_version (..)
   ) where
 
-import Foreign.Storable (peek, sizeOf)
-import Foreign.C.String (CString, peekCString)
-import Foreign.C.Types  (CUInt)
-import Foreign.Ptr      (Ptr, nullPtr, plusPtr)
+import Foreign.Ptr   (Ptr)
 
 import Data.Typeable (Typeable)
 import Data.Tuple    (swap)
 import Data.Time     (UTCTime)
-import Data.Bits     ((.&.), shiftR)
 
-import Control.Applicative ((<$>), (<*>))
-import Control.Exception   (Exception)
+import Control.Exception (Exception)
 
 import Network.Curlhs.FFI.Symbols
 import Network.Curlhs.FFI.Types
@@ -294,37 +290,11 @@ data CURLinfo = CURLinfo
 
 
 -------------------------------------------------------------------------------
-data CURLversion
-  = CURLVERSION_FIRST
-  | CURLVERSION_SECOND
-  | CURLVERSION_THIRD
-  | CURLVERSION_FOURTH
-  | CURLVERSION_NOW
-  deriving (Eq, Show)
-
-instance FromC CCURLversion CURLversion where
-  fromC x = findWithDef (cError "CCURLversion") x $ map swap knownCURLversion
-
-instance FromH CURLversion CCURLversion where
-  fromH x = findWithDef (hError "CURLversion") x knownCURLversion
-
-knownCURLversion :: [(CURLversion, CCURLversion)]
-knownCURLversion =
-  [ (CURLVERSION_FIRST , cCURLVERSION_FIRST )
-  , (CURLVERSION_SECOND, cCURLVERSION_SECOND)
-  , (CURLVERSION_THIRD , cCURLVERSION_THIRD )
-  , (CURLVERSION_FOURTH, cCURLVERSION_FOURTH)
-  , (CURLVERSION_NOW   , cCURLVERSION_NOW   )
-  ]
-
-
--------------------------------------------------------------------------------
 data CURL_version_info_data = CURL_version_info_data
-  { curl_version_info_data_age             :: CURLversion
-  , curl_version_info_data_version         :: String
-  , curl_version_info_data_version_num     :: (Int, Int, Int)
+  { curl_version_info_data_version         :: String
+  , curl_version_info_data_version_num     :: Int
   , curl_version_info_data_host            :: String
-  , curl_version_info_data_features        :: Int
+  , curl_version_info_data_features        :: [CURL_version]
   , curl_version_info_data_ssl_version     :: Maybe String
   , curl_version_info_data_ssl_version_num :: Int
   , curl_version_info_data_libz_version    :: Maybe String
@@ -336,46 +306,25 @@ data CURL_version_info_data = CURL_version_info_data
   , curl_version_info_data_libssh_version  :: Maybe String
   } deriving (Show)
 
-instance PeekCCURL CCURL_version_info_data CURL_version_info_data where
-  peekCCURL ptr = peek ptr >>= \cval -> CURL_version_info_data
-    <$> (return $ fromC   $ ccurl_version_info_data_age             cval)
-    <*> (peekCString      $ ccurl_version_info_data_version         cval)
-    <*> (peekCVersionNum  $ ccurl_version_info_data_version_num     cval)
-    <*> (peekCString      $ ccurl_version_info_data_host            cval)
-    <*> (peekCIntegral    $ ccurl_version_info_data_features        cval)
-    <*> (peekCStringMaybe $ ccurl_version_info_data_ssl_version     cval)
-    <*> (peekCIntegral    $ ccurl_version_info_data_ssl_version_num cval)
-    <*> (peekCStringMaybe $ ccurl_version_info_data_libz_version    cval)
-    <*> (peekCStringList  $ ccurl_version_info_data_protocols       cval)
-    <*> (peekCStringMaybe $ ccurl_version_info_data_ares            cval)
-    <*> (peekCIntegral    $ ccurl_version_info_data_ares_num        cval)
-    <*> (peekCStringMaybe $ ccurl_version_info_data_libidn          cval)
-    <*> (peekCIntegral    $ ccurl_version_info_data_iconv_ver_num   cval)
-    <*> (peekCStringMaybe $ ccurl_version_info_data_libssh_version  cval)
 
-peekCVersionNum :: CUInt -> IO (Int, Int, Int)
-peekCVersionNum num = return (major, minor, patch)
-  where
-    major = fromIntegral $ shiftR (num .&. 0xff0000) 16
-    minor = fromIntegral $ shiftR (num .&. 0x00ff00) 8
-    patch = fromIntegral $ shiftR (num .&. 0x0000ff) 0
+-------------------------------------------------------------------------------
+data CURL_version
+  = CURL_VERSION_IPV6
+  | CURL_VERSION_KERBEROS4
+  | CURL_VERSION_SSL
+  | CURL_VERSION_LIBZ
+  | CURL_VERSION_NTLM
+  | CURL_VERSION_GSSNEGOTIATE
+  | CURL_VERSION_DEBUG
+  | CURL_VERSION_ASYNCHDNS
+  | CURL_VERSION_SPNEGO
+  | CURL_VERSION_LARGEFILE
+  | CURL_VERSION_IDN
+  | CURL_VERSION_SSPI
+  | CURL_VERSION_CONV
+  | CURL_VERSION_CURLDEBUG
+  | CURL_VERSION_TLSAUTH_SRP
+  | CURL_VERSION_NTLM_WB
+  deriving (Eq, Show)
 
-peekCStringList :: Ptr CString -> IO [String]
-peekCStringList ptr = do
-  cstring <- peek ptr
-  if (cstring == nullPtr)
-    then return []
-    else do
-      strings <- peekCStringList (plusPtr ptr (sizeOf ptr))
-      string  <- peekCString cstring
-      return (string : strings)
-
-peekCStringMaybe :: CString -> IO (Maybe String)
-peekCStringMaybe ptr =
-  if (ptr == nullPtr)
-    then return Nothing
-    else peekCString ptr >>= return . Just
-
-peekCIntegral :: (Num h, Integral c) => c -> IO h
-peekCIntegral = return . fromIntegral
 

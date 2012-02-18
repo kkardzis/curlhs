@@ -28,6 +28,7 @@ module Network.Curlhs.Functions
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Storable      (peek, sizeOf)
 import Foreign.C.String      (peekCString, withCString)
+import Foreign.C.Types       (CChar, CInt)
 import Foreign.Ptr           (Ptr, nullPtr, plusPtr)
 
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
@@ -35,8 +36,8 @@ import Data.Time.Clock       (UTCTime)
 import Data.Maybe            (mapMaybe)
 import Data.Bits             ((.&.))
 
-import Control.Applicative ((<$>), (<*>))
-import Control.Exception   (throwIO)
+import Control.Applicative   ((<$>), (<*>))
+import Control.Exception     (throwIO)
 
 import Network.Curlhs.FFI.Functions
 import Network.Curlhs.FFI.Symbols
@@ -50,10 +51,59 @@ import Network.Curlhs.Types
 curl_version :: IO String
 curl_version = ccurl_version >>= peekCString
 
-curl_version_info :: CURLversion -> IO CURL_version_info_data
-curl_version_info v = ccurl_version_info (fromH v) >>= peekCCURL
+curl_version_info :: IO CURL_version_info_data
+curl_version_info = ccurl_version_info cCURLVERSION_NOW >>= peek >>=
+  \cval -> CURL_version_info_data
+    <$> (peekCString      $ ccurl_version_info_data_version         cval)
+    <*> (peekCIntegral    $ ccurl_version_info_data_version_num     cval)
+    <*> (peekCString      $ ccurl_version_info_data_host            cval)
+    <*> (peekCFeatures    $ ccurl_version_info_data_features        cval)
+    <*> (peekCStringMaybe $ ccurl_version_info_data_ssl_version     cval)
+    <*> (peekCIntegral    $ ccurl_version_info_data_ssl_version_num cval)
+    <*> (peekCStringMaybe $ ccurl_version_info_data_libz_version    cval)
+    <*> (peekCStringList  $ ccurl_version_info_data_protocols       cval)
+    <*> (peekCStringMaybe $ ccurl_version_info_data_ares            cval)
+    <*> (peekCIntegral    $ ccurl_version_info_data_ares_num        cval)
+    <*> (peekCStringMaybe $ ccurl_version_info_data_libidn          cval)
+    <*> (peekCIntegral    $ ccurl_version_info_data_iconv_ver_num   cval)
+    <*> (peekCStringMaybe $ ccurl_version_info_data_libssh_version  cval)
 
+peekCStringList :: Ptr (Ptr CChar) -> IO [String]
+peekCStringList ptr = peek ptr >>= \cstring ->
+  if (cstring == nullPtr) then return [] else do
+    let size = sizeOf (undefined :: Ptr CChar)
+    strings <- peekCStringList (plusPtr ptr size)
+    string  <- peekCString cstring
+    return (string : strings)
 
+peekCStringMaybe :: Ptr CChar -> IO (Maybe String)
+peekCStringMaybe ptr = if (ptr /= nullPtr)
+  then Just <$> peekCString ptr
+  else return Nothing
+
+peekCIntegral :: (Num h, Integral c) => c -> IO h
+peekCIntegral = return . fromIntegral
+
+peekCFeatures :: CInt -> IO [CURL_version]
+peekCFeatures mask =
+  return $ mapMaybe (\(v, b) -> if (mask .&. b == 0) then Nothing else Just v)
+    [ (CURL_VERSION_IPV6        , cCURL_VERSION_IPV6        )
+    , (CURL_VERSION_KERBEROS4   , cCURL_VERSION_KERBEROS4   )
+    , (CURL_VERSION_SSL         , cCURL_VERSION_SSL         )
+    , (CURL_VERSION_LIBZ        , cCURL_VERSION_LIBZ        )
+    , (CURL_VERSION_NTLM        , cCURL_VERSION_NTLM        )
+    , (CURL_VERSION_GSSNEGOTIATE, cCURL_VERSION_GSSNEGOTIATE)
+    , (CURL_VERSION_DEBUG       , cCURL_VERSION_DEBUG       )
+    , (CURL_VERSION_ASYNCHDNS   , cCURL_VERSION_ASYNCHDNS   )
+    , (CURL_VERSION_SPNEGO      , cCURL_VERSION_SPNEGO      )
+    , (CURL_VERSION_LARGEFILE   , cCURL_VERSION_LARGEFILE   )
+    , (CURL_VERSION_IDN         , cCURL_VERSION_IDN         )
+    , (CURL_VERSION_SSPI        , cCURL_VERSION_SSPI        )
+    , (CURL_VERSION_CONV        , cCURL_VERSION_CONV        )
+    , (CURL_VERSION_CURLDEBUG   , cCURL_VERSION_CURLDEBUG   )
+--    , (CURL_VERSION_TLSAUTH_SRP , cCURL_VERSION_TLSAUTH_SRP )
+--    , (CURL_VERSION_NTLM_WB     , cCURL_VERSION_NTLM_WB     )
+    ]
 
 
 -------------------------------------------------------------------------------

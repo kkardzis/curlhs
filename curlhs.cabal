@@ -40,8 +40,9 @@ library
   ghc-options:     -Wall -fwarn-tabs
 
   build-depends:
-    base   == 4.*,
-    time   == 1.*
+    bytestring == 0.9.*,
+    base       == 4.*,
+    time       == 1.*
 
   exposed-modules:
     Network.Curlhs

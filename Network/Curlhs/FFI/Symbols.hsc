@@ -224,8 +224,8 @@ libCURL_VERSION_PATCH = #{const LIBCURL_VERSION_PATCH}
 #{curlopt CURLOPT_RANGE                      , String }
 #{curlopt CURLOPT_INFILE                     , File   }
 #{curlopt CURLOPT_ERRORBUFFER                , String }
-#{curlopt CURLOPT_WRITEFUNCTION              , FunPtr }
-#{curlopt CURLOPT_READFUNCTION               , FunPtr }
+#{curlopt CURLOPT_WRITEFUNCTION              , FWRITE }
+#{curlopt CURLOPT_READFUNCTION               , FREAD  }
 #{curlopt CURLOPT_TIMEOUT                    , Int32  }
 #{curlopt CURLOPT_INFILESIZE                 , Int32  }
 #{curlopt CURLOPT_POSTFIELDS                 , Ptr_a  }

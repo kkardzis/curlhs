@@ -18,33 +18,36 @@ module Network.Curlhs.Functions
   , curl_version_info
   , curl_easy_strerror
   , curl_easy_init
-  , curl_easy_cleanup
   , curl_easy_reset
+  , curl_easy_cleanup
   , curl_easy_perform
   , curl_easy_getinfo
-  , curl_easy_setopt, CURLoption
+  , curl_easy_setopt
   ) where
 
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Storable      (peek, sizeOf)
 import Foreign.C.String      (peekCString, withCString)
 import Foreign.C.Types       (CChar, CInt)
-import Foreign.Ptr           (Ptr, nullPtr, plusPtr)
+import Foreign.Ptr           (Ptr, FunPtr, nullPtr, plusPtr, nullFunPtr,
+                              freeHaskellFunPtr)
 
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 import Data.Time.Clock       (UTCTime)
 import Data.Maybe            (mapMaybe)
 import Data.Bits             ((.&.))
+import Data.IORef            (IORef, newIORef, atomicModifyIORef)
+import Data.ByteString       (packCStringLen)
 
 import Control.Applicative   ((<$>), (<*>))
 import Control.Exception     (throwIO)
 
 import Network.Curlhs.FFI.Functions
+import Network.Curlhs.FFI.Callbacks
 import Network.Curlhs.FFI.Symbols
 import Network.Curlhs.FFI.Types
 
 import Network.Curlhs.TypesH
-import Network.Curlhs.Types
 
 
 -------------------------------------------------------------------------------
@@ -108,130 +111,160 @@ peekCFeatures mask =
 
 -------------------------------------------------------------------------------
 curl_easy_strerror :: CURLcode -> IO String
-curl_easy_strerror code =
-  ccurl_easy_strerror (fromH code) >>= peekCString
+curl_easy_strerror code = ccurl_easy_strerror (fromH code) >>= peekCString
 
+
+-------------------------------------------------------------------------------
 curl_easy_init :: IO CURL
-curl_easy_init = ccurl_easy_init >>= \curl ->
-  if (curl /= nullPtr) then return curl else throwIO CURLE_FAILED_INIT
-
-curl_easy_cleanup :: CURL -> IO ()
-curl_easy_cleanup = ccurl_easy_cleanup
+curl_easy_init = ccurl_easy_init >>= \ccurl -> if (ccurl == nullPtr)
+  then throwIO CURLE_FAILED_INIT
+  else CURL ccurl
+    <$> newIORef Nothing
+    <*> newIORef Nothing
 
 curl_easy_reset :: CURL -> IO ()
-curl_easy_reset = ccurl_easy_reset
+curl_easy_reset curl =
+  ccurl_easy_reset (ccurlptr curl) >> freeCallbacks curl
 
+curl_easy_cleanup :: CURL -> IO ()
+curl_easy_cleanup curl =
+  ccurl_easy_cleanup (ccurlptr curl) >> freeCallbacks curl
+
+freeCallbacks :: CURL -> IO ()
+freeCallbacks curl = do
+  keepCallback (cb_write curl) Nothing
+  keepCallback (cb_read  curl) Nothing
+
+keepCallback :: IORef (Maybe (FunPtr a)) -> Maybe (FunPtr a) -> IO ()
+keepCallback r mf =
+  atomicModifyIORef r (\v -> (mf, v)) >>= maybe (return ()) freeHaskellFunPtr
+
+makeCallback :: Maybe cb -> IORef (Maybe (FunPtr a))
+             -> (FunPtr a -> IO CCURLcode) -> (cb -> IO (FunPtr a)) -> IO ()
+makeCallback (Just cb) ref setcb wrapcb = do
+  fptr <- wrapcb cb
+  code <- fromC <$> setcb fptr
+  if (code == CURLE_OK)
+    then keepCallback ref (Just fptr)
+    else freeHaskellFunPtr fptr >> throwIO code
+makeCallback Nothing ref setcb _ = do
+  code <- fromC <$> setcb nullFunPtr
+  keepCallback ref Nothing
+  ifOK code (return ())
+
+
+-------------------------------------------------------------------------------
 curl_easy_perform :: CURL -> IO ()
 curl_easy_perform curl = do
-  code <- fromC <$> ccurl_easy_perform curl
+  code <- fromC <$> ccurl_easy_perform (ccurlptr curl)
   ifOK code $ return ()
 
 
 -------------------------------------------------------------------------------
 curl_easy_getinfo :: CURL -> IO CURLinfo
-curl_easy_getinfo curl = CURLinfo
-  <$> getinfo'String   curl cCURLINFO_EFFECTIVE_URL
-  <*> getinfo'RespCode curl cCURLINFO_RESPONSE_CODE
-  <*> getinfo'RespCode curl cCURLINFO_HTTP_CONNECTCODE
-  <*> getinfo'FileTime curl cCURLINFO_FILETIME
-  <*> getinfo'Double   curl cCURLINFO_TOTAL_TIME
-  <*> getinfo'Double   curl cCURLINFO_NAMELOOKUP_TIME
-  <*> getinfo'Double   curl cCURLINFO_CONNECT_TIME
-  <*> getinfo'Double   curl cCURLINFO_APPCONNECT_TIME
-  <*> getinfo'Double   curl cCURLINFO_PRETRANSFER_TIME
-  <*> getinfo'Double   curl cCURLINFO_STARTTRANSFER_TIME
-  <*> getinfo'Double   curl cCURLINFO_REDIRECT_TIME
-  <*> getinfo'Int      curl cCURLINFO_REDIRECT_COUNT
-  <*> getinfo'MString  curl cCURLINFO_REDIRECT_URL
-  <*> getinfo'Double   curl cCURLINFO_SIZE_UPLOAD
-  <*> getinfo'Double   curl cCURLINFO_SIZE_DOWNLOAD
-  <*> getinfo'Double   curl cCURLINFO_SPEED_DOWNLOAD
-  <*> getinfo'Double   curl cCURLINFO_SPEED_UPLOAD
-  <*> getinfo'Int      curl cCURLINFO_HEADER_SIZE
-  <*> getinfo'Int      curl cCURLINFO_REQUEST_SIZE
-  <*> getinfo'Int      curl cCURLINFO_SSL_VERIFYRESULT
-  <*> getinfo'SList    curl cCURLINFO_SSL_ENGINES
-  <*> getinfo'ContentL curl cCURLINFO_CONTENT_LENGTH_DOWNLOAD
-  <*> getinfo'ContentL curl cCURLINFO_CONTENT_LENGTH_UPLOAD
-  <*> getinfo'MString  curl cCURLINFO_CONTENT_TYPE
---  <*> getinfo'String   curl cCURLINFO_PRIVATE
-  <*> getinfo'CurlAuth curl cCURLINFO_HTTPAUTH_AVAIL
-  <*> getinfo'CurlAuth curl cCURLINFO_PROXYAUTH_AVAIL
-  <*> getinfo'Int      curl cCURLINFO_OS_ERRNO
-  <*> getinfo'Int      curl cCURLINFO_NUM_CONNECTS
-  <*> getinfo'String   curl cCURLINFO_PRIMARY_IP
-  <*> getinfo'Int      curl cCURLINFO_PRIMARY_PORT
-  <*> getinfo'String   curl cCURLINFO_LOCAL_IP
-  <*> getinfo'Int      curl cCURLINFO_LOCAL_PORT
-  <*> getinfo'SList    curl cCURLINFO_COOKIELIST
-  <*> getinfo'Socket   curl cCURLINFO_LASTSOCKET
-  <*> getinfo'MString  curl cCURLINFO_FTP_ENTRY_PATH
-  <*> getinfo'CertInfo curl cCURLINFO_CERTINFO
-  <*> getinfo'TimeCond curl cCURLINFO_CONDITION_UNMET
-  <*> getinfo'MString  curl cCURLINFO_RTSP_SESSION_ID
-  <*> getinfo'Int      curl cCURLINFO_RTSP_CLIENT_CSEQ
-  <*> getinfo'Int      curl cCURLINFO_RTSP_SERVER_CSEQ
-  <*> getinfo'Int      curl cCURLINFO_RTSP_CSEQ_RECV
+curl_easy_getinfo curl = let ccurl = ccurlptr curl in CURLinfo
+  <$> getinfo'String   ccurl cCURLINFO_EFFECTIVE_URL
+  <*> getinfo'RespCode ccurl cCURLINFO_RESPONSE_CODE
+  <*> getinfo'RespCode ccurl cCURLINFO_HTTP_CONNECTCODE
+  <*> getinfo'FileTime ccurl cCURLINFO_FILETIME
+  <*> getinfo'Double   ccurl cCURLINFO_TOTAL_TIME
+  <*> getinfo'Double   ccurl cCURLINFO_NAMELOOKUP_TIME
+  <*> getinfo'Double   ccurl cCURLINFO_CONNECT_TIME
+  <*> getinfo'Double   ccurl cCURLINFO_APPCONNECT_TIME
+  <*> getinfo'Double   ccurl cCURLINFO_PRETRANSFER_TIME
+  <*> getinfo'Double   ccurl cCURLINFO_STARTTRANSFER_TIME
+  <*> getinfo'Double   ccurl cCURLINFO_REDIRECT_TIME
+  <*> getinfo'Int      ccurl cCURLINFO_REDIRECT_COUNT
+  <*> getinfo'MString  ccurl cCURLINFO_REDIRECT_URL
+  <*> getinfo'Double   ccurl cCURLINFO_SIZE_UPLOAD
+  <*> getinfo'Double   ccurl cCURLINFO_SIZE_DOWNLOAD
+  <*> getinfo'Double   ccurl cCURLINFO_SPEED_DOWNLOAD
+  <*> getinfo'Double   ccurl cCURLINFO_SPEED_UPLOAD
+  <*> getinfo'Int      ccurl cCURLINFO_HEADER_SIZE
+  <*> getinfo'Int      ccurl cCURLINFO_REQUEST_SIZE
+  <*> getinfo'Int      ccurl cCURLINFO_SSL_VERIFYRESULT
+  <*> getinfo'SList    ccurl cCURLINFO_SSL_ENGINES
+  <*> getinfo'ContentL ccurl cCURLINFO_CONTENT_LENGTH_DOWNLOAD
+  <*> getinfo'ContentL ccurl cCURLINFO_CONTENT_LENGTH_UPLOAD
+  <*> getinfo'MString  ccurl cCURLINFO_CONTENT_TYPE
+--  <*> getinfo'String   ccurl cCURLINFO_PRIVATE
+  <*> getinfo'CurlAuth ccurl cCURLINFO_HTTPAUTH_AVAIL
+  <*> getinfo'CurlAuth ccurl cCURLINFO_PROXYAUTH_AVAIL
+  <*> getinfo'Int      ccurl cCURLINFO_OS_ERRNO
+  <*> getinfo'Int      ccurl cCURLINFO_NUM_CONNECTS
+  <*> getinfo'String   ccurl cCURLINFO_PRIMARY_IP
+  <*> getinfo'Int      ccurl cCURLINFO_PRIMARY_PORT
+  <*> getinfo'String   ccurl cCURLINFO_LOCAL_IP
+  <*> getinfo'Int      ccurl cCURLINFO_LOCAL_PORT
+  <*> getinfo'SList    ccurl cCURLINFO_COOKIELIST
+  <*> getinfo'Socket   ccurl cCURLINFO_LASTSOCKET
+  <*> getinfo'MString  ccurl cCURLINFO_FTP_ENTRY_PATH
+  <*> getinfo'CertInfo ccurl cCURLINFO_CERTINFO
+  <*> getinfo'TimeCond ccurl cCURLINFO_CONDITION_UNMET
+  <*> getinfo'MString  ccurl cCURLINFO_RTSP_SESSION_ID
+  <*> getinfo'Int      ccurl cCURLINFO_RTSP_CLIENT_CSEQ
+  <*> getinfo'Int      ccurl cCURLINFO_RTSP_SERVER_CSEQ
+  <*> getinfo'Int      ccurl cCURLINFO_RTSP_CSEQ_RECV
 
-getinfo'String :: CURL -> CCURLinfo'CString -> IO String
-getinfo'String curl info = alloca $ \ptr -> do
-  code <- fromC <$> ccurl_easy_getinfo'CString curl info ptr
+getinfo'String :: Ptr CCURL -> CCURLinfo'CString -> IO String
+getinfo'String ccurl cinfo = alloca $ \ptr -> do
+  code <- fromC <$> ccurl_easy_getinfo'CString ccurl cinfo ptr
   ifOK code (peek ptr >>= peekCString)
 
-getinfo'MString :: CURL -> CCURLinfo'CString -> IO (Maybe String)
-getinfo'MString curl info = alloca $ \ptr -> do
-  code <- fromC <$> ccurl_easy_getinfo'CString curl info ptr
+getinfo'MString :: Ptr CCURL -> CCURLinfo'CString -> IO (Maybe String)
+getinfo'MString ccurl cinfo = alloca $ \ptr -> do
+  code <- fromC <$> ccurl_easy_getinfo'CString ccurl cinfo ptr
   ifOK code $ peek ptr >>= \csptr -> if (csptr /= nullPtr)
     then Just <$> peekCString csptr
     else return Nothing
 
-getinfo'Double :: CURL -> CCURLinfo'CDouble -> IO Double
-getinfo'Double curl info = alloca $ \ptr -> do
-  code <- fromC <$> ccurl_easy_getinfo'CDouble curl info ptr
+getinfo'Double :: Ptr CCURL -> CCURLinfo'CDouble -> IO Double
+getinfo'Double ccurl cinfo = alloca $ \ptr -> do
+  code <- fromC <$> ccurl_easy_getinfo'CDouble ccurl cinfo ptr
   ifOK code (realToFrac <$> peek ptr)
 
-getinfo'ContentL :: CURL -> CCURLinfo'CDouble -> IO (Maybe Double)
-getinfo'ContentL curl info = getinfo'Double curl info >>= \v ->
+getinfo'ContentL :: Ptr CCURL -> CCURLinfo'CDouble -> IO (Maybe Double)
+getinfo'ContentL ccurl cinfo = getinfo'Double ccurl cinfo >>= \v ->
   return $ if (v == (-1)) then Nothing else Just v
 
-getinfo'SList :: CURL -> CCURLinfo'SList -> IO [String]
-getinfo'SList curl info = alloca $ \ptr -> do
-  code <- fromC <$> ccurl_easy_getinfo'SList curl info ptr
+getinfo'SList :: Ptr CCURL -> CCURLinfo'SList -> IO [String]
+getinfo'SList ccurl cinfo = alloca $ \ptr -> do
+  code <- fromC <$> ccurl_easy_getinfo'SList ccurl cinfo ptr
   ifOK code $ peek ptr >>= \slist -> do
     strings <- peek'CCURL_slist slist
     ccurl_slist_free_all slist
     return strings
 
-getinfo'CertInfo :: CURL -> CCURLinfo'CertI -> IO [[String]]
-getinfo'CertInfo curl info = alloca $ \ptr -> do
-  code <- fromC <$> ccurl_easy_getinfo'CertI curl info ptr
+getinfo'CertInfo :: Ptr CCURL -> CCURLinfo'CertI -> IO [[String]]
+getinfo'CertInfo ccurl cinfo = alloca $ \ptr -> do
+  code <- fromC <$> ccurl_easy_getinfo'CertI ccurl cinfo ptr
   ifOK code (peek ptr >>= peek'CCURL_certinfo)
 
-getinfo'Int :: CURL -> CCURLinfo'CLong -> IO Int
-getinfo'Int curl info = alloca $ \ptr -> do
-  code <- fromC <$> ccurl_easy_getinfo'CLong curl info ptr
+getinfo'Int :: Ptr CCURL -> CCURLinfo'CLong -> IO Int
+getinfo'Int ccurl cinfo = alloca $ \ptr -> do
+  code <- fromC <$> ccurl_easy_getinfo'CLong ccurl cinfo ptr
   ifOK code (fromIntegral <$> peek ptr)
 
-getinfo'RespCode :: CURL -> CCURLinfo'CLong -> IO (Maybe Int)
-getinfo'RespCode curl info = getinfo'Int curl info >>= \v ->
+getinfo'RespCode :: Ptr CCURL -> CCURLinfo'CLong -> IO (Maybe Int)
+getinfo'RespCode ccurl cinfo = getinfo'Int ccurl cinfo >>= \v ->
   return $ if (v == 0) then Nothing else Just v
 
-getinfo'FileTime :: CURL -> CCURLinfo'CLong -> IO (Maybe UTCTime)
-getinfo'FileTime curl info = getinfo'Int curl info >>= \v ->
+getinfo'FileTime :: Ptr CCURL -> CCURLinfo'CLong -> IO (Maybe UTCTime)
+getinfo'FileTime ccurl cinfo = getinfo'Int ccurl cinfo >>= \v ->
   return $ if (v == (-1) || v == 0) then Nothing
     else Just (posixSecondsToUTCTime $ realToFrac v)
 
-getinfo'Socket :: CURL -> CCURLinfo'CLong -> IO (Maybe Int)
-getinfo'Socket curl info = getinfo'Int curl info >>= \v ->
+getinfo'Socket :: Ptr CCURL -> CCURLinfo'CLong -> IO (Maybe Int)
+getinfo'Socket ccurl cinfo = getinfo'Int ccurl cinfo >>= \v ->
   return $ if (v == (-1)) then Nothing else Just v
 
-getinfo'TimeCond :: CURL -> CCURLinfo'CLong -> IO Bool
-getinfo'TimeCond curl info = getinfo'Int curl info >>= \v ->
+getinfo'TimeCond :: Ptr CCURL -> CCURLinfo'CLong -> IO Bool
+getinfo'TimeCond ccurl cinfo = getinfo'Int ccurl cinfo >>= \v ->
   return $ if (v == 0) then False else True
 
-getinfo'CurlAuth :: CURL -> CCURLinfo'CLong -> IO [CURLauth]
-getinfo'CurlAuth curl info = do
-  mask <- fromIntegral <$> getinfo'Int curl info
+getinfo'CurlAuth :: Ptr CCURL -> CCURLinfo'CLong -> IO [CURLauth]
+getinfo'CurlAuth ccurl cinfo = do
+  mask <- fromIntegral <$> getinfo'Int ccurl cinfo
   return $ mapMaybe (\(v, b) -> if (mask .&. b == 0) then Nothing else Just v)
     [ (CURLAUTH_BASIC       , cCURLAUTH_BASIC       )
     , (CURLAUTH_DIGEST      , cCURLAUTH_DIGEST      )
@@ -261,40 +294,35 @@ peek'CCURL_certinfo ptr =
 
 
 -------------------------------------------------------------------------------
-curl_easy_setopt :: CURLoption opt a => CURL -> opt -> a -> IO ()
-curl_easy_setopt = setopt
+curl_easy_setopt :: CURL -> [CURLoption] -> IO ()
+curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
+  CURLOPT_WRITEFUNCTION f -> so'FWRITE curl f
+  CURLOPT_URL           s -> so'String curl cCURLOPT_URL s
+  _ -> throwIO CURLE_FAILED_INIT -- CURLE_UNKNOWN_OPTION
 
-class CURLoption opt a where
-  setopt :: CURL -> opt -> a -> IO ()
 
-instance CURLoption CURLoption'S String where
-  setopt curl opt val = withCString val $ \ptr -> do
-    code <- fromC <$> ccurl_easy_setopt'String curl (fromH opt) ptr
-    ifOK code $ return ()
+so'String :: CURL -> CCURLoption'String -> String -> IO ()
+so'String curl copt val = withCString val $ \ptr -> do
+  code <- fromC <$> ccurl_easy_setopt'String (ccurlptr curl) copt ptr
+  ifOK code (return ())
+
+
+so'FWRITE :: CURL -> Maybe CURL_write_callback -> IO ()
+so'FWRITE curl mcb = makeCallback mcb (cb_write curl)
+  (ccurl_easy_setopt'FWRITE (ccurlptr curl) cCURLOPT_WRITEFUNCTION)
+  (\cb -> wrap_ccurl_write_callback (write_callback cb))
+
+write_callback :: CURL_write_callback -> CCURL_write_callback
+write_callback fwrite ptr size nmemb _ = do
+  stat <- packCStringLen (ptr, fromIntegral (size * nmemb)) >>= fwrite
+  return $ if stat then (size * nmemb) else 0
+
+
+
 
 
 -------------------------------------------------------------------------------
 ifOK :: CURLcode -> IO a -> IO a
 ifOK CURLE_OK action = action
 ifOK code     _      = throwIO code
-
-
-
-{-
--------------------------------------------------------------------------------
-infotest0 = do
-  curl <- curl_easy_init
-  info <- curl_easy_getinfo curl
-  curl_easy_cleanup curl
-  return info
-
-infotest1 url = do
-  curl <- curl_easy_init
-  curl_easy_setopt curl CURLOPT_URL url
-  ccurl_easy_setopt'Int32 curl cCURLOPT_CERTINFO 1
-  curl_easy_perform curl
-  info <- curl_easy_getinfo curl
-  curl_easy_cleanup curl
-  return info
--}
 

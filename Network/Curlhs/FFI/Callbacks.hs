@@ -14,8 +14,8 @@
 
 module Network.Curlhs.FFI.Callbacks where
 
---import Foreign.C.Types
---import Foreign.Ptr
+import Foreign.C.Types (CChar, CSize)
+import Foreign.Ptr     (Ptr, FunPtr)
 
 --import Network.Curlhs.FFI.Types
 
@@ -26,8 +26,14 @@ module Network.Curlhs.FFI.Callbacks where
 --type CCURL_progress_callback
 --  = Ptr a -> CDouble -> CDouble -> CDouble -> CDouble -> IO CInt
 
---type CCURL_write_callback
---  = Ptr CChar -> CSize -> CSize -> Ptr a -> IO CSize
+type CCURL_write_callback
+  = Ptr CChar -> CSize -> CSize -> Ptr () -> IO CSize
+
+foreign import ccall "wrapper"
+  wrap_ccurl_write_callback
+    :: CCURL_write_callback
+    -> IO (FunPtr CCURL_write_callback)
+
 
 --type CCURL_chunk_bgn_callback
 --  = Ptr a -> Ptr a -> CInt -> IO CLong
@@ -41,8 +47,14 @@ module Network.Curlhs.FFI.Callbacks where
 --type CCURL_seek_callback
 --  = Ptr a -> CCURL_off_t -> CInt -> IO CInt
 
---type CCURL_read_callback
---  = Ptr CChar -> CSize -> CSize -> Ptr a -> IO CSize
+type CCURL_read_callback
+  = Ptr CChar -> CSize -> CSize -> Ptr () -> IO CSize
+
+foreign import ccall "wrapper"
+  wrap_ccurl_read_callback
+    :: CCURL_read_callback
+    -> IO (FunPtr CCURL_read_callback)
+
 
 --type CCURL_sockopt_callback
 --  = Ptr a -> CCURL_socket_t -> CCURLsocktype -> IO CInt

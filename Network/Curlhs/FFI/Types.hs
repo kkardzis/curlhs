@@ -43,6 +43,8 @@ module Network.Curlhs.FFI.Types
   , CCURLoption'Share
   , CCURLoption'Ptr_a
   , CCURLoption'FunPtr
+  , CCURLoption'FWRITE
+  , CCURLoption'FREAD
   , CCURL_http_version
   , CCURL_rtspreq
   , CCURL_netrc_option

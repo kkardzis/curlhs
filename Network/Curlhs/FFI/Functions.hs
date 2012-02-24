@@ -17,8 +17,8 @@ module Network.Curlhs.FFI.Functions where
 import Foreign.C.Types (CChar, CInt, CLong, CDouble, CSize, CFile, CTime)
 import Foreign.Ptr     (Ptr, FunPtr)
 
---import Network.Curlhs.FFI.Callbacks
-import Network.Curlhs.FFI.Types
+import Network.Curlhs.FFI.Callbacks
+import Network.Curlhs.FFI.TypesH
 
 
 -------------------------------------------------------------------------------
@@ -207,19 +207,37 @@ foreign import ccall "curl_easy_setopt"
     -> Ptr CFile
     -> IO CCURLcode
 
+{-
 foreign import ccall "curl_easy_setopt"
   ccurl_easy_setopt'Ptr_a
     :: Ptr CCURL
     -> CCURLoption'Ptr_a
     -> Ptr a
     -> IO CCURLcode
+-}
 
+foreign import ccall "curl_easy_setopt"
+  ccurl_easy_setopt'FWRITE
+    :: Ptr CCURL
+    -> CCURLoption'FWRITE
+    -> FunPtr CCURL_write_callback
+    -> IO CCURLcode
+
+foreign import ccall "curl_easy_setopt"
+  ccurl_easy_setopt'FREAD
+    :: Ptr CCURL
+    -> CCURLoption'FREAD
+    -> FunPtr CCURL_read_callback
+    -> IO CCURLcode
+
+{-
 foreign import ccall "curl_easy_setopt"
   ccurl_easy_setopt'FunPtr
     :: Ptr CCURL
     -> CCURLoption'FunPtr
     -> FunPtr a
     -> IO CCURLcode
+-}
 
 foreign import ccall "curl_easy_perform"
   ccurl_easy_perform

@@ -12,7 +12,7 @@
 
 module Network.Curlhs.FFI.Symbols where
 
-import Foreign.C.Types (CInt)
+import Foreign.C.Types (CInt, CSize)
 
 import Network.Curlhs.FFI.TypesH
 
@@ -88,6 +88,17 @@ libCURL_VERSION_PATCH = #{const LIBCURL_VERSION_PATCH}
 -- from "curl.h"
 -------------------------------------------------------------------------------
 
+
+
+-------------------------------------------------------------------------------
+#if LIBCURL_VERSION_NUM >= CURL_7_20_0
+#{cconst CURL_MAX_WRITE_SIZE , CSize}
+#{cconst CURL_MAX_HTTP_HEADER, CSize}
+#{cconst CURL_WRITEFUNC_PAUSE, CSize}
+
+#{cconst CURL_READFUNC_ABORT , CSize}
+#{cconst CURL_READFUNC_PAUSE , CSize}
+#endif
 
 
 -------------------------------------------------------------------------------

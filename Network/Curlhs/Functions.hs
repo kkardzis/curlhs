@@ -26,6 +26,7 @@ module Network.Curlhs.Functions
   ) where
 
 import Foreign.Marshal.Alloc (alloca)
+import Foreign.Marshal.Utils (copyBytes)
 import Foreign.Storable      (peek, sizeOf)
 import Foreign.C.String      (peekCString, withCString)
 import Foreign.C.Types       (CChar, CInt)
@@ -37,7 +38,10 @@ import Data.Time.Clock       (UTCTime)
 import Data.Maybe            (mapMaybe)
 import Data.Bits             ((.&.))
 import Data.IORef            (IORef, newIORef, atomicModifyIORef)
-import Data.ByteString       (packCStringLen)
+
+import qualified Data.ByteString as BS
+import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
+import Data.ByteString        (packCStringLen)
 
 import Control.Applicative   ((<$>), (<*>))
 import Control.Exception     (throwIO)
@@ -297,6 +301,7 @@ peek'CCURL_certinfo ptr =
 curl_easy_setopt :: CURL -> [CURLoption] -> IO ()
 curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
   CURLOPT_WRITEFUNCTION f -> so'FWRITE curl f
+  CURLOPT_READFUNCTION  f -> so'FREAD  curl f
   CURLOPT_URL           s -> so'String curl cCURLOPT_URL s
   _ -> throwIO CURLE_FAILED_INIT -- CURLE_UNKNOWN_OPTION
 
@@ -315,8 +320,26 @@ so'FWRITE curl mcb = makeCallback mcb (cb_write curl)
 write_callback :: CURL_write_callback -> CCURL_write_callback
 write_callback fwrite ptr size nmemb _ = do
   stat <- packCStringLen (ptr, fromIntegral (size * nmemb)) >>= fwrite
-  return $ if stat then (size * nmemb) else 0
+  return $ case stat of
+    CURL_WRITEFUNC_OK    -> (size * nmemb)
+    CURL_WRITEFUNC_FAIL  -> 0
+    CURL_WRITEFUNC_PAUSE -> cCURL_WRITEFUNC_PAUSE
 
+
+so'FREAD :: CURL -> Maybe CURL_read_callback -> IO ()
+so'FREAD curl mcb = makeCallback mcb (cb_read curl)
+  (ccurl_easy_setopt'FREAD (ccurlptr curl) cCURLOPT_READFUNCTION)
+  (\cb -> wrap_ccurl_read_callback (read_callback cb))
+
+read_callback :: CURL_read_callback -> CCURL_read_callback
+read_callback fread buff size nmemb _ = do
+  let buffLen = fromIntegral (size * nmemb)
+  stat <- fread buffLen
+  case stat of
+    CURL_READFUNC_PAUSE -> return cCURL_READFUNC_PAUSE
+    CURL_READFUNC_ABORT -> return cCURL_READFUNC_ABORT
+    CURL_READFUNC_OK bs -> unsafeUseAsCStringLen (BS.take buffLen bs)
+      (\(cs, cl) -> copyBytes buff cs cl >> return (fromIntegral cl))
 
 
 

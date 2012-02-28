@@ -239,7 +239,22 @@ data CURLauth
 
 
 -------------------------------------------------------------------------------
-type CURL_write_callback = ByteString -> IO Bool
+type CURL_write_callback = ByteString -> IO CURL_write_response
+
+data CURL_write_response
+  = CURL_WRITEFUNC_OK
+  | CURL_WRITEFUNC_FAIL
+  | CURL_WRITEFUNC_PAUSE
+  deriving (Eq)
+
+
+type CURL_read_callback = Int -> IO CURL_read_response
+
+data CURL_read_response
+  = CURL_READFUNC_OK ByteString
+  | CURL_READFUNC_ABORT
+  | CURL_READFUNC_PAUSE
+  deriving (Eq)
 
 
 -------------------------------------------------------------------------------
@@ -254,7 +269,7 @@ data CURLoption
 -- CALLBACK OPTIONS
   | CURLOPT_WRITEFUNCTION (Maybe CURL_write_callback)
   | CURLOPT_WRITEDATA
-  | CURLOPT_READFUNCTION
+  | CURLOPT_READFUNCTION (Maybe CURL_read_callback)
   | CURLOPT_READDATA
   | CURLOPT_IOCTLFUNCTION
   | CURLOPT_IOCTLDATA

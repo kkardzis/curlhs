@@ -18,6 +18,8 @@ module Network.Curlhs.Types
   , CURLoption (..)
   , CURL_version_info_data (..)
   , CURL_version (..)
+  , CURL_write_callback, CURL_write_response (..)
+  , CURL_read_callback,  CURL_read_response (..)
   ) where
 
 import Network.Curlhs.TypesH

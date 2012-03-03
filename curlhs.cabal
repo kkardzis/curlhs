@@ -8,7 +8,7 @@ license:        OtherLicense
 license-file:   LICENSE
 category:       Network
 stability:      Experimental
-build-type:     Simple
+build-type:     Custom
 cabal-version:  >=1.6
 tested-with:    GHC ==7.0.3
 

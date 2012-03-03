@@ -18,23 +18,7 @@ import Network.Curlhs.FFI.TypesH
 
 
 -------------------------------------------------------------------------------
-#define CURL_7_20_0 0x071400
-#define CURL_7_20_1 0x071401
-#define CURL_7_21_0 0x071500
-#define CURL_7_21_1 0x071501
-#define CURL_7_21_2 0x071502
-#define CURL_7_21_3 0x071503
-#define CURL_7_21_4 0x071504
-#define CURL_7_21_5 0x071505
-#define CURL_7_21_6 0x071506
-#define CURL_7_21_7 0x071507
-#define CURL_7_22_0 0x071600
-#define CURL_7_23_0 0x071700
-#define CURL_7_23_1 0x071701
-#define CURL_7_24_0 0x071800
-
 #define CURL_NO_OLDIES
-
 #include "curl/curl.h"
 
 
@@ -90,29 +74,32 @@ libCURL_VERSION_PATCH = #{const LIBCURL_VERSION_PATCH}
 
 
 
+
+
 -------------------------------------------------------------------------------
-#if LIBCURL_VERSION_NUM >= CURL_7_20_0
 #{cconst CURL_MAX_WRITE_SIZE , CSize}
 #{cconst CURL_MAX_HTTP_HEADER, CSize}
 #{cconst CURL_WRITEFUNC_PAUSE, CSize}
 
 #{cconst CURL_READFUNC_ABORT , CSize}
 #{cconst CURL_READFUNC_PAUSE , CSize}
-#endif
+
 
 
 -------------------------------------------------------------------------------
-#if LIBCURL_VERSION_NUM >= CURL_7_20_0
 #{symbol CURLE_OK                      , CURLcode}
 #{symbol CURLE_UNSUPPORTED_PROTOCOL    , CURLcode}
 #{symbol CURLE_FAILED_INIT             , CURLcode}
 #{symbol CURLE_URL_MALFORMAT           , CURLcode}
+#{symbol CURLE_NOT_BUILT_IN            , CURLcode} |7215:----|
 #{symbol CURLE_COULDNT_RESOLVE_PROXY   , CURLcode}
 #{symbol CURLE_COULDNT_RESOLVE_HOST    , CURLcode}
 #{symbol CURLE_COULDNT_CONNECT         , CURLcode}
 #{symbol CURLE_FTP_WEIRD_SERVER_REPLY  , CURLcode}
 #{symbol CURLE_REMOTE_ACCESS_DENIED    , CURLcode}
+#{symbol CURLE_FTP_ACCEPT_FAILED       , CURLcode} |7240:----|
 #{symbol CURLE_FTP_WEIRD_PASS_REPLY    , CURLcode}
+#{symbol CURLE_FTP_ACCEPT_TIMEOUT      , CURLcode} |7240:----|
 #{symbol CURLE_FTP_WEIRD_PASV_REPLY    , CURLcode}
 #{symbol CURLE_FTP_WEIRD_227_FORMAT    , CURLcode}
 #{symbol CURLE_FTP_CANT_GET_HOST       , CURLcode}
@@ -140,9 +127,8 @@ libCURL_VERSION_PATCH = #{const LIBCURL_VERSION_PATCH}
 #{symbol CURLE_BAD_FUNCTION_ARGUMENT   , CURLcode}
 #{symbol CURLE_INTERFACE_FAILED        , CURLcode}
 #{symbol CURLE_TOO_MANY_REDIRECTS      , CURLcode}
-#if LIBCURL_VERSION_NUM < CURL_7_21_5
-#{symbol CURLE_UNKNOWN_TELNET_OPTION   , CURLcode}
-#endif
+#{symbol CURLE_UNKNOWN_TELNET_OPTION   , CURLcode} |----:7214|
+#{symbol CURLE_UNKNOWN_OPTION          , CURLcode} |7215:----|
 #{symbol CURLE_TELNET_OPTION_SYNTAX    , CURLcode}
 #{symbol CURLE_PEER_FAILED_VERIFICATION, CURLcode}
 #{symbol CURLE_GOT_NOTHING             , CURLcode}
@@ -179,27 +165,12 @@ libCURL_VERSION_PATCH = #{const LIBCURL_VERSION_PATCH}
 #{symbol CURLE_FTP_PRET_FAILED         , CURLcode}
 #{symbol CURLE_RTSP_CSEQ_ERROR         , CURLcode}
 #{symbol CURLE_RTSP_SESSION_ERROR      , CURLcode}
-#endif
-
-#if LIBCURL_VERSION_NUM >= CURL_7_21_0
-#{symbol CURLE_FTP_BAD_FILE_LIST       , CURLcode}
-#{symbol CURLE_CHUNK_FAILED            , CURLcode}
-#endif
-
-#if LIBCURL_VERSION_NUM >= CURL_7_21_5
-#{symbol CURLE_NOT_BUILT_IN            , CURLcode}
-#{symbol CURLE_UNKNOWN_OPTION          , CURLcode}
-#endif
-
-#if LIBCURL_VERSION_NUM >= CURL_7_24_0
-#{symbol CURLE_FTP_ACCEPT_FAILED       , CURLcode}
-#{symbol CURLE_FTP_ACCEPT_TIMEOUT      , CURLcode}
-#endif
+#{symbol CURLE_FTP_BAD_FILE_LIST       , CURLcode} |7210:----|
+#{symbol CURLE_CHUNK_FAILED            , CURLcode} |7210:----|
 
 
 
 -------------------------------------------------------------------------------
-#if LIBCURL_VERSION_NUM >= CURL_7_20_0
 #{cconst CURLAUTH_NONE        , CInt}
 #{cconst CURLAUTH_BASIC       , CInt}
 #{cconst CURLAUTH_DIGEST      , CInt}
@@ -208,15 +179,8 @@ libCURL_VERSION_PATCH = #{const LIBCURL_VERSION_PATCH}
 #{cconst CURLAUTH_DIGEST_IE   , CInt}
 #{cconst CURLAUTH_ANY         , CInt}
 #{cconst CURLAUTH_ANYSAFE     , CInt}
-#endif
-
-#if LIBCURL_VERSION_NUM >= CURL_7_21_3
-#{cconst CURLAUTH_ONLY        , CInt}
-#endif
-
-#if LIBCURL_VERSION_NUM >= CURL_7_22_0
-#{cconst CURLAUTH_NTLM_WB     , CInt}
-#endif
+#{cconst CURLAUTH_ONLY        , CInt} |7213:----|
+#{cconst CURLAUTH_NTLM_WB     , CInt} |7220:----|
 
 
 
@@ -225,7 +189,6 @@ libCURL_VERSION_PATCH = #{const LIBCURL_VERSION_PATCH}
   printf("c" #name " :: CCURLoption'" #type "\n"); \
   printf("c" #name " =  CCURLoption'" #type " "); hsc_const(name);
 
-#if LIBCURL_VERSION_NUM >= CURL_7_20_0
 #{curlopt CURLOPT_FILE                       , File   }
 #{curlopt CURLOPT_URL                        , String }
 #{curlopt CURLOPT_PORT                       , Int32  }
@@ -318,9 +281,8 @@ libCURL_VERSION_PATCH = #{const LIBCURL_VERSION_PATCH}
 #{curlopt CURLOPT_NOSIGNAL                   , Int32  }
 #{curlopt CURLOPT_SHARE                      , Share  }
 #{curlopt CURLOPT_PROXYTYPE                  , Int32  }
-#if LIBCURL_VERSION_NUM < CURL_7_21_6
-#{curlopt CURLOPT_ENCODING                   , String }
-#endif
+#{curlopt CURLOPT_ENCODING                   , String } |----:7215|
+#{curlopt CURLOPT_ACCEPT_ENCODING            , String } |7216:----|
 #{curlopt CURLOPT_PRIVATE                    , Ptr_a  }
 #{curlopt CURLOPT_HTTP200ALIASES             , SList  }
 #{curlopt CURLOPT_UNRESTRICTED_AUTH          , Int32  }
@@ -406,45 +368,22 @@ libCURL_VERSION_PATCH = #{const LIBCURL_VERSION_PATCH}
 #{curlopt CURLOPT_RTSP_SERVER_CSEQ           , Int32  }
 #{curlopt CURLOPT_INTERLEAVEDATA             , Ptr_a  }
 #{curlopt CURLOPT_INTERLEAVEFUNCTION         , FunPtr }
-#endif
-
-#if LIBCURL_VERSION_NUM >= CURL_7_21_0
-#{curlopt CURLOPT_WILDCARDMATCH              , Int32  }
-#{curlopt CURLOPT_CHUNK_BGN_FUNCTION         , FunPtr }
-#{curlopt CURLOPT_CHUNK_END_FUNCTION         , FunPtr }
-#{curlopt CURLOPT_FNMATCH_FUNCTION           , FunPtr }
-#{curlopt CURLOPT_CHUNK_DATA                 , Ptr_a  }
-#{curlopt CURLOPT_FNMATCH_DATA               , Ptr_a  }
-#endif
-
-#if LIBCURL_VERSION_NUM >= CURL_7_21_3
-#{curlopt CURLOPT_RESOLVE                    , SList  }
-#endif
-
-#if LIBCURL_VERSION_NUM >= CURL_7_21_4
-#{curlopt CURLOPT_TLSAUTH_USERNAME           , String }
-#{curlopt CURLOPT_TLSAUTH_PASSWORD           , String }
-#{curlopt CURLOPT_TLSAUTH_TYPE               , String }
-#endif
-
-#if LIBCURL_VERSION_NUM >= CURL_7_21_6
-#{curlopt CURLOPT_ACCEPT_ENCODING            , String }
-#{curlopt CURLOPT_TRANSFER_ENCODING          , Int32  }
-#endif
-
-#if LIBCURL_VERSION_NUM >= CURL_7_21_7
-#{curlopt CURLOPT_CLOSESOCKETFUNCTION        , FunPtr }
-#{curlopt CURLOPT_CLOSESOCKETDATA            , Ptr_a  }
-#endif
-
-#if LIBCURL_VERSION_NUM >= CURL_7_22_0
-#{curlopt CURLOPT_GSSAPI_DELEGATION          , Int32  }
-#endif
-
-#if LIBCURL_VERSION_NUM >= CURL_7_24_0
-#{curlopt CURLOPT_DNS_SERVERS                , String }
-#{curlopt CURLOPT_ACCEPTTIMEOUT_MS           , Int32  }
-#endif
+#{curlopt CURLOPT_WILDCARDMATCH              , Int32  } |7210:----|
+#{curlopt CURLOPT_CHUNK_BGN_FUNCTION         , FunPtr } |7210:----|
+#{curlopt CURLOPT_CHUNK_END_FUNCTION         , FunPtr } |7210:----|
+#{curlopt CURLOPT_FNMATCH_FUNCTION           , FunPtr } |7210:----|
+#{curlopt CURLOPT_CHUNK_DATA                 , Ptr_a  } |7210:----|
+#{curlopt CURLOPT_FNMATCH_DATA               , Ptr_a  } |7210:----|
+#{curlopt CURLOPT_RESOLVE                    , SList  } |7213:----|
+#{curlopt CURLOPT_TLSAUTH_USERNAME           , String } |7214:----|
+#{curlopt CURLOPT_TLSAUTH_PASSWORD           , String } |7214:----|
+#{curlopt CURLOPT_TLSAUTH_TYPE               , String } |7214:----|
+#{curlopt CURLOPT_TRANSFER_ENCODING          , Int32  } |7216:----|
+#{curlopt CURLOPT_CLOSESOCKETFUNCTION        , FunPtr } |7217:----|
+#{curlopt CURLOPT_CLOSESOCKETDATA            , Ptr_a  } |7217:----|
+#{curlopt CURLOPT_GSSAPI_DELEGATION          , Int32  } |7220:----|
+#{curlopt CURLOPT_DNS_SERVERS                , String } |7240:----|
+#{curlopt CURLOPT_ACCEPTTIMEOUT_MS           , Int32  } |7240:----|
 
 
 
@@ -454,7 +393,6 @@ libCURL_VERSION_PATCH = #{const LIBCURL_VERSION_PATCH}
   printf("c" #name " :: CCURLinfo'" #type "\n"); \
   printf("c" #name " =  CCURLinfo'" #type " "); hsc_const(name);
 
-#if LIBCURL_VERSION_NUM >= CURL_7_20_0
 #{curlinfo CURLINFO_EFFECTIVE_URL          , CString}
 #{curlinfo CURLINFO_RESPONSE_CODE          , CLong  }
 #{curlinfo CURLINFO_TOTAL_TIME             , CDouble}
@@ -494,29 +432,22 @@ libCURL_VERSION_PATCH = #{const LIBCURL_VERSION_PATCH}
 #{curlinfo CURLINFO_RTSP_CLIENT_CSEQ       , CLong  }
 #{curlinfo CURLINFO_RTSP_SERVER_CSEQ       , CLong  }
 #{curlinfo CURLINFO_RTSP_CSEQ_RECV         , CLong  }
-#endif
-
-#if LIBCURL_VERSION_NUM >= CURL_7_21_0
-#{curlinfo CURLINFO_PRIMARY_PORT           , CLong  }
-#{curlinfo CURLINFO_LOCAL_IP               , CString}
-#{curlinfo CURLINFO_LOCAL_PORT             , CLong  }
-#endif
+#{curlinfo CURLINFO_PRIMARY_PORT           , CLong  } |7210:----|
+#{curlinfo CURLINFO_LOCAL_IP               , CString} |7210:----|
+#{curlinfo CURLINFO_LOCAL_PORT             , CLong  } |7210:----|
 
 
 
 
 -------------------------------------------------------------------------------
-#if LIBCURL_VERSION_NUM >= CURL_7_20_0
 #{symbol CURLVERSION_FIRST , CURLversion}
 #{symbol CURLVERSION_SECOND, CURLversion}
 #{symbol CURLVERSION_THIRD , CURLversion}
 #{symbol CURLVERSION_FOURTH, CURLversion}
 #{symbol CURLVERSION_NOW   , CURLversion}
-#endif
 
 
 -------------------------------------------------------------------------------
-#if LIBCURL_VERSION_NUM >= CURL_7_20_0
 #{cconst CURL_VERSION_IPV6        , CInt}
 #{cconst CURL_VERSION_KERBEROS4   , CInt}
 #{cconst CURL_VERSION_SSL         , CInt}
@@ -531,13 +462,6 @@ libCURL_VERSION_PATCH = #{const LIBCURL_VERSION_PATCH}
 #{cconst CURL_VERSION_SSPI        , CInt}
 #{cconst CURL_VERSION_CONV        , CInt}
 #{cconst CURL_VERSION_CURLDEBUG   , CInt}
-#endif
-
-#if LIBCURL_VERSION_NUM >= CURL_7_21_4
-#{cconst CURL_VERSION_TLSAUTH_SRP , CInt}
-#endif
-
-#if LIBCURL_VERSION_NUM >= CURL_7_22_0
-#{cconst CURL_VERSION_NTLM_WB     , CInt}
-#endif
+#{cconst CURL_VERSION_TLSAUTH_SRP , CInt} |7214:----|
+#{cconst CURL_VERSION_NTLM_WB     , CInt} |7220:----|
 

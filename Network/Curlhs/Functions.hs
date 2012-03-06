@@ -13,17 +13,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
 
-module Network.Curlhs.Functions
-  ( curl_version
-  , curl_version_info
-  , curl_easy_strerror
-  , curl_easy_init
-  , curl_easy_reset
-  , curl_easy_cleanup
-  , curl_easy_perform
-  , curl_easy_getinfo
-  , curl_easy_setopt
-  ) where
+module Network.Curlhs.Functions where
 
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Marshal.Utils (copyBytes)
@@ -46,12 +36,8 @@ import Data.ByteString        (packCStringLen)
 import Control.Applicative   ((<$>), (<*>))
 import Control.Exception     (throwIO)
 
-import Network.Curlhs.FFI.Functions
-import Network.Curlhs.FFI.Callbacks
-import Network.Curlhs.FFI.Symbols
-import Network.Curlhs.FFI.Types
-
-import Network.Curlhs.TypesH
+import Network.Curlhs.Types
+import Network.Curlhs.Base
 
 
 -------------------------------------------------------------------------------

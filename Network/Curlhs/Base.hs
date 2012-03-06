@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Network.Curlhs.FFI.Types
+-- Module      :  Network.Curlhs.Base
 -- Copyright   :  Copyright © 2012 Krzysztof Kardzis
 -- License     :  ISC License (MIT/BSD-style, see LICENSE file for details)
 -- 
@@ -10,10 +10,14 @@
 --
 -------------------------------------------------------------------------------
 
-module Network.Curlhs.FFI.Types
+module Network.Curlhs.Base
+  ( module Network.Curlhs.FFI.Functions
+  , module Network.Curlhs.FFI.Callbacks
+  , module Network.Curlhs.FFI.Symbols
 
+  -- module Network.Curlhs.FFI.Types
   -- from "curlbuild.h"
-  ( CCURL_socket_t
+  , CCURL_socket_t
   , CCURL_off_t
 
   -- simple types from "curl.h"
@@ -77,5 +81,8 @@ module Network.Curlhs.FFI.Types
 
   ) where
 
-import Network.Curlhs.FFI.TypesH
+import Network.Curlhs.FFI.Functions
+import Network.Curlhs.FFI.Callbacks
+import Network.Curlhs.FFI.Symbols
+import Network.Curlhs.FFI.Types
 

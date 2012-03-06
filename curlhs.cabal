@@ -45,17 +45,18 @@ library
     time       == 1.*
 
   exposed-modules:
-    Network.Curlhs
-    Network.Curlhs.Types
-    Network.Curlhs.Functions
-    Network.Curlhs.FFI.Types
-    Network.Curlhs.FFI.Symbols
-    Network.Curlhs.FFI.Functions
-    Network.Curlhs.FFI.Callbacks
+    Network.Curlhs.Base
+    Network.Curlhs.Easy
+    -- Network.Curlhs.Multi
+    -- Network.Curlhs.Share
 
   other-modules:
-    Network.Curlhs.TypesH
-    Network.Curlhs.FFI.TypesH
+    Network.Curlhs.FFI.Functions
+    Network.Curlhs.FFI.Callbacks
+    Network.Curlhs.FFI.Symbols
+    Network.Curlhs.FFI.Types
+    Network.Curlhs.Functions
+    Network.Curlhs.Types
 
 source-repository head
   type:     git

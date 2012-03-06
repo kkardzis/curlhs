@@ -18,7 +18,7 @@ import Foreign.C.Types (CChar, CInt, CLong, CDouble, CSize, CFile, CTime)
 import Foreign.Ptr     (Ptr, FunPtr)
 
 import Network.Curlhs.FFI.Callbacks
-import Network.Curlhs.FFI.TypesH
+import Network.Curlhs.FFI.Types
 
 
 -------------------------------------------------------------------------------

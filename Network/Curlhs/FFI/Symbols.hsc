@@ -14,7 +14,7 @@ module Network.Curlhs.FFI.Symbols where
 
 import Foreign.C.Types (CInt, CSize)
 
-import Network.Curlhs.FFI.TypesH
+import Network.Curlhs.FFI.Types
 
 
 -------------------------------------------------------------------------------

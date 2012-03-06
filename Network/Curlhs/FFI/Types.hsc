@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Network.Curlhs.FFI.TypesH
+-- Module      :  Network.Curlhs.FFI.Types
 -- Copyright   :  Copyright © 2012 Krzysztof Kardzis
 -- License     :  ISC License (MIT/BSD-style, see LICENSE file for details)
 -- 
@@ -12,7 +12,7 @@
 
 {-# LANGUAGE EmptyDataDecls #-}
 
-module Network.Curlhs.FFI.TypesH where
+module Network.Curlhs.FFI.Types where
 
 import Foreign.C.Types  (CChar, CInt, CUInt, CLong, CLLong, CSize, CTime)
 import Foreign.Storable (Storable (..))

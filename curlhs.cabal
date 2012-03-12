@@ -51,10 +51,6 @@ library
     -- Network.Curlhs.Share
 
   other-modules:
-    Network.Curlhs.FFI.Functions
-    Network.Curlhs.FFI.Callbacks
-    Network.Curlhs.FFI.Symbols
-    Network.Curlhs.FFI.Types
     Network.Curlhs.Functions
     Network.Curlhs.Types
 

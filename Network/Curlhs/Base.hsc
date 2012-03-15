@@ -15,12 +15,16 @@
 
 module Network.Curlhs.Base where
 
-import Foreign.C.Types  (CChar, CInt, CUInt, CLong, CDouble)
+import Foreign.C.Types  (CChar, CInt, CUInt, CLong, CLLong, CDouble)
 import Foreign.C.Types  (CSize, CFile, CTime)
 import Foreign.Ptr      (Ptr, FunPtr, castPtr)
 import Foreign.Storable (Storable (..))
 
 import Control.Applicative ((<$>), (<*>))
+
+#if defined(WIN32) && !defined(__LWIP_OPT_H__)
+import Foreign.C.Types  (CUIntPtr)
+#endif
 
 
 -------------------------------------------------------------------------------
@@ -38,15 +42,41 @@ import Control.Applicative ((<$>), (<*>))
   printf("c" #name " =  "); hsc_const(name);
 
 
--- ----------------------------------------------------------------------------
--- #include "curlver.h"
--- 
--- ----------------------------------------------------------------------------
--- #include "curlbuild.h"
--- 
--- ----------------------------------------------------------------------------
--- #include "curlrules.h"
+-------------------------------------------------------------------------------
+-- from "curlver.h"
+-------------------------------------------------------------------------------
+libCURL_COPYRIGHT :: String
+libCURL_COPYRIGHT = #{const_str LIBCURL_COPYRIGHT}
 
+libCURL_TIMESTAMP :: String
+libCURL_TIMESTAMP = #{const_str LIBCURL_TIMESTAMP}
+
+libCURL_VERSION   :: String
+libCURL_VERSION   = #{const_str LIBCURL_VERSION  }
+
+libCURL_VERSION_NUM   :: Int
+libCURL_VERSION_NUM   = #{const LIBCURL_VERSION_NUM  }
+
+libCURL_VERSION_MAJOR :: Int
+libCURL_VERSION_MAJOR = #{const LIBCURL_VERSION_MAJOR}
+
+libCURL_VERSION_MINOR :: Int
+libCURL_VERSION_MINOR = #{const LIBCURL_VERSION_MINOR}
+
+libCURL_VERSION_PATCH :: Int
+libCURL_VERSION_PATCH = #{const LIBCURL_VERSION_PATCH}
+
+
+-------------------------------------------------------------------------------
+-- from "curlbuild.h"
+-------------------------------------------------------------------------------
+type CCURL_off_t = CLLong  -- ??
+
+
+-------------------------------------------------------------------------------
+-- from "curlrules.h"
+-------------------------------------------------------------------------------
+-- todo
 
 
 -------------------------------------------------------------------------------
@@ -55,51 +85,56 @@ import Control.Applicative ((<$>), (<*>))
 data CCURL
 
 
--- ----------------------------------------------------------------------------
--- #ifndef curl_socket_typedef
--- /* socket typedef */
--- #if defined(WIN32) && !defined(__LWIP_OPT_H__)
--- typedef SOCKET curl_socket_t;
--- #define CURL_SOCKET_BAD INVALID_SOCKET
--- #else
--- typedef int curl_socket_t;
--- #define CURL_SOCKET_BAD -1
--- #endif
--- #define curl_socket_typedef
--- #endif /* curl_socket_typedef */
--- 
--- ----------------------------------------------------------------------------
--- struct curl_httppost {
---   struct curl_httppost *next;
---   char *name;
---   long namelength;
---   char *contents;
---   long contentslength;
---   char *buffer;
---   long bufferlength;
---   char *contenttype;
---   struct curl_slist* contentheader;
---   struct curl_httppost *more;
---   long flags;
---   char *showfilename;
---   void *userp;
--- };
--- 
--- #define HTTPPOST_FILENAME (1<<0)
--- #define HTTPPOST_READFILE (1<<1)
--- #define HTTPPOST_PTRNAME (1<<2)
--- #define HTTPPOST_PTRCONTENTS (1<<3)
--- #define HTTPPOST_BUFFER (1<<4)
--- #define HTTPPOST_PTRBUFFER (1<<5)
--- #define HTTPPOST_CALLBACK (1<<6)
--- 
--- ----------------------------------------------------------------------------
--- typedef int (*curl_progress_callback)(void *clientp,
---                                       double dltotal,
---                                       double dlnow,
---                                       double ultotal,
---                                       double ulnow);
+-------------------------------------------------------------------------------
+#if defined(WIN32) && !defined(__LWIP_OPT_H__)
+type CCURL_socket_t = CUIntPtr -- SOCKET??
+#else
+type CCURL_socket_t = CInt
+#endif
 
+#{cconst CURL_SOCKET_BAD, CCURL_socket_t}
+
+
+-------------------------------------------------------------------------------
+data CCURL_httppost = CCURL_httppost
+  { ccurl_httppost_next           :: Ptr CCURL_httppost
+  , ccurl_httppost_name           :: Ptr CChar
+  , ccurl_httppost_namelength     :: CLong
+  , ccurl_httppost_contents       :: Ptr CChar
+  , ccurl_httppost_contentslength :: CLong
+  , ccurl_httppost_buffer         :: Ptr CChar
+  , ccurl_httppost_bufferlength   :: CLong
+  , ccurl_httppost_contenttype    :: Ptr CChar
+  , ccurl_httppost_contentheader  :: Ptr CCURL_slist
+  , ccurl_httppost_more           :: Ptr CCURL_httppost
+  , ccurl_httppost_flags          :: CLong
+  , ccurl_httppost_showfilename   :: Ptr CChar
+  , ccurl_httppost_userp          :: Ptr ()
+  } deriving (Show)
+
+-- instance Storable CCURL_httppost where
+--   sizeOf _    = #{size    struct curl_httppost}
+--   alignment _ = #{alignof struct curl_httppost}
+--   poke _ _    = undefined
+--   peek _      = undefined
+
+#{cconst HTTPPOST_FILENAME   , CLong}
+#{cconst HTTPPOST_READFILE   , CLong}
+#{cconst HTTPPOST_PTRNAME    , CLong}
+#{cconst HTTPPOST_PTRCONTENTS, CLong}
+#{cconst HTTPPOST_BUFFER     , CLong}
+#{cconst HTTPPOST_PTRBUFFER  , CLong}
+#{cconst HTTPPOST_CALLBACK   , CLong}
+ 
+
+-------------------------------------------------------------------------------
+type CCURL_progress_callback
+  = Ptr () -> CDouble -> CDouble -> CDouble -> CDouble -> IO CInt
+
+foreign import ccall "wrapper"
+  wrap_ccurl_progress_callback
+    :: CCURL_progress_callback
+    -> IO (FunPtr CCURL_progress_callback)
 
 
 -------------------------------------------------------------------------------
@@ -116,84 +151,108 @@ foreign import ccall "wrapper"
     -> IO (FunPtr CCURL_write_callback)
 
 
+-------------------------------------------------------------------------------
+newtype CCURLfiletype = CCURLfiletype CInt deriving (Eq, Show)   |7210:----|
 
--- ----------------------------------------------------------------------------
--- typedef enum {
---   CURLFILETYPE_FILE = 0,
---   CURLFILETYPE_DIRECTORY,
---   CURLFILETYPE_SYMLINK,
---   CURLFILETYPE_DEVICE_BLOCK,
---   CURLFILETYPE_DEVICE_CHAR,
---   CURLFILETYPE_NAMEDPIPE,
---   CURLFILETYPE_SOCKET,
---   CURLFILETYPE_DOOR,
---   CURLFILETYPE_UNKNOWN
--- } curlfiletype;
--- 
--- #define CURLFINFOFLAG_KNOWN_FILENAME    (1<<0)
--- #define CURLFINFOFLAG_KNOWN_FILETYPE    (1<<1)
--- #define CURLFINFOFLAG_KNOWN_TIME        (1<<2)
--- #define CURLFINFOFLAG_KNOWN_PERM        (1<<3)
--- #define CURLFINFOFLAG_KNOWN_UID         (1<<4)
--- #define CURLFINFOFLAG_KNOWN_GID         (1<<5)
--- #define CURLFINFOFLAG_KNOWN_SIZE        (1<<6)
--- #define CURLFINFOFLAG_KNOWN_HLINKCOUNT  (1<<7)
--- 
--- struct curl_fileinfo {
---   char *filename;
---   curlfiletype filetype;
---   time_t time;
---   unsigned int perm;
---   int uid;
---   int gid;
---   curl_off_t size;
---   long int hardlinks;
---   struct {
---     char *time;
---     char *perm;
---     char *user;
---     char *group;
---     char *target;
---   } strings;
---   unsigned int flags;
---   char * b_data;
---   size_t b_size;
---   size_t b_used;
--- };
--- 
--- ----------------------------------------------------------------------------
--- #define CURL_CHUNK_BGN_FUNC_OK      0
--- #define CURL_CHUNK_BGN_FUNC_FAIL    1
--- #define CURL_CHUNK_BGN_FUNC_SKIP    2
--- 
--- typedef long (*curl_chunk_bgn_callback)(const void *transfer_info,
---                                         void *ptr,
---                                         int remains);
--- 
--- ----------------------------------------------------------------------------
--- #define CURL_CHUNK_END_FUNC_OK      0
--- #define CURL_CHUNK_END_FUNC_FAIL    1
--- 
--- typedef long (*curl_chunk_end_callback)(void *ptr);
--- 
--- ----------------------------------------------------------------------------
--- #define CURL_FNMATCHFUNC_MATCH    0
--- #define CURL_FNMATCHFUNC_NOMATCH  1
--- #define CURL_FNMATCHFUNC_FAIL     2
--- 
--- typedef int (*curl_fnmatch_callback)(void *ptr,
---                                      const char *pattern,
---                                      const char *string);
--- 
--- ----------------------------------------------------------------------------
--- #define CURL_SEEKFUNC_OK       0
--- #define CURL_SEEKFUNC_FAIL     1
--- #define CURL_SEEKFUNC_CANTSEEK 2
--- 
--- typedef int (*curl_seek_callback)(void *instream,
---                                   curl_off_t offset,
---                                   int origin);
+#{symbol CURLFILETYPE_FILE        , CURLfiletype}                |7210:----|
+#{symbol CURLFILETYPE_DIRECTORY   , CURLfiletype}                |7210:----|
+#{symbol CURLFILETYPE_SYMLINK     , CURLfiletype}                |7210:----|
+#{symbol CURLFILETYPE_DEVICE_BLOCK, CURLfiletype}                |7210:----|
+#{symbol CURLFILETYPE_DEVICE_CHAR , CURLfiletype}                |7210:----|
+#{symbol CURLFILETYPE_NAMEDPIPE   , CURLfiletype}                |7210:----|
+#{symbol CURLFILETYPE_SOCKET      , CURLfiletype}                |7210:----|
+#{symbol CURLFILETYPE_DOOR        , CURLfiletype}                |7210:----|
+#{symbol CURLFILETYPE_UNKNOWN     , CURLfiletype}                |7210:----|
 
+#{cconst CURLFINFOFLAG_KNOWN_FILENAME  , CUInt}                  |7210:----|
+#{cconst CURLFINFOFLAG_KNOWN_FILETYPE  , CUInt}                  |7210:----|
+#{cconst CURLFINFOFLAG_KNOWN_TIME      , CUInt}                  |7210:----|
+#{cconst CURLFINFOFLAG_KNOWN_PERM      , CUInt}                  |7210:----|
+#{cconst CURLFINFOFLAG_KNOWN_UID       , CUInt}                  |7210:----|
+#{cconst CURLFINFOFLAG_KNOWN_GID       , CUInt}                  |7210:----|
+#{cconst CURLFINFOFLAG_KNOWN_SIZE      , CUInt}                  |7210:----|
+#{cconst CURLFINFOFLAG_KNOWN_HLINKCOUNT, CUInt}                  |7210:----|
+
+data CCURL_fileinfo = CCURL_fileinfo                             |7210:----|
+  { ccurl_fileinfo_filename       :: Ptr CChar                   |7210:----|
+  , ccurl_fileinfo_filetype       :: CCURLfiletype               |7210:----|
+  , ccurl_fileinfo_time           :: CTime                       |7210:----|
+  , ccurl_fileinfo_perm           :: CUInt                       |7210:----|
+  , ccurl_fileinfo_uid            :: CInt                        |7210:----|
+  , ccurl_fileinfo_gid            :: CInt                        |7210:----|
+  , ccurl_fileinfo_size           :: CCURL_off_t                 |7210:----|
+  , ccurl_fileinfo_hardlinks      :: CLong                       |7210:----|
+  , ccurl_fileinfo_strings_time   :: Ptr CChar                   |7210:----|
+  , ccurl_fileinfo_strings_perm   :: Ptr CChar                   |7210:----|
+  , ccurl_fileinfo_strings_user   :: Ptr CChar                   |7210:----|
+  , ccurl_fileinfo_strings_group  :: Ptr CChar                   |7210:----|
+  , ccurl_fileinfo_strings_target :: Ptr CChar                   |7210:----|
+  , ccurl_fileinfo_flags          :: CUInt                       |7210:----|
+  , ccurl_fileinfo_b_data         :: Ptr CChar                   |7210:----|
+  , ccurl_fileinfo_b_size         :: CSize                       |7210:----|
+  , ccurl_fileinfo_b_used         :: CSize                       |7210:----|
+  } deriving (Show)                                              |7210:----|
+
+-- instance Storable CCURL_fileinfo where                        |7210:----|
+--   sizeOf _    = #{size    struct curl_fileinfo}               |7210:----|
+--   alignment _ = #{alignof struct curl_fileinfo}               |7210:----|
+--   poke _ _    = undefined                                     |7210:----|
+--   peek _      = undefined                                     |7210:----|
+
+ 
+-------------------------------------------------------------------------------
+#{cconst CURL_CHUNK_BGN_FUNC_OK  , CLong}                        |7210:----|
+#{cconst CURL_CHUNK_BGN_FUNC_FAIL, CLong}                        |7210:----|
+#{cconst CURL_CHUNK_BGN_FUNC_SKIP, CLong}                        |7210:----|
+
+type CCURL_chunk_bgn_callback                                    |7210:----|
+  = Ptr () -> Ptr () -> CInt -> IO CLong                         |7210:----|
+
+foreign import ccall "wrapper"                                   |7210:----|
+  wrap_ccurl_chunk_bgn_callback                                  |7210:----|
+    :: CCURL_chunk_bgn_callback                                  |7210:----|
+    -> IO (FunPtr CCURL_chunk_bgn_callback)                      |7210:----|
+
+
+-------------------------------------------------------------------------------
+#{cconst CURL_CHUNK_END_FUNC_OK  , CLong}                        |7210:----|
+#{cconst CURL_CHUNK_END_FUNC_FAIL, CLong}                        |7210:----|
+
+type CCURL_chunk_end_callback                                    |7210:----|
+  = Ptr () -> IO CLong                                           |7210:----|
+
+foreign import ccall "wrapper"                                   |7210:----|
+  wrap_ccurl_chunk_end_callback                                  |7210:----|
+    :: CCURL_chunk_end_callback                                  |7210:----|
+    -> IO (FunPtr CCURL_chunk_end_callback)                      |7210:----|
+
+ 
+-------------------------------------------------------------------------------
+#{cconst CURL_FNMATCHFUNC_MATCH  , CInt}                         |7210:----|
+#{cconst CURL_FNMATCHFUNC_NOMATCH, CInt}                         |7210:----|
+#{cconst CURL_FNMATCHFUNC_FAIL   , CInt}                         |7210:----|
+
+type CCURL_fnmatch_callback                                      |7210:----|
+  = Ptr () -> Ptr CChar -> Ptr CChar -> IO CInt                  |7210:----|
+
+foreign import ccall "wrapper"                                   |7210:----|
+  wrap_ccurl_fnmatch_callback                                    |7210:----|
+    :: CCURL_fnmatch_callback                                    |7210:----|
+    -> IO (FunPtr CCURL_fnmatch_callback)                        |7210:----|
+
+ 
+-------------------------------------------------------------------------------
+#{cconst CURL_SEEKFUNC_OK      , CInt}
+#{cconst CURL_SEEKFUNC_FAIL    , CInt}
+#{cconst CURL_SEEKFUNC_CANTSEEK, CInt}
+
+type CCURL_seek_callback
+  = Ptr () -> CCURL_off_t -> CInt -> IO CInt
+
+foreign import ccall "wrapper"
+  wrap_ccurl_seek_callback
+    :: CCURL_seek_callback
+    -> IO (FunPtr CCURL_seek_callback)
 
 
 -------------------------------------------------------------------------------
@@ -209,79 +268,148 @@ foreign import ccall "wrapper"
     -> IO (FunPtr CCURL_read_callback)
 
 
+-------------------------------------------------------------------------------
+newtype CCURLsocktype = CCURLsocktype CInt deriving (Eq, Show)
+
+#{symbol CURLSOCKTYPE_IPCXN, CURLsocktype}
+
+#{cconst CURL_SOCKOPT_OK               , CInt}                   |7215:----|
+#{cconst CURL_SOCKOPT_ERROR            , CInt}                   |7215:----|
+#{cconst CURL_SOCKOPT_ALREADY_CONNECTED, CInt}                   |7215:----|
+
+type CCURL_sockopt_callback
+  = Ptr () -> CCURL_socket_t -> CCURLsocktype -> IO CInt
+
+foreign import ccall "wrapper"
+  wrap_ccurl_sockopt_callback
+    :: CCURL_sockopt_callback
+    -> IO (FunPtr CCURL_sockopt_callback)
+
+
+-------------------------------------------------------------------------------
+data CCURL_sockaddr = CCURL_sockaddr
+  { ccurl_sockaddr_family   :: CInt
+  , ccurl_sockaddr_socktype :: CInt
+  , ccurl_sockaddr_protocol :: CInt
+  , ccurl_sockaddr_addrlen  :: CUInt
+  , ccurl_sockaddr_addr     :: Ptr ()  -- sockaddr?? TODO
+  } deriving (Show)
+
+-- instance Storable CCURL_sockaddr where
+--   sizeOf _    = #{size    struct curl_sockaddr}
+--   alignment _ = #{alignof struct curl_sockaddr}
+--   poke _ _    = undefined
+--   peek _      = undefined
+
+type CCURL_opensocket_callback
+  = Ptr () -> CCURLsocktype -> Ptr CCURL_sockaddr -> IO CCURL_socket_t
+
+foreign import ccall "wrapper"
+  wrap_ccurl_opensocket_callback
+    :: CCURL_opensocket_callback
+    -> IO (FunPtr CCURL_opensocket_callback)
+
+
+-------------------------------------------------------------------------------
+type CCURL_closesocket_callback                                  |7217:----|
+  = Ptr () -> CCURL_socket_t -> IO CInt                          |7217:----|
+
+foreign import ccall "wrapper"                                   |7217:----|
+  wrap_ccurl_closesocket_callback                                |7217:----|
+    :: CCURL_closesocket_callback                                |7217:----|
+    -> IO (FunPtr CCURL_closesocket_callback)                    |7217:----|
+
  
--- ----------------------------------------------------------------------------
--- typedef enum  {
---   CURLSOCKTYPE_IPCXN,
---   CURLSOCKTYPE_LAST
--- } curlsocktype;
--- 
--- #define CURL_SOCKOPT_OK 0
--- #define CURL_SOCKOPT_ERROR 1
--- #define CURL_SOCKOPT_ALREADY_CONNECTED 2
--- 
--- typedef int (*curl_sockopt_callback)(void *clientp,
---                                      curl_socket_t curlfd,
---                                      curlsocktype purpose);
--- 
--- ----------------------------------------------------------------------------
--- struct curl_sockaddr {
---   int family;
---   int socktype;
---   int protocol;
---   unsigned int addrlen;
---   struct sockaddr addr;
--- };
--- 
--- typedef curl_socket_t (*curl_opensocket_callback)(void *clientp,
---                             curlsocktype purpose,
---                             struct curl_sockaddr *address);
--- 
--- typedef int (*curl_closesocket_callback)(void *clientp, curl_socket_t item);
--- 
--- ----------------------------------------------------------------------------
--- typedef enum {
---   CURLIOE_OK,
---   CURLIOE_UNKNOWNCMD,
---   CURLIOE_FAILRESTART,
---   CURLIOE_LAST
--- } curlioerr;
--- 
--- typedef enum  {
---   CURLIOCMD_NOP,
---   CURLIOCMD_RESTARTREAD,
---   CURLIOCMD_LAST
--- } curliocmd;
--- 
--- typedef curlioerr (*curl_ioctl_callback)(CURL *handle,
---                                          int cmd,
---                                          void *clientp);
--- 
--- ----------------------------------------------------------------------------
--- typedef void *(*curl_malloc_callback)(size_t size);
--- typedef void (*curl_free_callback)(void *ptr);
--- typedef void *(*curl_realloc_callback)(void *ptr, size_t size);
--- typedef char *(*curl_strdup_callback)(const char *str);
--- typedef void *(*curl_calloc_callback)(size_t nmemb, size_t size);
--- 
--- ----------------------------------------------------------------------------
--- typedef enum {
---   CURLINFO_TEXT = 0,
---   CURLINFO_HEADER_IN,
---   CURLINFO_HEADER_OUT,
---   CURLINFO_DATA_IN,
---   CURLINFO_DATA_OUT,
---   CURLINFO_SSL_DATA_IN,
---   CURLINFO_SSL_DATA_OUT,
---   CURLINFO_END
--- } curl_infotype;
--- 
--- typedef int (*curl_debug_callback)
---        (CURL *handle,
---         curl_infotype type,
---         char *data,
---         size_t size,
---         void *userptr);
+-------------------------------------------------------------------------------
+newtype CCURLioerr = CCURLioerr CInt deriving (Eq, Show)
+
+#{symbol CURLIOE_OK           , CURLioerr}
+#{symbol CURLIOE_UNKNOWNCMD   , CURLioerr}
+#{symbol CURLIOE_FAILRESTART  , CURLioerr}
+
+newtype CCURLiocmd = CCURLiocmd CInt deriving (Eq, Show)
+
+#{symbol CURLIOCMD_NOP        , CURLiocmd}
+#{symbol CURLIOCMD_RESTARTREAD, CURLiocmd}
+
+type CCURL_ioctl_callback
+  = Ptr CCURL -> CCURLiocmd -> Ptr () -> IO CCURLioerr
+
+foreign import ccall "wrapper"
+  wrap_ccurl_ioctl_callback
+    :: CCURL_ioctl_callback
+    -> IO (FunPtr CCURL_ioctl_callback)
+
+
+-------------------------------------------------------------------------------
+type CCURL_malloc_callback
+  = CSize -> IO (Ptr ())
+
+foreign import ccall "wrapper"
+  wrap_ccurl_malloc_callback
+    :: CCURL_malloc_callback
+    -> IO (FunPtr CCURL_malloc_callback)
+
+
+-------------------------------------------------------------------------------
+type CCURL_free_callback
+  = Ptr () -> IO ()
+
+foreign import ccall "wrapper"
+  wrap_ccurl_free_callback
+    :: CCURL_free_callback
+    -> IO (FunPtr CCURL_free_callback)
+
+
+-------------------------------------------------------------------------------
+type CCURL_realloc_callback
+  = Ptr () -> CSize -> IO (Ptr ())
+
+foreign import ccall "wrapper"
+  wrap_ccurl_realloc_callback
+    :: CCURL_realloc_callback
+    -> IO (FunPtr CCURL_realloc_callback)
+
+
+-------------------------------------------------------------------------------
+type CCURL_strdup_callback
+  = Ptr CChar -> IO (Ptr CChar)
+
+foreign import ccall "wrapper"
+  wrap_ccurl_strdup_callback
+    :: CCURL_strdup_callback
+    -> IO (FunPtr CCURL_strdup_callback)
+
+
+-------------------------------------------------------------------------------
+type CCURL_calloc_callback
+  = CSize -> CSize -> IO (Ptr ())
+
+foreign import ccall "wrapper"
+  wrap_ccurl_calloc_callback
+    :: CCURL_calloc_callback
+    -> IO (FunPtr CCURL_calloc_callback)
+
+ 
+-------------------------------------------------------------------------------
+newtype CCURL_infotype = CCURL_infotype CInt deriving (Eq, Show)
+
+#{symbol CURLINFO_TEXT        , CURL_infotype}
+#{symbol CURLINFO_HEADER_IN   , CURL_infotype}
+#{symbol CURLINFO_HEADER_OUT  , CURL_infotype}
+#{symbol CURLINFO_DATA_IN     , CURL_infotype}
+#{symbol CURLINFO_DATA_OUT    , CURL_infotype}
+#{symbol CURLINFO_SSL_DATA_IN , CURL_infotype}
+#{symbol CURLINFO_SSL_DATA_OUT, CURL_infotype}
+#{symbol CURLINFO_END         , CURL_infotype}
+
+type CCURL_debug_callback
+  = Ptr CCURL -> CCURL_infotype -> Ptr CChar -> CSize -> Ptr () -> IO CInt
+
+foreign import ccall "wrapper"
+  wrap_ccurl_debug_callback
+    :: CCURL_debug_callback
+    -> IO (FunPtr CCURL_debug_callback)
 
 
 -------------------------------------------------------------------------------
@@ -369,24 +497,35 @@ newtype CCURLcode = CCURLcode CInt deriving (Eq, Show)
 #{symbol CURLE_CHUNK_FAILED            , CURLcode} |7210:----|
 
 
+-------------------------------------------------------------------------------
+type CCURL_conv_callback
+  = Ptr CChar -> CSize -> IO CCURLcode
 
--- ----------------------------------------------------------------------------
--- typedef CURLcode (*curl_conv_callback)(char *buffer, size_t length);
--- 
--- typedef CURLcode (*curl_ssl_ctx_callback)(CURL *curl,
---                                           void *ssl_ctx,
---                                           void *userptr);
--- 
--- ----------------------------------------------------------------------------
--- typedef enum {
---   CURLPROXY_HTTP = 0,
---   CURLPROXY_HTTP_1_0 = 1,
---   CURLPROXY_SOCKS4 = 4,
---   CURLPROXY_SOCKS5 = 5,
---   CURLPROXY_SOCKS4A = 6,
---   CURLPROXY_SOCKS5_HOSTNAME = 7
--- } curl_proxytype;
+foreign import ccall "wrapper"
+  wrap_ccurl_conv_callback
+    :: CCURL_conv_callback
+    -> IO (FunPtr CCURL_conv_callback)
 
+
+-------------------------------------------------------------------------------
+type CCURL_ssl_ctx_callback
+  = Ptr CCURL -> Ptr () -> Ptr () -> IO CCURLcode
+
+foreign import ccall "wrapper"
+  wrap_ccurl_ssl_ctx_callback
+    :: CCURL_ssl_ctx_callback
+    -> IO (FunPtr CCURL_ssl_ctx_callback)
+
+ 
+-------------------------------------------------------------------------------
+newtype CCURL_proxytype = CCURL_proxytype CInt deriving (Eq, Show)
+
+#{symbol CURLPROXY_HTTP           , CURL_proxytype}
+#{symbol CURLPROXY_HTTP_1_0       , CURL_proxytype}
+#{symbol CURLPROXY_SOCKS4         , CURL_proxytype}
+#{symbol CURLPROXY_SOCKS5         , CURL_proxytype}
+#{symbol CURLPROXY_SOCKS4A        , CURL_proxytype}
+#{symbol CURLPROXY_SOCKS5_HOSTNAME, CURL_proxytype}
 
 
 -------------------------------------------------------------------------------
@@ -402,427 +541,423 @@ newtype CCURLcode = CCURLcode CInt deriving (Eq, Show)
 #{cconst CURLAUTH_ANYSAFE     , CLong}
 
 
-
+-------------------------------------------------------------------------------
+#{cconst CURLSSH_AUTH_ANY      , CLong}
+#{cconst CURLSSH_AUTH_NONE     , CLong}
+#{cconst CURLSSH_AUTH_PUBLICKEY, CLong}
+#{cconst CURLSSH_AUTH_PASSWORD , CLong}
+#{cconst CURLSSH_AUTH_HOST     , CLong}
+#{cconst CURLSSH_AUTH_KEYBOARD , CLong}
+#{cconst CURLSSH_AUTH_DEFAULT  , CLong}
  
--- ----------------------------------------------------------------------------
--- #define CURLSSH_AUTH_ANY       ~0
--- #define CURLSSH_AUTH_NONE      0
--- #define CURLSSH_AUTH_PUBLICKEY (1<<0)
--- #define CURLSSH_AUTH_PASSWORD  (1<<1)
--- #define CURLSSH_AUTH_HOST      (1<<2)
--- #define CURLSSH_AUTH_KEYBOARD  (1<<3)
--- #define CURLSSH_AUTH_DEFAULT CURLSSH_AUTH_ANY
--- 
--- ----------------------------------------------------------------------------
--- #define CURLGSSAPI_DELEGATION_NONE        0
--- #define CURLGSSAPI_DELEGATION_POLICY_FLAG (1<<0)
--- #define CURLGSSAPI_DELEGATION_FLAG        (1<<1)
--- 
--- ----------------------------------------------------------------------------
--- #define CURL_ERROR_SIZE 256
--- 
--- ----------------------------------------------------------------------------
--- struct curl_khkey {
---   const char *key;
---   size_t len;
---   enum type {
---     CURLKHTYPE_UNKNOWN,
---     CURLKHTYPE_RSA1,
---     CURLKHTYPE_RSA,
---     CURLKHTYPE_DSS
---   } keytype;
--- };
--- 
--- enum curl_khstat {
---   CURLKHSTAT_FINE_ADD_TO_FILE,
---   CURLKHSTAT_FINE,
---   CURLKHSTAT_REJECT,
---   CURLKHSTAT_DEFER,
---   CURLKHSTAT_LAST
--- };
--- 
--- enum curl_khmatch {
---   CURLKHMATCH_OK,
---   CURLKHMATCH_MISMATCH,
---   CURLKHMATCH_MISSING,
---   CURLKHMATCH_LAST
--- };
--- 
--- typedef int
---   (*curl_sshkeycallback) (CURL *easy,
---                           const struct curl_khkey *knownkey,
---                           const struct curl_khkey *foundkey,
---                           enum curl_khmatch,
---                           void *clientp);
--- 
--- ----------------------------------------------------------------------------
--- typedef enum {
---   CURLUSESSL_NONE,
---   CURLUSESSL_TRY,
---   CURLUSESSL_CONTROL,
---   CURLUSESSL_ALL,
---   CURLUSESSL_LAST
--- } curl_usessl;
--- 
--- ----------------------------------------------------------------------------
--- typedef enum {
---   CURLFTPSSL_CCC_NONE,
---   CURLFTPSSL_CCC_PASSIVE,
---   CURLFTPSSL_CCC_ACTIVE,
---   CURLFTPSSL_CCC_LAST
--- } curl_ftpccc;
--- 
--- ----------------------------------------------------------------------------
--- typedef enum {
---   CURLFTPAUTH_DEFAULT,
---   CURLFTPAUTH_SSL,
---   CURLFTPAUTH_TLS,
---   CURLFTPAUTH_LAST
--- } curl_ftpauth;
--- 
--- ----------------------------------------------------------------------------
--- typedef enum {
---   CURLFTP_CREATE_DIR_NONE,
---   CURLFTP_CREATE_DIR,
---   CURLFTP_CREATE_DIR_RETRY,
---   CURLFTP_CREATE_DIR_LAST
--- } curl_ftpcreatedir;
--- 
--- ----------------------------------------------------------------------------
--- typedef enum {
---   CURLFTPMETHOD_DEFAULT,
---   CURLFTPMETHOD_MULTICWD,
---   CURLFTPMETHOD_NOCWD,
---   CURLFTPMETHOD_SINGLECWD,
---   CURLFTPMETHOD_LAST
--- } curl_ftpmethod;
--- 
--- ----------------------------------------------------------------------------
--- #define CURLPROTO_HTTP   (1<<0)
--- #define CURLPROTO_HTTPS  (1<<1)
--- #define CURLPROTO_FTP    (1<<2)
--- #define CURLPROTO_FTPS   (1<<3)
--- #define CURLPROTO_SCP    (1<<4)
--- #define CURLPROTO_SFTP   (1<<5)
--- #define CURLPROTO_TELNET (1<<6)
--- #define CURLPROTO_LDAP   (1<<7)
--- #define CURLPROTO_LDAPS  (1<<8)
--- #define CURLPROTO_DICT   (1<<9)
--- #define CURLPROTO_FILE   (1<<10)
--- #define CURLPROTO_TFTP   (1<<11)
--- #define CURLPROTO_IMAP   (1<<12)
--- #define CURLPROTO_IMAPS  (1<<13)
--- #define CURLPROTO_POP3   (1<<14)
--- #define CURLPROTO_POP3S  (1<<15)
--- #define CURLPROTO_SMTP   (1<<16)
--- #define CURLPROTO_SMTPS  (1<<17)
--- #define CURLPROTO_RTSP   (1<<18)
--- #define CURLPROTO_RTMP   (1<<19)
--- #define CURLPROTO_RTMPT  (1<<20)
--- #define CURLPROTO_RTMPE  (1<<21)
--- #define CURLPROTO_RTMPTE (1<<22)
--- #define CURLPROTO_RTMPS  (1<<23)
--- #define CURLPROTO_RTMPTS (1<<24)
--- #define CURLPROTO_GOPHER (1<<25)
--- #define CURLPROTO_ALL    (~0)
 
+-------------------------------------------------------------------------------
+#{cconst CURLGSSAPI_DELEGATION_NONE       , CLong}               |7220:----|
+#{cconst CURLGSSAPI_DELEGATION_POLICY_FLAG, CLong}               |7220:----|
+#{cconst CURLGSSAPI_DELEGATION_FLAG       , CLong}               |7220:----|
 
 
 -------------------------------------------------------------------------------
-newtype CCURLoption'Int32  = CCURLoption'Int32  CInt deriving (Eq, Show)
-newtype CCURLoption'Int64  = CCURLoption'Int64  CInt deriving (Eq, Show)
-newtype CCURLoption'String = CCURLoption'String CInt deriving (Eq, Show)
-newtype CCURLoption'SList  = CCURLoption'SList  CInt deriving (Eq, Show)
-newtype CCURLoption'HTTPP  = CCURLoption'HTTPP  CInt deriving (Eq, Show)
-newtype CCURLoption'File   = CCURLoption'File   CInt deriving (Eq, Show)
-newtype CCURLoption'Share  = CCURLoption'Share  CInt deriving (Eq, Show)
-newtype CCURLoption'Ptr_a  = CCURLoption'Ptr_a  CInt deriving (Eq, Show)
-newtype CCURLoption'FunPtr = CCURLoption'FunPtr CInt deriving (Eq, Show)
-newtype CCURLoption'FWRITE = CCURLoption'FWRITE CInt deriving (Eq, Show)
-newtype CCURLoption'FREAD  = CCURLoption'FREAD  CInt deriving (Eq, Show)
+#{cconst CURL_ERROR_SIZE, CLong}
+
+
+-------------------------------------------------------------------------------
+data CCURL_khkey = CCURL_khkey
+  { ccurl_khkey_key     :: Ptr CChar
+  , ccurl_khkey_len     :: CSize
+  , ccurl_khkey_keytype :: CCURL_khtype
+  } deriving (Show)
+
+-- instance Storable CCURL_khkey where
+--   sizeOf _    = #{size    struct curl_khkey}
+--   alignment _ = #{alignof struct curl_khkey}
+--   poke _ _    = undefined
+--   peek _      = undefined
+
+newtype CCURL_khtype = CCURL_khtype CInt deriving (Eq, Show)
+
+#{symbol CURLKHTYPE_UNKNOWN, CURL_khtype}
+#{symbol CURLKHTYPE_RSA1   , CURL_khtype}
+#{symbol CURLKHTYPE_RSA    , CURL_khtype}
+#{symbol CURLKHTYPE_DSS    , CURL_khtype}
+ 
+newtype CCURL_khstat = CCURL_khstat CInt deriving (Eq, Show)
+
+#{symbol CURLKHSTAT_FINE_ADD_TO_FILE, CURL_khstat}
+#{symbol CURLKHSTAT_FINE            , CURL_khstat}
+#{symbol CURLKHSTAT_REJECT          , CURL_khstat}
+#{symbol CURLKHSTAT_DEFER           , CURL_khstat}
+
+newtype CCURL_khmatch = CCURL_khmatch CInt deriving (Eq, Show)
+
+#{symbol CURLKHMATCH_OK      , CURL_khmatch}
+#{symbol CURLKHMATCH_MISMATCH, CURL_khmatch}
+#{symbol CURLKHMATCH_MISSING , CURL_khmatch}
+ 
+type CCURL_sshkey_callback
+  = Ptr CCURL -> Ptr CCURL_khkey -> Ptr CCURL_khkey
+    -> CCURL_khmatch -> Ptr () -> IO CCURL_khstat
+
+foreign import ccall "wrapper"
+  wrap_ccurl_sshkey_callback
+    :: CCURL_sshkey_callback
+    -> IO (FunPtr CCURL_sshkey_callback)
+
+ 
+-------------------------------------------------------------------------------
+newtype CCURL_usessl = CCURL_usessl CInt deriving (Eq, Show)
+
+#{symbol CURLUSESSL_NONE   , CURL_usessl}
+#{symbol CURLUSESSL_TRY    , CURL_usessl}
+#{symbol CURLUSESSL_CONTROL, CURL_usessl}
+#{symbol CURLUSESSL_ALL    , CURL_usessl}
+
+
+-------------------------------------------------------------------------------
+newtype CCURL_ftpccc = CCURL_ftpccc CInt deriving (Eq, Show)
+
+#{symbol CURLFTPSSL_CCC_NONE   , CURL_ftpccc}
+#{symbol CURLFTPSSL_CCC_PASSIVE, CURL_ftpccc}
+#{symbol CURLFTPSSL_CCC_ACTIVE , CURL_ftpccc}
+ 
+
+-------------------------------------------------------------------------------
+newtype CCURL_ftpauth = CCURL_ftpauth CInt deriving (Eq, Show)
+
+#{symbol CURLFTPAUTH_DEFAULT, CURL_ftpauth}
+#{symbol CURLFTPAUTH_SSL    , CURL_ftpauth}
+#{symbol CURLFTPAUTH_TLS    , CURL_ftpauth}
+
+
+-------------------------------------------------------------------------------
+newtype CCURL_ftpcreatedir = CCURL_ftpcreatedir CInt deriving (Eq, Show)
+
+#{symbol CURLFTP_CREATE_DIR_NONE , CURL_ftpcreatedir}
+#{symbol CURLFTP_CREATE_DIR      , CURL_ftpcreatedir}
+#{symbol CURLFTP_CREATE_DIR_RETRY, CURL_ftpcreatedir}
+
+
+-------------------------------------------------------------------------------
+newtype CCURL_ftpmethod = CCURL_ftpmethod CInt deriving (Eq, Show)
+
+#{symbol CURLFTPMETHOD_DEFAULT  , CURL_ftpmethod}
+#{symbol CURLFTPMETHOD_MULTICWD , CURL_ftpmethod}
+#{symbol CURLFTPMETHOD_NOCWD    , CURL_ftpmethod}
+#{symbol CURLFTPMETHOD_SINGLECWD, CURL_ftpmethod}
+
+
+-------------------------------------------------------------------------------
+#{cconst CURLPROTO_HTTP  , CLong}
+#{cconst CURLPROTO_HTTPS , CLong}
+#{cconst CURLPROTO_FTP   , CLong}
+#{cconst CURLPROTO_FTPS  , CLong}
+#{cconst CURLPROTO_SCP   , CLong}
+#{cconst CURLPROTO_SFTP  , CLong}
+#{cconst CURLPROTO_TELNET, CLong}
+#{cconst CURLPROTO_LDAP  , CLong}
+#{cconst CURLPROTO_LDAPS , CLong}
+#{cconst CURLPROTO_DICT  , CLong}
+#{cconst CURLPROTO_FILE  , CLong}
+#{cconst CURLPROTO_TFTP  , CLong}
+#{cconst CURLPROTO_IMAP  , CLong}
+#{cconst CURLPROTO_IMAPS , CLong}
+#{cconst CURLPROTO_POP3  , CLong}
+#{cconst CURLPROTO_POP3S , CLong}
+#{cconst CURLPROTO_SMTP  , CLong}
+#{cconst CURLPROTO_SMTPS , CLong}
+#{cconst CURLPROTO_RTSP  , CLong}
+#{cconst CURLPROTO_RTMP  , CLong} |7210:----|
+#{cconst CURLPROTO_RTMPT , CLong} |7210:----|
+#{cconst CURLPROTO_RTMPE , CLong} |7210:----|
+#{cconst CURLPROTO_RTMPTE, CLong} |7210:----|
+#{cconst CURLPROTO_RTMPS , CLong} |7210:----|
+#{cconst CURLPROTO_RTMPTS, CLong} |7210:----|
+#{cconst CURLPROTO_GOPHER, CLong} |7212:----|
+#{cconst CURLPROTO_ALL   , CLong}
+
+
+-------------------------------------------------------------------------------
+newtype CCURLoption'CLong   = CCURLoption'CLong   CInt deriving (Eq, Show)
+newtype CCURLoption'Int64   = CCURLoption'Int64   CInt deriving (Eq, Show)
+newtype CCURLoption'CString = CCURLoption'CString CInt deriving (Eq, Show)
+newtype CCURLoption'CFile   = CCURLoption'CFile   CInt deriving (Eq, Show)
+newtype CCURLoption'SList   = CCURLoption'SList   CInt deriving (Eq, Show)
+newtype CCURLoption'HTTPP   = CCURLoption'HTTPP   CInt deriving (Eq, Show)
+newtype CCURLoption'CURLSH  = CCURLoption'CURLSH  CInt deriving (Eq, Show)
+newtype CCURLoption'UsrPtr  = CCURLoption'UsrPtr  CInt deriving (Eq, Show)
+newtype CCURLoption'FunPtr  = CCURLoption'FunPtr  CInt deriving (Eq, Show)
 
 #define hsc_curlopt(name, type) \
   printf("c" #name " :: CCURLoption'" #type "\n"); \
   printf("c" #name " =  CCURLoption'" #type " "); hsc_const(name);
 
-#{curlopt CURLOPT_FILE                       , File   }
-#{curlopt CURLOPT_URL                        , String }
-#{curlopt CURLOPT_PORT                       , Int32  }
-#{curlopt CURLOPT_PROXY                      , String }
-#{curlopt CURLOPT_USERPWD                    , String }
-#{curlopt CURLOPT_PROXYUSERPWD               , String }
-#{curlopt CURLOPT_RANGE                      , String }
-#{curlopt CURLOPT_INFILE                     , File   }
-#{curlopt CURLOPT_ERRORBUFFER                , String }
-#{curlopt CURLOPT_WRITEFUNCTION              , FWRITE }
-#{curlopt CURLOPT_READFUNCTION               , FREAD  }
-#{curlopt CURLOPT_TIMEOUT                    , Int32  }
-#{curlopt CURLOPT_INFILESIZE                 , Int32  }
-#{curlopt CURLOPT_POSTFIELDS                 , Ptr_a  }
-#{curlopt CURLOPT_REFERER                    , String }
-#{curlopt CURLOPT_FTPPORT                    , String }
-#{curlopt CURLOPT_USERAGENT                  , String }
-#{curlopt CURLOPT_LOW_SPEED_LIMIT            , Int32  }
-#{curlopt CURLOPT_LOW_SPEED_TIME             , Int32  }
-#{curlopt CURLOPT_RESUME_FROM                , Int32  }
-#{curlopt CURLOPT_COOKIE                     , String }
-#{curlopt CURLOPT_HTTPHEADER                 , SList  }
-#{curlopt CURLOPT_HTTPPOST                   , HTTPP  }
-#{curlopt CURLOPT_SSLCERT                    , String }
-#{curlopt CURLOPT_KEYPASSWD                  , String }
-#{curlopt CURLOPT_CRLF                       , Int32  }
-#{curlopt CURLOPT_QUOTE                      , SList  }
-#{curlopt CURLOPT_WRITEHEADER                , Ptr_a  }
-#{curlopt CURLOPT_COOKIEFILE                 , String }
-#{curlopt CURLOPT_SSLVERSION                 , Int32  }
-#{curlopt CURLOPT_TIMECONDITION              , Int32  }
-#{curlopt CURLOPT_TIMEVALUE                  , Int32  }
-#{curlopt CURLOPT_CUSTOMREQUEST              , String }
-#{curlopt CURLOPT_STDERR                     , File   }
-#{curlopt CURLOPT_POSTQUOTE                  , SList  }
-#{curlopt CURLOPT_WRITEINFO                  , String }
-#{curlopt CURLOPT_VERBOSE                    , Int32  }
-#{curlopt CURLOPT_HEADER                     , Int32  }
-#{curlopt CURLOPT_NOPROGRESS                 , Int32  }
-#{curlopt CURLOPT_NOBODY                     , Int32  }
-#{curlopt CURLOPT_FAILONERROR                , Int32  }
-#{curlopt CURLOPT_UPLOAD                     , Int32  }
-#{curlopt CURLOPT_POST                       , Int32  }
-#{curlopt CURLOPT_DIRLISTONLY                , Int32  }
-#{curlopt CURLOPT_APPEND                     , Int32  }
-#{curlopt CURLOPT_NETRC                      , Int32  }
-#{curlopt CURLOPT_FOLLOWLOCATION             , Int32  }
-#{curlopt CURLOPT_TRANSFERTEXT               , Int32  }
-#{curlopt CURLOPT_PUT                        , Int32  }
-#{curlopt CURLOPT_PROGRESSFUNCTION           , FunPtr }
-#{curlopt CURLOPT_PROGRESSDATA               , Ptr_a  }
-#{curlopt CURLOPT_AUTOREFERER                , Int32  }
-#{curlopt CURLOPT_PROXYPORT                  , Int32  }
-#{curlopt CURLOPT_POSTFIELDSIZE              , Int32  }
-#{curlopt CURLOPT_HTTPPROXYTUNNEL            , Int32  }
-#{curlopt CURLOPT_INTERFACE                  , String }
-#{curlopt CURLOPT_KRBLEVEL                   , String }
-#{curlopt CURLOPT_SSL_VERIFYPEER             , Int32  }
-#{curlopt CURLOPT_CAINFO                     , String }
-#{curlopt CURLOPT_MAXREDIRS                  , Int32  }
-#{curlopt CURLOPT_FILETIME                   , Int32  }
-#{curlopt CURLOPT_TELNETOPTIONS              , SList  }
-#{curlopt CURLOPT_MAXCONNECTS                , Int32  }
-#{curlopt CURLOPT_CLOSEPOLICY                , Int32  }
-#{curlopt CURLOPT_FRESH_CONNECT              , Int32  }
-#{curlopt CURLOPT_FORBID_REUSE               , Int32  }
-#{curlopt CURLOPT_RANDOM_FILE                , String }
-#{curlopt CURLOPT_EGDSOCKET                  , String }
-#{curlopt CURLOPT_CONNECTTIMEOUT             , Int32  }
-#{curlopt CURLOPT_HEADERFUNCTION             , FunPtr }
-#{curlopt CURLOPT_HTTPGET                    , Int32  }
-#{curlopt CURLOPT_SSL_VERIFYHOST             , Int32  }
-#{curlopt CURLOPT_COOKIEJAR                  , String }
-#{curlopt CURLOPT_SSL_CIPHER_LIST            , String }
-#{curlopt CURLOPT_HTTP_VERSION               , Int32  }
-#{curlopt CURLOPT_FTP_USE_EPSV               , Int32  }
-#{curlopt CURLOPT_SSLCERTTYPE                , String }
-#{curlopt CURLOPT_SSLKEY                     , String }
-#{curlopt CURLOPT_SSLKEYTYPE                 , String }
-#{curlopt CURLOPT_SSLENGINE                  , String }
-#{curlopt CURLOPT_SSLENGINE_DEFAULT          , Int32  }
-#{curlopt CURLOPT_DNS_USE_GLOBAL_CACHE       , Int32  }
-#{curlopt CURLOPT_DNS_CACHE_TIMEOUT          , Int32  }
-#{curlopt CURLOPT_PREQUOTE                   , SList  }
-#{curlopt CURLOPT_DEBUGFUNCTION              , FunPtr }
-#{curlopt CURLOPT_DEBUGDATA                  , Ptr_a  }
-#{curlopt CURLOPT_COOKIESESSION              , Int32  }
-#{curlopt CURLOPT_CAPATH                     , String }
-#{curlopt CURLOPT_BUFFERSIZE                 , Int32  }
-#{curlopt CURLOPT_NOSIGNAL                   , Int32  }
-#{curlopt CURLOPT_SHARE                      , Share  }
-#{curlopt CURLOPT_PROXYTYPE                  , Int32  }
-#{curlopt CURLOPT_ENCODING                   , String } |----:7215|
-#{curlopt CURLOPT_ACCEPT_ENCODING            , String } |7216:----|
-#{curlopt CURLOPT_PRIVATE                    , Ptr_a  }
-#{curlopt CURLOPT_HTTP200ALIASES             , SList  }
-#{curlopt CURLOPT_UNRESTRICTED_AUTH          , Int32  }
-#{curlopt CURLOPT_FTP_USE_EPRT               , Int32  }
-#{curlopt CURLOPT_HTTPAUTH                   , Int32  }
-#{curlopt CURLOPT_SSL_CTX_FUNCTION           , FunPtr }
-#{curlopt CURLOPT_SSL_CTX_DATA               , Ptr_a  }
-#{curlopt CURLOPT_FTP_CREATE_MISSING_DIRS    , Int32  }
-#{curlopt CURLOPT_PROXYAUTH                  , Int32  }
-#{curlopt CURLOPT_FTP_RESPONSE_TIMEOUT       , Int32  }
-#{curlopt CURLOPT_IPRESOLVE                  , Int32  }
-#{curlopt CURLOPT_MAXFILESIZE                , Int32  }
-#{curlopt CURLOPT_INFILESIZE_LARGE           , Int64  }
-#{curlopt CURLOPT_RESUME_FROM_LARGE          , Int64  }
-#{curlopt CURLOPT_MAXFILESIZE_LARGE          , Int64  }
-#{curlopt CURLOPT_NETRC_FILE                 , String }
-#{curlopt CURLOPT_USE_SSL                    , Int32  }
-#{curlopt CURLOPT_POSTFIELDSIZE_LARGE        , Int64  }
-#{curlopt CURLOPT_TCP_NODELAY                , Int32  }
-#{curlopt CURLOPT_FTPSSLAUTH                 , Int32  }
-#{curlopt CURLOPT_IOCTLFUNCTION              , FunPtr }
-#{curlopt CURLOPT_IOCTLDATA                  , Ptr_a  }
-#{curlopt CURLOPT_FTP_ACCOUNT                , String }
-#{curlopt CURLOPT_COOKIELIST                 , String }
-#{curlopt CURLOPT_IGNORE_CONTENT_LENGTH      , Int32  }
-#{curlopt CURLOPT_FTP_SKIP_PASV_IP           , Int32  }
-#{curlopt CURLOPT_FTP_FILEMETHOD             , Int32  }
-#{curlopt CURLOPT_LOCALPORT                  , Int32  }
-#{curlopt CURLOPT_LOCALPORTRANGE             , Int32  }
-#{curlopt CURLOPT_CONNECT_ONLY               , Int32  }
-#{curlopt CURLOPT_CONV_FROM_NETWORK_FUNCTION , FunPtr }
-#{curlopt CURLOPT_CONV_TO_NETWORK_FUNCTION   , FunPtr }
-#{curlopt CURLOPT_CONV_FROM_UTF8_FUNCTION    , FunPtr }
-#{curlopt CURLOPT_MAX_SEND_SPEED_LARGE       , Int64  }
-#{curlopt CURLOPT_MAX_RECV_SPEED_LARGE       , Int64  }
-#{curlopt CURLOPT_FTP_ALTERNATIVE_TO_USER    , String }
-#{curlopt CURLOPT_SOCKOPTFUNCTION            , FunPtr }
-#{curlopt CURLOPT_SOCKOPTDATA                , Ptr_a  }
-#{curlopt CURLOPT_SSL_SESSIONID_CACHE        , Int32  }
-#{curlopt CURLOPT_SSH_AUTH_TYPES             , Int32  }
-#{curlopt CURLOPT_SSH_PUBLIC_KEYFILE         , String }
-#{curlopt CURLOPT_SSH_PRIVATE_KEYFILE        , String }
-#{curlopt CURLOPT_FTP_SSL_CCC                , Int32  }
-#{curlopt CURLOPT_TIMEOUT_MS                 , Int32  }
-#{curlopt CURLOPT_CONNECTTIMEOUT_MS          , Int32  }
-#{curlopt CURLOPT_HTTP_TRANSFER_DECODING     , Int32  }
-#{curlopt CURLOPT_HTTP_CONTENT_DECODING      , Int32  }
-#{curlopt CURLOPT_NEW_FILE_PERMS             , Int32  }
-#{curlopt CURLOPT_NEW_DIRECTORY_PERMS        , Int32  }
-#{curlopt CURLOPT_POSTREDIR                  , Int32  }
-#{curlopt CURLOPT_SSH_HOST_PUBLIC_KEY_MD5    , String }
-#{curlopt CURLOPT_OPENSOCKETFUNCTION         , FunPtr }
-#{curlopt CURLOPT_OPENSOCKETDATA             , Ptr_a  }
-#{curlopt CURLOPT_COPYPOSTFIELDS             , String }
-#{curlopt CURLOPT_PROXY_TRANSFER_MODE        , Int32  }
-#{curlopt CURLOPT_SEEKFUNCTION               , FunPtr }
-#{curlopt CURLOPT_SEEKDATA                   , Ptr_a  }
-#{curlopt CURLOPT_CRLFILE                    , String }
-#{curlopt CURLOPT_ISSUERCERT                 , String }
-#{curlopt CURLOPT_ADDRESS_SCOPE              , Int32  }
-#{curlopt CURLOPT_CERTINFO                   , Int32  }
-#{curlopt CURLOPT_USERNAME                   , String }
-#{curlopt CURLOPT_PASSWORD                   , String }
-#{curlopt CURLOPT_PROXYUSERNAME              , String }
-#{curlopt CURLOPT_PROXYPASSWORD              , String }
-#{curlopt CURLOPT_NOPROXY                    , String }
-#{curlopt CURLOPT_TFTP_BLKSIZE               , Int32  }
-#{curlopt CURLOPT_SOCKS5_GSSAPI_SERVICE      , String }
-#{curlopt CURLOPT_SOCKS5_GSSAPI_NEC          , Int32  }
-#{curlopt CURLOPT_PROTOCOLS                  , Int32  }
-#{curlopt CURLOPT_REDIR_PROTOCOLS            , Int32  }
-#{curlopt CURLOPT_SSH_KNOWNHOSTS             , String }
-#{curlopt CURLOPT_SSH_KEYFUNCTION            , FunPtr }
-#{curlopt CURLOPT_SSH_KEYDATA                , Ptr_a  }
-#{curlopt CURLOPT_MAIL_FROM                  , String }
-#{curlopt CURLOPT_MAIL_RCPT                  , SList  }
-#{curlopt CURLOPT_FTP_USE_PRET               , Int32  }
-#{curlopt CURLOPT_RTSP_REQUEST               , Int32  }
-#{curlopt CURLOPT_RTSP_SESSION_ID            , String }
-#{curlopt CURLOPT_RTSP_STREAM_URI            , String }
-#{curlopt CURLOPT_RTSP_TRANSPORT             , String }
-#{curlopt CURLOPT_RTSP_CLIENT_CSEQ           , Int32  }
-#{curlopt CURLOPT_RTSP_SERVER_CSEQ           , Int32  }
-#{curlopt CURLOPT_INTERLEAVEDATA             , Ptr_a  }
-#{curlopt CURLOPT_INTERLEAVEFUNCTION         , FunPtr }
-#{curlopt CURLOPT_WILDCARDMATCH              , Int32  } |7210:----|
-#{curlopt CURLOPT_CHUNK_BGN_FUNCTION         , FunPtr } |7210:----|
-#{curlopt CURLOPT_CHUNK_END_FUNCTION         , FunPtr } |7210:----|
-#{curlopt CURLOPT_FNMATCH_FUNCTION           , FunPtr } |7210:----|
-#{curlopt CURLOPT_CHUNK_DATA                 , Ptr_a  } |7210:----|
-#{curlopt CURLOPT_FNMATCH_DATA               , Ptr_a  } |7210:----|
-#{curlopt CURLOPT_RESOLVE                    , SList  } |7213:----|
-#{curlopt CURLOPT_TLSAUTH_USERNAME           , String } |7214:----|
-#{curlopt CURLOPT_TLSAUTH_PASSWORD           , String } |7214:----|
-#{curlopt CURLOPT_TLSAUTH_TYPE               , String } |7214:----|
-#{curlopt CURLOPT_TRANSFER_ENCODING          , Int32  } |7216:----|
-#{curlopt CURLOPT_CLOSESOCKETFUNCTION        , FunPtr } |7217:----|
-#{curlopt CURLOPT_CLOSESOCKETDATA            , Ptr_a  } |7217:----|
-#{curlopt CURLOPT_GSSAPI_DELEGATION          , Int32  } |7220:----|
-#{curlopt CURLOPT_DNS_SERVERS                , String } |7240:----|
-#{curlopt CURLOPT_ACCEPTTIMEOUT_MS           , Int32  } |7240:----|
+#{curlopt CURLOPT_FILE                       , CFile   }
+#{curlopt CURLOPT_URL                        , CString }
+#{curlopt CURLOPT_PORT                       , CLong   }
+#{curlopt CURLOPT_PROXY                      , CString }
+#{curlopt CURLOPT_USERPWD                    , CString }
+#{curlopt CURLOPT_PROXYUSERPWD               , CString }
+#{curlopt CURLOPT_RANGE                      , CString }
+#{curlopt CURLOPT_INFILE                     , CFile   }
+#{curlopt CURLOPT_ERRORBUFFER                , CString }
+#{curlopt CURLOPT_WRITEFUNCTION              , FunPtr  }
+#{curlopt CURLOPT_READFUNCTION               , FunPtr  }
+#{curlopt CURLOPT_TIMEOUT                    , CLong   }
+#{curlopt CURLOPT_INFILESIZE                 , CLong   }
+#{curlopt CURLOPT_POSTFIELDS                 , CString }  -- UsrPtr??
+#{curlopt CURLOPT_REFERER                    , CString }
+#{curlopt CURLOPT_FTPPORT                    , CString }
+#{curlopt CURLOPT_USERAGENT                  , CString }
+#{curlopt CURLOPT_LOW_SPEED_LIMIT            , CLong   }
+#{curlopt CURLOPT_LOW_SPEED_TIME             , CLong   }
+#{curlopt CURLOPT_RESUME_FROM                , CLong   }
+#{curlopt CURLOPT_COOKIE                     , CString }
+#{curlopt CURLOPT_HTTPHEADER                 , SList   }
+#{curlopt CURLOPT_HTTPPOST                   , HTTPP   }
+#{curlopt CURLOPT_SSLCERT                    , CString }
+#{curlopt CURLOPT_KEYPASSWD                  , CString }
+#{curlopt CURLOPT_CRLF                       , CLong   }
+#{curlopt CURLOPT_QUOTE                      , SList   }
+#{curlopt CURLOPT_WRITEHEADER                , CFile   }  -- UsrPtr??
+#{curlopt CURLOPT_COOKIEFILE                 , CString }
+#{curlopt CURLOPT_SSLVERSION                 , CLong   }
+#{curlopt CURLOPT_TIMECONDITION              , CLong   }
+#{curlopt CURLOPT_TIMEVALUE                  , CLong   }
+#{curlopt CURLOPT_CUSTOMREQUEST              , CString }
+#{curlopt CURLOPT_STDERR                     , CFile   }
+#{curlopt CURLOPT_POSTQUOTE                  , SList   }
+{-# DEPRECATED cCURLOPT_WRITEINFO                 "" #-} |7220:----|
+#{curlopt CURLOPT_WRITEINFO                  , CString }
+#{curlopt CURLOPT_VERBOSE                    , CLong   }
+#{curlopt CURLOPT_HEADER                     , CLong   }
+#{curlopt CURLOPT_NOPROGRESS                 , CLong   }
+#{curlopt CURLOPT_NOBODY                     , CLong   }
+#{curlopt CURLOPT_FAILONERROR                , CLong   }
+#{curlopt CURLOPT_UPLOAD                     , CLong   }
+#{curlopt CURLOPT_POST                       , CLong   }
+#{curlopt CURLOPT_DIRLISTONLY                , CLong   }
+#{curlopt CURLOPT_APPEND                     , CLong   }
+#{curlopt CURLOPT_NETRC                      , CLong   }
+#{curlopt CURLOPT_FOLLOWLOCATION             , CLong   }
+#{curlopt CURLOPT_TRANSFERTEXT               , CLong   }
+#{curlopt CURLOPT_PUT                        , CLong   }
+#{curlopt CURLOPT_PROGRESSFUNCTION           , FunPtr  }
+#{curlopt CURLOPT_PROGRESSDATA               , UsrPtr  }
+#{curlopt CURLOPT_AUTOREFERER                , CLong   }
+#{curlopt CURLOPT_PROXYPORT                  , CLong   }
+#{curlopt CURLOPT_POSTFIELDSIZE              , CLong   }
+#{curlopt CURLOPT_HTTPPROXYTUNNEL            , CLong   }
+#{curlopt CURLOPT_INTERFACE                  , CString }
+#{curlopt CURLOPT_KRBLEVEL                   , CString }
+#{curlopt CURLOPT_SSL_VERIFYPEER             , CLong   }
+#{curlopt CURLOPT_CAINFO                     , CString }
+#{curlopt CURLOPT_MAXREDIRS                  , CLong   }
+#{curlopt CURLOPT_FILETIME                   , CLong   }
+#{curlopt CURLOPT_TELNETOPTIONS              , SList   }
+#{curlopt CURLOPT_MAXCONNECTS                , CLong   }
+{-# DEPRECATED cCURLOPT_CLOSEPOLICY               "" #-} |7217:----|
+#{curlopt CURLOPT_CLOSEPOLICY                , CLong   }
+#{curlopt CURLOPT_FRESH_CONNECT              , CLong   }
+#{curlopt CURLOPT_FORBID_REUSE               , CLong   }
+#{curlopt CURLOPT_RANDOM_FILE                , CString }
+#{curlopt CURLOPT_EGDSOCKET                  , CString }
+#{curlopt CURLOPT_CONNECTTIMEOUT             , CLong   }
+#{curlopt CURLOPT_HEADERFUNCTION             , FunPtr  }
+#{curlopt CURLOPT_HTTPGET                    , CLong   }
+#{curlopt CURLOPT_SSL_VERIFYHOST             , CLong   }
+#{curlopt CURLOPT_COOKIEJAR                  , CString }
+#{curlopt CURLOPT_SSL_CIPHER_LIST            , CString }
+#{curlopt CURLOPT_HTTP_VERSION               , CLong   }
+#{curlopt CURLOPT_FTP_USE_EPSV               , CLong   }
+#{curlopt CURLOPT_SSLCERTTYPE                , CString }
+#{curlopt CURLOPT_SSLKEY                     , CString }
+#{curlopt CURLOPT_SSLKEYTYPE                 , CString }
+#{curlopt CURLOPT_SSLENGINE                  , CString }
+#{curlopt CURLOPT_SSLENGINE_DEFAULT          , CLong   }
+{-# DEPRECATED cCURLOPT_DNS_USE_GLOBAL_CACHE      "" #-} |7220:----|
+#{curlopt CURLOPT_DNS_USE_GLOBAL_CACHE       , CLong   }
+#{curlopt CURLOPT_DNS_CACHE_TIMEOUT          , CLong   }
+#{curlopt CURLOPT_PREQUOTE                   , SList   }
+#{curlopt CURLOPT_DEBUGFUNCTION              , FunPtr  }
+#{curlopt CURLOPT_DEBUGDATA                  , UsrPtr  }
+#{curlopt CURLOPT_COOKIESESSION              , CLong   }
+#{curlopt CURLOPT_CAPATH                     , CString }
+#{curlopt CURLOPT_BUFFERSIZE                 , CLong   }
+#{curlopt CURLOPT_NOSIGNAL                   , CLong   }
+#{curlopt CURLOPT_SHARE                      , CURLSH  }
+#{curlopt CURLOPT_PROXYTYPE                  , CLong   }
+#{curlopt CURLOPT_ENCODING                   , CString } |----:7215|
+#{curlopt CURLOPT_ACCEPT_ENCODING            , CString } |7216:----|
+#{curlopt CURLOPT_PRIVATE                    , UsrPtr  }
+#{curlopt CURLOPT_HTTP200ALIASES             , SList   }
+#{curlopt CURLOPT_UNRESTRICTED_AUTH          , CLong   }
+#{curlopt CURLOPT_FTP_USE_EPRT               , CLong   }
+#{curlopt CURLOPT_HTTPAUTH                   , CLong   }
+#{curlopt CURLOPT_SSL_CTX_FUNCTION           , FunPtr  }
+#{curlopt CURLOPT_SSL_CTX_DATA               , UsrPtr  }
+#{curlopt CURLOPT_FTP_CREATE_MISSING_DIRS    , CLong   }
+#{curlopt CURLOPT_PROXYAUTH                  , CLong   }
+#{curlopt CURLOPT_FTP_RESPONSE_TIMEOUT       , CLong   }
+#{curlopt CURLOPT_IPRESOLVE                  , CLong   }
+#{curlopt CURLOPT_MAXFILESIZE                , CLong   }
+#{curlopt CURLOPT_INFILESIZE_LARGE           , Int64   }
+#{curlopt CURLOPT_RESUME_FROM_LARGE          , Int64   }
+#{curlopt CURLOPT_MAXFILESIZE_LARGE          , Int64   }
+#{curlopt CURLOPT_NETRC_FILE                 , CString }
+#{curlopt CURLOPT_USE_SSL                    , CLong   }
+#{curlopt CURLOPT_POSTFIELDSIZE_LARGE        , Int64   }
+#{curlopt CURLOPT_TCP_NODELAY                , CLong   }
+#{curlopt CURLOPT_FTPSSLAUTH                 , CLong   }
+#{curlopt CURLOPT_IOCTLFUNCTION              , FunPtr  }
+#{curlopt CURLOPT_IOCTLDATA                  , UsrPtr  }
+#{curlopt CURLOPT_FTP_ACCOUNT                , CString }
+#{curlopt CURLOPT_COOKIELIST                 , CString }
+#{curlopt CURLOPT_IGNORE_CONTENT_LENGTH      , CLong   }
+#{curlopt CURLOPT_FTP_SKIP_PASV_IP           , CLong   }
+#{curlopt CURLOPT_FTP_FILEMETHOD             , CLong   }
+#{curlopt CURLOPT_LOCALPORT                  , CLong   }
+#{curlopt CURLOPT_LOCALPORTRANGE             , CLong   }
+#{curlopt CURLOPT_CONNECT_ONLY               , CLong   }
+#{curlopt CURLOPT_CONV_FROM_NETWORK_FUNCTION , FunPtr  }
+#{curlopt CURLOPT_CONV_TO_NETWORK_FUNCTION   , FunPtr  }
+#{curlopt CURLOPT_CONV_FROM_UTF8_FUNCTION    , FunPtr  }
+#{curlopt CURLOPT_MAX_SEND_SPEED_LARGE       , Int64   }
+#{curlopt CURLOPT_MAX_RECV_SPEED_LARGE       , Int64   }
+#{curlopt CURLOPT_FTP_ALTERNATIVE_TO_USER    , CString }
+#{curlopt CURLOPT_SOCKOPTFUNCTION            , FunPtr  }
+#{curlopt CURLOPT_SOCKOPTDATA                , UsrPtr  }
+#{curlopt CURLOPT_SSL_SESSIONID_CACHE        , CLong   }
+#{curlopt CURLOPT_SSH_AUTH_TYPES             , CLong   }
+#{curlopt CURLOPT_SSH_PUBLIC_KEYFILE         , CString }
+#{curlopt CURLOPT_SSH_PRIVATE_KEYFILE        , CString }
+#{curlopt CURLOPT_FTP_SSL_CCC                , CLong   }
+#{curlopt CURLOPT_TIMEOUT_MS                 , CLong   }
+#{curlopt CURLOPT_CONNECTTIMEOUT_MS          , CLong   }
+#{curlopt CURLOPT_HTTP_TRANSFER_DECODING     , CLong   }
+#{curlopt CURLOPT_HTTP_CONTENT_DECODING      , CLong   }
+#{curlopt CURLOPT_NEW_FILE_PERMS             , CLong   }
+#{curlopt CURLOPT_NEW_DIRECTORY_PERMS        , CLong   }
+#{curlopt CURLOPT_POSTREDIR                  , CLong   }
+#{curlopt CURLOPT_SSH_HOST_PUBLIC_KEY_MD5    , CString }
+#{curlopt CURLOPT_OPENSOCKETFUNCTION         , FunPtr  }
+#{curlopt CURLOPT_OPENSOCKETDATA             , UsrPtr  }
+#{curlopt CURLOPT_COPYPOSTFIELDS             , CString }
+#{curlopt CURLOPT_PROXY_TRANSFER_MODE        , CLong   }
+#{curlopt CURLOPT_SEEKFUNCTION               , FunPtr  }
+#{curlopt CURLOPT_SEEKDATA                   , UsrPtr  }
+#{curlopt CURLOPT_CRLFILE                    , CString }
+#{curlopt CURLOPT_ISSUERCERT                 , CString }
+#{curlopt CURLOPT_ADDRESS_SCOPE              , CLong   }
+#{curlopt CURLOPT_CERTINFO                   , CLong   }
+#{curlopt CURLOPT_USERNAME                   , CString }
+#{curlopt CURLOPT_PASSWORD                   , CString }
+#{curlopt CURLOPT_PROXYUSERNAME              , CString }
+#{curlopt CURLOPT_PROXYPASSWORD              , CString }
+#{curlopt CURLOPT_NOPROXY                    , CString }
+#{curlopt CURLOPT_TFTP_BLKSIZE               , CLong   }
+#{curlopt CURLOPT_SOCKS5_GSSAPI_SERVICE      , CString }
+#{curlopt CURLOPT_SOCKS5_GSSAPI_NEC          , CLong   }
+#{curlopt CURLOPT_PROTOCOLS                  , CLong   }
+#{curlopt CURLOPT_REDIR_PROTOCOLS            , CLong   }
+#{curlopt CURLOPT_SSH_KNOWNHOSTS             , CString }
+#{curlopt CURLOPT_SSH_KEYFUNCTION            , FunPtr  }
+#{curlopt CURLOPT_SSH_KEYDATA                , UsrPtr  }
+#{curlopt CURLOPT_MAIL_FROM                  , CString }
+#{curlopt CURLOPT_MAIL_RCPT                  , SList   }
+#{curlopt CURLOPT_FTP_USE_PRET               , CLong   }
+#{curlopt CURLOPT_RTSP_REQUEST               , CLong   }
+#{curlopt CURLOPT_RTSP_SESSION_ID            , CString }
+#{curlopt CURLOPT_RTSP_STREAM_URI            , CString }
+#{curlopt CURLOPT_RTSP_TRANSPORT             , CString }
+#{curlopt CURLOPT_RTSP_CLIENT_CSEQ           , CLong   }
+#{curlopt CURLOPT_RTSP_SERVER_CSEQ           , CLong   }
+#{curlopt CURLOPT_INTERLEAVEDATA             , UsrPtr  }
+#{curlopt CURLOPT_INTERLEAVEFUNCTION         , FunPtr  }
+#{curlopt CURLOPT_WILDCARDMATCH              , CLong   } |7210:----|
+#{curlopt CURLOPT_CHUNK_BGN_FUNCTION         , FunPtr  } |7210:----|
+#{curlopt CURLOPT_CHUNK_END_FUNCTION         , FunPtr  } |7210:----|
+#{curlopt CURLOPT_FNMATCH_FUNCTION           , FunPtr  } |7210:----|
+#{curlopt CURLOPT_CHUNK_DATA                 , UsrPtr  } |7210:----|
+#{curlopt CURLOPT_FNMATCH_DATA               , UsrPtr  } |7210:----|
+#{curlopt CURLOPT_RESOLVE                    , SList   } |7213:----|
+#{curlopt CURLOPT_TLSAUTH_USERNAME           , CString } |7214:----|
+#{curlopt CURLOPT_TLSAUTH_PASSWORD           , CString } |7214:----|
+#{curlopt CURLOPT_TLSAUTH_TYPE               , CString } |7214:----|
+#{curlopt CURLOPT_TRANSFER_ENCODING          , CLong   } |7216:----|
+#{curlopt CURLOPT_CLOSESOCKETFUNCTION        , FunPtr  } |7217:----|
+#{curlopt CURLOPT_CLOSESOCKETDATA            , UsrPtr  } |7217:----|
+#{curlopt CURLOPT_GSSAPI_DELEGATION          , CLong   } |7220:----|
+#{curlopt CURLOPT_DNS_SERVERS                , CString } |7240:----|
+#{curlopt CURLOPT_ACCEPTTIMEOUT_MS           , CLong   } |7240:----|
 
-
-
-
--- ----------------------------------------------------------------------------
--- #define CURL_IPRESOLVE_WHATEVER 0
--- #define CURL_IPRESOLVE_V4       1
--- #define CURL_IPRESOLVE_V6       2
--- 
--- ----------------------------------------------------------------------------
--- #define CURLOPT_WRITEDATA CURLOPT_FILE
--- #define CURLOPT_READDATA  CURLOPT_INFILE
--- #define CURLOPT_HEADERDATA CURLOPT_WRITEHEADER
--- #define CURLOPT_RTSPHEADER CURLOPT_HTTPHEADER
--- 
--- ----------------------------------------------------------------------------
--- enum {
---   CURL_HTTP_VERSION_NONE,
---   CURL_HTTP_VERSION_1_0,
---   CURL_HTTP_VERSION_1_1,
---   CURL_HTTP_VERSION_LAST
--- };
--- 
--- ----------------------------------------------------------------------------
--- enum {
---     CURL_RTSPREQ_NONE,
---     CURL_RTSPREQ_OPTIONS,
---     CURL_RTSPREQ_DESCRIBE,
---     CURL_RTSPREQ_ANNOUNCE,
---     CURL_RTSPREQ_SETUP,
---     CURL_RTSPREQ_PLAY,
---     CURL_RTSPREQ_PAUSE,
---     CURL_RTSPREQ_TEARDOWN,
---     CURL_RTSPREQ_GET_PARAMETER,
---     CURL_RTSPREQ_SET_PARAMETER,
---     CURL_RTSPREQ_RECORD,
---     CURL_RTSPREQ_RECEIVE,
---     CURL_RTSPREQ_LAST
--- };
--- 
--- ----------------------------------------------------------------------------
--- enum CURL_NETRC_OPTION {
---   CURL_NETRC_IGNORED,
---   CURL_NETRC_OPTIONAL,
---   CURL_NETRC_REQUIRED,
---   CURL_NETRC_LAST
--- };
--- 
--- ----------------------------------------------------------------------------
--- enum {
---   CURL_SSLVERSION_DEFAULT,
---   CURL_SSLVERSION_TLSv1,
---   CURL_SSLVERSION_SSLv2,
---   CURL_SSLVERSION_SSLv3,
---   CURL_SSLVERSION_LAST
--- };
--- 
--- ----------------------------------------------------------------------------
--- enum CURL_TLSAUTH {
---   CURL_TLSAUTH_NONE,
---   CURL_TLSAUTH_SRP,
---   CURL_TLSAUTH_LAST
--- };
--- 
--- ----------------------------------------------------------------------------
--- #define CURL_REDIR_GET_ALL  0
--- #define CURL_REDIR_POST_301 1
--- #define CURL_REDIR_POST_302 2
--- #define CURL_REDIR_POST_ALL (CURL_REDIR_POST_301|CURL_REDIR_POST_302)
--- 
--- ----------------------------------------------------------------------------
--- typedef enum {
---   CURL_TIMECOND_NONE,
---   CURL_TIMECOND_IFMODSINCE,
---   CURL_TIMECOND_IFUNMODSINCE,
---   CURL_TIMECOND_LASTMOD,
---   CURL_TIMECOND_LAST
--- } curl_TimeCond;
-
+#{curlopt CURLOPT_WRITEDATA                  , UsrPtr  }
+#{curlopt CURLOPT_READDATA                   , UsrPtr  }
+#{curlopt CURLOPT_HEADERDATA                 , UsrPtr  }
+#{curlopt CURLOPT_RTSPHEADER                 , SList   }
 
 
 -------------------------------------------------------------------------------
-foreign import ccall "curl_strequal"   -- deprecated
+#{cconst CURL_IPRESOLVE_WHATEVER, CLong}
+#{cconst CURL_IPRESOLVE_V4      , CLong}
+#{cconst CURL_IPRESOLVE_V6      , CLong}
+
+ 
+-------------------------------------------------------------------------------
+#{cconst CURL_HTTP_VERSION_NONE, CLong}
+#{cconst CURL_HTTP_VERSION_1_0 , CLong}
+#{cconst CURL_HTTP_VERSION_1_1 , CLong}
+
+
+-------------------------------------------------------------------------------
+#{cconst CURL_RTSPREQ_NONE         , CLong}
+#{cconst CURL_RTSPREQ_OPTIONS      , CLong}
+#{cconst CURL_RTSPREQ_DESCRIBE     , CLong}
+#{cconst CURL_RTSPREQ_ANNOUNCE     , CLong}
+#{cconst CURL_RTSPREQ_SETUP        , CLong}
+#{cconst CURL_RTSPREQ_PLAY         , CLong}
+#{cconst CURL_RTSPREQ_PAUSE        , CLong}
+#{cconst CURL_RTSPREQ_TEARDOWN     , CLong}
+#{cconst CURL_RTSPREQ_GET_PARAMETER, CLong}
+#{cconst CURL_RTSPREQ_SET_PARAMETER, CLong}
+#{cconst CURL_RTSPREQ_RECORD       , CLong}
+#{cconst CURL_RTSPREQ_RECEIVE      , CLong}
+
+
+-------------------------------------------------------------------------------
+#{cconst CURL_NETRC_IGNORED , CLong}
+#{cconst CURL_NETRC_OPTIONAL, CLong}
+#{cconst CURL_NETRC_REQUIRED, CLong}
+
+
+-------------------------------------------------------------------------------
+#{cconst CURL_SSLVERSION_DEFAULT, CLong}
+#{cconst CURL_SSLVERSION_TLSv1  , CLong}
+#{cconst CURL_SSLVERSION_SSLv2  , CLong}
+#{cconst CURL_SSLVERSION_SSLv3  , CLong}
+
+
+-------------------------------------------------------------------------------
+#{cconst CURL_TLSAUTH_NONE, CLong}                               |7214:----|
+#{cconst CURL_TLSAUTH_SRP , CLong}                               |7214:----|
+
+
+-------------------------------------------------------------------------------
+#{cconst CURL_REDIR_GET_ALL , CLong}
+#{cconst CURL_REDIR_POST_301, CLong}
+#{cconst CURL_REDIR_POST_302, CLong}
+#{cconst CURL_REDIR_POST_ALL, CLong}
+
+
+-------------------------------------------------------------------------------
+#{cconst CURL_TIMECOND_NONE        , CLong}
+#{cconst CURL_TIMECOND_IFMODSINCE  , CLong}
+#{cconst CURL_TIMECOND_IFUNMODSINCE, CLong}
+#{cconst CURL_TIMECOND_LASTMOD     , CLong}
+
+
+-------------------------------------------------------------------------------
+{-# DEPRECATED ccurl_strequal "" #-}
+foreign import ccall "curl_strequal"
   ccurl_strequal
     :: Ptr CChar
     -> Ptr CChar
@@ -830,7 +965,8 @@ foreign import ccall "curl_strequal"   -- deprecated
 
 
 -------------------------------------------------------------------------------
-foreign import ccall "curl_strnequal"  -- deprecated
+{-# DEPRECATED ccurl_strnequal "" #-}
+foreign import ccall "curl_strnequal"
   ccurl_strnequal
     :: Ptr CChar
     -> Ptr CChar
@@ -838,71 +974,89 @@ foreign import ccall "curl_strnequal"  -- deprecated
     -> IO CInt
 
 
+-------------------------------------------------------------------------------
+newtype CCURLformoption = CCURLformoption CInt deriving (Eq, Show)
  
--- ----------------------------------------------------------------------------
--- typedef enum {
---   CFINIT(NOTHING),
---   CFINIT(COPYNAME),
---   CFINIT(PTRNAME),
---   CFINIT(NAMELENGTH),
---   CFINIT(COPYCONTENTS),
---   CFINIT(PTRCONTENTS),
---   CFINIT(CONTENTSLENGTH),
---   CFINIT(FILECONTENT),
---   CFINIT(ARRAY),
---   CFINIT(OBSOLETE),
---   CFINIT(FILE),
---   CFINIT(BUFFER),
---   CFINIT(BUFFERPTR),
---   CFINIT(BUFFERLENGTH),
---   CFINIT(CONTENTTYPE),
---   CFINIT(CONTENTHEADER),
---   CFINIT(FILENAME),
---   CFINIT(END),
---   CFINIT(OBSOLETE2),
---   CFINIT(STREAM),
---   CURLFORM_LASTENTRY
--- } CURLformoption;
--- 
--- ----------------------------------------------------------------------------
--- struct curl_forms {
---   CURLformoption option;
---   const char     *value;
--- };
--- 
--- ----------------------------------------------------------------------------
--- typedef enum {
---   CURL_FORMADD_OK,
---   CURL_FORMADD_MEMORY,
---   CURL_FORMADD_OPTION_TWICE,
---   CURL_FORMADD_NULL,
---   CURL_FORMADD_UNKNOWN_OPTION,
---   CURL_FORMADD_INCOMPLETE,
---   CURL_FORMADD_ILLEGAL_ARRAY,
---   CURL_FORMADD_DISABLED,
---   CURL_FORMADD_LAST
--- } CURLFORMcode;
--- 
+-- #{symbol CURLFORM_COPYNAME      , CURLformoption}
+-- #{symbol CURLFORM_PTRNAME       , CURLformoption}
+-- #{symbol CURLFORM_NAMELENGTH    , CURLformoption}
+-- #{symbol CURLFORM_COPYCONTENTS  , CURLformoption}
+-- #{symbol CURLFORM_PTRCONTENTS   , CURLformoption}
+-- #{symbol CURLFORM_CONTENTSLENGTH, CURLformoption}
+-- #{symbol CURLFORM_FILECONTENT   , CURLformoption}
+-- #{symbol CURLFORM_ARRAY         , CURLformoption}
+-- #{symbol CURLFORM_FILE          , CURLformoption}
+-- #{symbol CURLFORM_BUFFER        , CURLformoption}
+-- #{symbol CURLFORM_BUFFERPTR     , CURLformoption}
+-- #{symbol CURLFORM_BUFFERLENGTH  , CURLformoption}
+-- #{symbol CURLFORM_CONTENTTYPE   , CURLformoption}
+-- #{symbol CURLFORM_CONTENTHEADER , CURLformoption}
+-- #{symbol CURLFORM_FILENAME      , CURLformoption}
+-- #{symbol CURLFORM_END           , CURLformoption}
+-- #{symbol CURLFORM_STREAM        , CURLformoption}
+
+
+-------------------------------------------------------------------------------
+data CCURL_forms = CCURL_forms
+  { ccurl_forms_option :: CCURLformoption
+  , ccurl_forms_value  :: Ptr CChar
+  } deriving (Show)
+
+-- instance Storable CCURL_forms where
+--   sizeOf _    = #{size    struct curl_forms}
+--   alignment _ = #{alignof struct curl_forms}
+--   poke _ _    = undefined
+--   peek _      = undefined
+
+
+-------------------------------------------------------------------------------
+newtype CCURLformcode = CCURLformcode CInt deriving (Eq, Show)
+
+#{symbol CURL_FORMADD_OK            , CURLformcode}
+#{symbol CURL_FORMADD_MEMORY        , CURLformcode}
+#{symbol CURL_FORMADD_OPTION_TWICE  , CURLformcode}
+#{symbol CURL_FORMADD_NULL          , CURLformcode}
+#{symbol CURL_FORMADD_UNKNOWN_OPTION, CURLformcode}
+#{symbol CURL_FORMADD_INCOMPLETE    , CURLformcode}
+#{symbol CURL_FORMADD_ILLEGAL_ARRAY , CURLformcode}
+#{symbol CURL_FORMADD_DISABLED      , CURLformcode}
+
+
 -- ----------------------------------------------------------------------------
 -- CURL_EXTERN CURLFORMcode curl_formadd(struct curl_httppost **httppost,
 --                                       struct curl_httppost **last_post,
 --                                       ...);
--- 
--- ----------------------------------------------------------------------------
--- typedef size_t (*curl_formget_callback)(void *arg, const char *buf,
---                                         size_t len);
--- 
--- ----------------------------------------------------------------------------
--- CURL_EXTERN int curl_formget(struct curl_httppost *form, void *arg,
---                              curl_formget_callback append);
--- 
--- ----------------------------------------------------------------------------
--- CURL_EXTERN void curl_formfree(struct curl_httppost *form);
-
 
 
 -------------------------------------------------------------------------------
-foreign import ccall "curl_getenv"  -- deprecated
+type CCURL_formget_callback
+  = Ptr () -> Ptr CChar -> CSize -> IO CSize
+
+foreign import ccall "wrapper"
+  wrap_ccurl_formget_callback
+    :: CCURL_formget_callback
+    -> IO (FunPtr CCURL_formget_callback)
+
+
+-------------------------------------------------------------------------------
+foreign import ccall "curl_formget"
+  ccurl_formget
+    :: Ptr CCURL_httppost
+    -> Ptr ()
+    -> FunPtr CCURL_formget_callback
+    -> IO CInt
+
+
+-------------------------------------------------------------------------------
+foreign import ccall "curl_formfree"
+  ccurl_formfree
+    :: Ptr CCURL_httppost
+    -> IO ()
+
+
+-------------------------------------------------------------------------------
+{-# DEPRECATED ccurl_getenv "" #-}
+foreign import ccall "curl_getenv"
   ccurl_getenv
     :: Ptr CChar
     -> IO (Ptr CChar)
@@ -964,15 +1118,15 @@ foreign import ccall "curl_global_init"
 
 
 -------------------------------------------------------------------------------
--- foreign import ccall "curl_global_init_mem"
---   ccurl_global_init_mem
---     :: CLong
---     -> FunPtr CCURL_malloc_callback
---     -> FunPtr CCURL_free_callback
---     -> FunPtr CCURL_realloc_callback
---     -> FunPtr CCURL_strdup_callback
---     -> FunPtr CCURL_calloc_callback
---     -> IO CCURLcode
+foreign import ccall "curl_global_init_mem"
+  ccurl_global_init_mem
+    :: CLong
+    -> FunPtr CCURL_malloc_callback
+    -> FunPtr CCURL_free_callback
+    -> FunPtr CCURL_realloc_callback
+    -> FunPtr CCURL_strdup_callback
+    -> FunPtr CCURL_calloc_callback
+    -> IO CCURLcode
 
 
 -------------------------------------------------------------------------------
@@ -1089,85 +1243,135 @@ newtype CCURLinfo'CertI   = CCURLinfo'CertI   CInt deriving (Eq, Show)
 #{curlinfo CURLINFO_LOCAL_PORT             , CLong  } |7210:----|
 
 
+-------------------------------------------------------------------------------
+newtype CCURL_closepolicy = CCURL_closepolicy CInt deriving (Eq, Show)
 
--- ----------------------------------------------------------------------------
--- typedef enum {
---   CURLCLOSEPOLICY_NONE,
---   CURLCLOSEPOLICY_OLDEST,
---   CURLCLOSEPOLICY_LEAST_RECENTLY_USED,
---   CURLCLOSEPOLICY_LEAST_TRAFFIC,
---   CURLCLOSEPOLICY_SLOWEST,
---   CURLCLOSEPOLICY_CALLBACK,
---   CURLCLOSEPOLICY_LAST
--- } curl_closepolicy;
--- 
--- ----------------------------------------------------------------------------
--- #define CURL_GLOBAL_SSL (1<<0)
--- #define CURL_GLOBAL_WIN32 (1<<1)
--- #define CURL_GLOBAL_ALL (CURL_GLOBAL_SSL|CURL_GLOBAL_WIN32)
--- #define CURL_GLOBAL_NOTHING 0
--- #define CURL_GLOBAL_DEFAULT CURL_GLOBAL_ALL
--- 
--- ----------------------------------------------------------------------------
--- typedef enum {
---   CURL_LOCK_DATA_NONE = 0,
---   CURL_LOCK_DATA_SHARE,
---   CURL_LOCK_DATA_COOKIE,
---   CURL_LOCK_DATA_DNS,
---   CURL_LOCK_DATA_SSL_SESSION,
---   CURL_LOCK_DATA_CONNECT,
---   CURL_LOCK_DATA_LAST
--- } curl_lock_data;
--- 
--- ----------------------------------------------------------------------------
--- typedef enum {
---   CURL_LOCK_ACCESS_NONE = 0,
---   CURL_LOCK_ACCESS_SHARED = 1,
---   CURL_LOCK_ACCESS_SINGLE = 2,
---   CURL_LOCK_ACCESS_LAST
--- } curl_lock_access;
--- 
--- ----------------------------------------------------------------------------
--- typedef void (*curl_lock_function)(CURL *handle,
---                                    curl_lock_data data,
---                                    curl_lock_access locktype,
---                                    void *userptr);
--- 
--- ----------------------------------------------------------------------------
--- typedef void (*curl_unlock_function)(CURL *handle,
---                                      curl_lock_data data,
---                                      void *userptr);
--- 
--- ----------------------------------------------------------------------------
--- typedef void CURLSH;
--- 
--- ----------------------------------------------------------------------------
--- typedef enum {
---   CURLSHE_OK,
---   CURLSHE_BAD_OPTION,
---   CURLSHE_IN_USE,
---   CURLSHE_INVALID,
---   CURLSHE_NOMEM,
---   CURLSHE_NOT_BUILT_IN,
---   CURLSHE_LAST
--- } CURLSHcode;
--- 
--- ----------------------------------------------------------------------------
--- typedef enum {
---   CURLSHOPT_NONE,
---   CURLSHOPT_SHARE,
---   CURLSHOPT_UNSHARE,
---   CURLSHOPT_LOCKFUNC,
---   CURLSHOPT_UNLOCKFUNC,
---   CURLSHOPT_USERDATA,
---   CURLSHOPT_LAST
--- } CURLSHoption;
--- 
--- ----------------------------------------------------------------------------
--- CURL_EXTERN CURLSH *curl_share_init(void);
--- CURL_EXTERN CURLSHcode curl_share_setopt(CURLSH *, CURLSHoption option, ...);
--- CURL_EXTERN CURLSHcode curl_share_cleanup(CURLSH *);
+#{symbol CURLCLOSEPOLICY_NONE               , CURL_closepolicy}
+#{symbol CURLCLOSEPOLICY_OLDEST             , CURL_closepolicy}
+#{symbol CURLCLOSEPOLICY_LEAST_RECENTLY_USED, CURL_closepolicy}
+#{symbol CURLCLOSEPOLICY_LEAST_TRAFFIC      , CURL_closepolicy}
+#{symbol CURLCLOSEPOLICY_SLOWEST            , CURL_closepolicy}
+#{symbol CURLCLOSEPOLICY_CALLBACK           , CURL_closepolicy}
 
+
+-------------------------------------------------------------------------------
+#{cconst CURL_GLOBAL_SSL    , CLong}
+#{cconst CURL_GLOBAL_WIN32  , CLong}
+#{cconst CURL_GLOBAL_ALL    , CLong}
+#{cconst CURL_GLOBAL_NOTHING, CLong}
+#{cconst CURL_GLOBAL_DEFAULT, CLong}
+
+
+-------------------------------------------------------------------------------
+newtype CCURL_lock_data = CCURL_lock_data CInt deriving (Eq, Show)
+
+#{symbol CURL_LOCK_DATA_COOKIE     , CURL_lock_data}
+#{symbol CURL_LOCK_DATA_DNS        , CURL_lock_data}
+#{symbol CURL_LOCK_DATA_SSL_SESSION, CURL_lock_data}
+#{symbol CURL_LOCK_DATA_CONNECT    , CURL_lock_data}
+ 
+
+-------------------------------------------------------------------------------
+newtype CCURL_lock_access = CCURL_lock_access CInt deriving (Eq, Show)
+
+#{symbol CURL_LOCK_ACCESS_NONE  , CURL_lock_access}
+#{symbol CURL_LOCK_ACCESS_SHARED, CURL_lock_access}
+#{symbol CURL_LOCK_ACCESS_SINGLE, CURL_lock_access}
+
+
+-------------------------------------------------------------------------------
+type CCURL_lock_function
+  = Ptr CCURL -> CCURL_lock_data -> CCURL_lock_access -> Ptr () -> IO ()
+
+foreign import ccall "wrapper"
+  wrap_ccurl_lock_function
+    :: CCURL_lock_function
+    -> IO (FunPtr CCURL_lock_function)
+
+
+-------------------------------------------------------------------------------
+type CCURL_unlock_function
+  = Ptr CCURL -> CCURL_lock_data -> Ptr () -> IO ()
+
+foreign import ccall "wrapper"
+  wrap_ccurl_unlock_function
+    :: CCURL_unlock_function
+    -> IO (FunPtr CCURL_unlock_function)
+
+
+-------------------------------------------------------------------------------
+data CCURLSH
+
+ 
+-------------------------------------------------------------------------------
+newtype CCURLSHcode = CCURLSHcode CInt deriving (Eq, Show)
+
+#{symbol CURLSHE_OK          , CURLSHcode}
+#{symbol CURLSHE_BAD_OPTION  , CURLSHcode}
+#{symbol CURLSHE_IN_USE      , CURLSHcode}
+#{symbol CURLSHE_INVALID     , CURLSHcode}
+#{symbol CURLSHE_NOMEM       , CURLSHcode}
+#{symbol CURLSHE_NOT_BUILT_IN, CURLSHcode} |7230:----|
+
+
+-------------------------------------------------------------------------------
+newtype CCURLSHoption'Lock    = CCURLSHoption'Lock    CInt deriving (Eq, Show)
+newtype CCURLSHoption'FLOCK   = CCURLSHoption'FLOCK   CInt deriving (Eq, Show)
+newtype CCURLSHoption'FUNLOCK = CCURLSHoption'FUNLOCK CInt deriving (Eq, Show)
+newtype CCURLSHoption'UsrPtr  = CCURLSHoption'UsrPtr  CInt deriving (Eq, Show)
+
+#define hsc_curlshopt(name, type) \
+  printf("c" #name " :: CCURLSHoption'" #type "\n"); \
+  printf("c" #name " =  CCURLSHoption'" #type " "); hsc_const(name);
+
+#{curlshopt CURLSHOPT_SHARE     , Lock   }
+#{curlshopt CURLSHOPT_UNSHARE   , Lock   }
+#{curlshopt CURLSHOPT_LOCKFUNC  , FLOCK  }
+#{curlshopt CURLSHOPT_UNLOCKFUNC, FUNLOCK}
+#{curlshopt CURLSHOPT_USERDATA  , UsrPtr }
+
+
+-------------------------------------------------------------------------------
+foreign import ccall "curl_share_init"
+  ccurl_share_init
+    :: IO (Ptr CCURLSH)
+
+
+-------------------------------------------------------------------------------
+foreign import ccall "curl_share_setopt"
+  ccurl_share_setopt'Lock   
+    :: Ptr CCURLSH
+    -> CCURLSHoption'Lock   
+    -> CCURL_lock_data
+    -> IO CCURLSHcode
+
+foreign import ccall "curl_share_setopt"
+  ccurl_share_setopt'FLOCK
+    :: Ptr CCURLSH
+    -> CCURLSHoption'FLOCK
+    -> FunPtr CCURL_lock_function
+    -> IO CCURLSHcode
+
+foreign import ccall "curl_share_setopt"
+  ccurl_share_setopt'FUNLOCK
+    :: Ptr CCURLSH
+    -> CCURLSHoption'FUNLOCK
+    -> FunPtr CCURL_unlock_function
+    -> IO CCURLSHcode
+
+foreign import ccall "curl_share_setopt"
+  ccurl_share_setopt'UsrPtr 
+    :: Ptr CCURLSH
+    -> CCURLSHoption'UsrPtr 
+    -> Ptr ()
+    -> IO CCURLSHcode
+
+
+-------------------------------------------------------------------------------
+foreign import ccall "curl_share_cleanup"
+  ccurl_share_cleanup
+    :: Ptr CCURLSH
+    -> IO CCURLSHcode
 
 
 -------------------------------------------------------------------------------
@@ -1259,10 +1463,10 @@ foreign import ccall "curl_easy_strerror"
 
 
 -------------------------------------------------------------------------------
--- foreign import ccall "curl_share_strerror"
---   ccurl_share_strerror
---     :: CCURLSHcode
---     -> IO (Ptr CChar)
+foreign import ccall "curl_share_strerror"
+  ccurl_share_strerror
+    :: CCURLSHcode
+    -> IO (Ptr CChar)
 
 
 -------------------------------------------------------------------------------
@@ -1271,18 +1475,13 @@ foreign import ccall "curl_easy_pause"
     :: Ptr CCURL
     -> CInt
     -> IO CCURLcode
-
  
--- ----------------------------------------------------------------------------
--- #define CURLPAUSE_RECV      (1<<0)
--- #define CURLPAUSE_RECV_CONT (0)
--- 
--- #define CURLPAUSE_SEND      (1<<2)
--- #define CURLPAUSE_SEND_CONT (0)
--- 
--- #define CURLPAUSE_ALL       (CURLPAUSE_RECV|CURLPAUSE_SEND)
--- #define CURLPAUSE_CONT      (CURLPAUSE_RECV_CONT|CURLPAUSE_SEND_CONT)
-
+#{cconst CURLPAUSE_RECV     , CInt}
+#{cconst CURLPAUSE_RECV_CONT, CInt}
+#{cconst CURLPAUSE_SEND     , CInt}
+#{cconst CURLPAUSE_SEND_CONT, CInt}
+#{cconst CURLPAUSE_ALL      , CInt}
+#{cconst CURLPAUSE_CONT     , CInt}
 
 
 -------------------------------------------------------------------------------
@@ -1295,24 +1494,31 @@ foreign import ccall "curl_easy_init"
 
 -------------------------------------------------------------------------------
 foreign import ccall "curl_easy_setopt"
-  ccurl_easy_setopt'Int32
+  ccurl_easy_setopt'CLong
     :: Ptr CCURL
-    -> CCURLoption'Int32
+    -> CCURLoption'CLong
     -> CLong
     -> IO CCURLcode
 
--- foreign import ccall "curl_easy_setopt"
---   ccurl_easy_setopt'Int64
---     :: Ptr CCURL
---     -> CCURLoption'Int64
---     -> CCURL_off_t
---     -> IO CCURLcode
+foreign import ccall "curl_easy_setopt"
+  ccurl_easy_setopt'Int64
+    :: Ptr CCURL
+    -> CCURLoption'Int64
+    -> CCURL_off_t
+    -> IO CCURLcode
 
 foreign import ccall "curl_easy_setopt"
-  ccurl_easy_setopt'String
+  ccurl_easy_setopt'CString
     :: Ptr CCURL
-    -> CCURLoption'String
+    -> CCURLoption'CString
     -> Ptr CChar
+    -> IO CCURLcode
+
+foreign import ccall "curl_easy_setopt"
+  ccurl_easy_setopt'CFile
+    :: Ptr CCURL
+    -> CCURLoption'CFile
+    -> Ptr CFile
     -> IO CCURLcode
 
 foreign import ccall "curl_easy_setopt"
@@ -1323,39 +1529,58 @@ foreign import ccall "curl_easy_setopt"
     -> IO CCURLcode
 
 foreign import ccall "curl_easy_setopt"
-  ccurl_easy_setopt'File
+  ccurl_easy_setopt'HTTPP
     :: Ptr CCURL
-    -> CCURLoption'File
-    -> Ptr CFile
-    -> IO CCURLcode
-
--- foreign import ccall "curl_easy_setopt"
---   ccurl_easy_setopt'Ptr_a
---     :: Ptr CCURL
---     -> CCURLoption'Ptr_a
---     -> Ptr a
---     -> IO CCURLcode
-
-foreign import ccall "curl_easy_setopt"
-  ccurl_easy_setopt'FWRITE
-    :: Ptr CCURL
-    -> CCURLoption'FWRITE
-    -> FunPtr CCURL_write_callback
+    -> CCURLoption'HTTPP
+    -> Ptr CCURL_httppost
     -> IO CCURLcode
 
 foreign import ccall "curl_easy_setopt"
-  ccurl_easy_setopt'FREAD
+  ccurl_easy_setopt'CURLSH
     :: Ptr CCURL
-    -> CCURLoption'FREAD
-    -> FunPtr CCURL_read_callback
+    -> CCURLoption'CURLSH
+    -> Ptr CCURLSH
     -> IO CCURLcode
 
--- foreign import ccall "curl_easy_setopt"
---   ccurl_easy_setopt'FunPtr
---     :: Ptr CCURL
---     -> CCURLoption'FunPtr
---     -> FunPtr a
---     -> IO CCURLcode
+foreign import ccall "curl_easy_setopt"
+  ccurl_easy_setopt'UsrPtr
+    :: Ptr CCURL
+    -> CCURLoption'UsrPtr
+    -> Ptr ()
+    -> IO CCURLcode
+
+foreign import ccall "curl_easy_setopt"
+  ccurl_easy_setopt'FunPtr
+    :: Ptr CCURL
+    -> CCURLoption'FunPtr
+    -> FunPtr a
+    -> IO CCURLcode
+
+#define hsc_setFunPtrAlias(fn, un, ln) \
+  printf("ccurl_easy_setopt'" #fn "\n"); \
+  printf("  :: Ptr CCURL -> FunPtr CCURL_" #ln "_callback -> IO CCURLcode\n");\
+  printf("ccurl_easy_setopt'" #fn " curl fptr\n"); \
+  printf("  = ccurl_easy_setopt'FunPtr curl cCURLOPT_" #un "FUNCTION fptr");
+
+#{setFunPtrAlias FWRITE      , WRITE      , write      }
+#{setFunPtrAlias FREAD       , READ       , read       }
+#{setFunPtrAlias FPROGRESS   , PROGRESS   , progress   }
+#{setFunPtrAlias FHEADER     , HEADER     , write      }
+#{setFunPtrAlias FDEBUG      , DEBUG      , debug      }
+#{setFunPtrAlias FSSLCTX     , SSL_CTX_   , ssl_ctx    }
+#{setFunPtrAlias FIOCTL      , IOCTL      , ioctl      }
+#{setFunPtrAlias FCONVFROM   , CONV_FROM_NETWORK_, conv}
+#{setFunPtrAlias FCONVTO     , CONV_TO_NETWORK_  , conv}
+#{setFunPtrAlias FCONVUTF8   , CONV_FROM_UTF8_   , conv}
+#{setFunPtrAlias FSOCKOPT    , SOCKOPT    , sockopt    }
+#{setFunPtrAlias FOPENSOCKET , OPENSOCKET , opensocket }
+#{setFunPtrAlias FSEEK       , SEEK       , seek       }
+#{setFunPtrAlias FSSHKEY     , SSH_KEY    , sshkey     }
+#{setFunPtrAlias FINTERLEAVE , INTERLEAVE , write      }
+#{setFunPtrAlias FCHUNKBGN   , CHUNK_BGN_ , chunk_bgn  } |7210:----|
+#{setFunPtrAlias FCHUNKEND   , CHUNK_END_ , chunk_end  } |7210:----|
+#{setFunPtrAlias FFNMATCH    , FNMATCH_   , fnmatch    } |7210:----|
+#{setFunPtrAlias FCLOSESOCKET, CLOSESOCKET, closesocket} |7217:----|
 
 
 -------------------------------------------------------------------------------
@@ -1446,4 +1671,5 @@ foreign import ccall "curl_easy_send"
 -------------------------------------------------------------------------------
 -- from "multi.h"
 -------------------------------------------------------------------------------
+-- todo
 

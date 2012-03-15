@@ -94,8 +94,8 @@ peekCFeatures mask =
     , (CURL_VERSION_SSPI        , cCURL_VERSION_SSPI        )
     , (CURL_VERSION_CONV        , cCURL_VERSION_CONV        )
     , (CURL_VERSION_CURLDEBUG   , cCURL_VERSION_CURLDEBUG   )
---    , (CURL_VERSION_TLSAUTH_SRP , cCURL_VERSION_TLSAUTH_SRP )
---    , (CURL_VERSION_NTLM_WB     , cCURL_VERSION_NTLM_WB     )
+    , (CURL_VERSION_TLSAUTH_SRP , cCURL_VERSION_TLSAUTH_SRP ) |7214:----|
+    , (CURL_VERSION_NTLM_WB     , cCURL_VERSION_NTLM_WB     ) |7220:----|
     ]
 
 
@@ -261,7 +261,7 @@ getinfo'CurlAuth ccurl cinfo = do
     , (CURLAUTH_DIGEST_IE   , cCURLAUTH_DIGEST_IE   )
     , (CURLAUTH_GSSNEGOTIATE, cCURLAUTH_GSSNEGOTIATE)
     , (CURLAUTH_NTLM        , cCURLAUTH_NTLM        )
---    , (CURLAUTH_NTLM_WB     , cCURLAUTH_NTLM_WB     )
+    , (CURLAUTH_NTLM_WB     , cCURLAUTH_NTLM_WB     ) |7220:----|
     ]
 
 
@@ -289,18 +289,19 @@ curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
   CURLOPT_WRITEFUNCTION f -> so'FWRITE curl f
   CURLOPT_READFUNCTION  f -> so'FREAD  curl f
   CURLOPT_URL           s -> so'String curl cCURLOPT_URL s
-  _ -> throwIO CURLE_FAILED_INIT -- CURLE_UNKNOWN_OPTION
+  _ -> throwIO CURLE_FAILED_INIT    |----:7214|
+  _ -> throwIO CURLE_UNKNOWN_OPTION |7215:----|
 
 
-so'String :: CURL -> CCURLoption'String -> String -> IO ()
+so'String :: CURL -> CCURLoption'CString -> String -> IO ()
 so'String curl copt val = withCString val $ \ptr -> do
-  code <- fromC <$> ccurl_easy_setopt'String (ccurlptr curl) copt ptr
+  code <- fromC <$> ccurl_easy_setopt'CString (ccurlptr curl) copt ptr
   ifOK code (return ())
 
 
 so'FWRITE :: CURL -> Maybe CURL_write_callback -> IO ()
 so'FWRITE curl mcb = makeCallback mcb (cb_write curl)
-  (ccurl_easy_setopt'FWRITE (ccurlptr curl) cCURLOPT_WRITEFUNCTION)
+  (ccurl_easy_setopt'FWRITE (ccurlptr curl))
   (\cb -> wrap_ccurl_write_callback (write_callback cb))
 
 write_callback :: CURL_write_callback -> CCURL_write_callback
@@ -314,7 +315,7 @@ write_callback fwrite ptr size nmemb _ = do
 
 so'FREAD :: CURL -> Maybe CURL_read_callback -> IO ()
 so'FREAD curl mcb = makeCallback mcb (cb_read curl)
-  (ccurl_easy_setopt'FREAD (ccurlptr curl) cCURLOPT_READFUNCTION)
+  (ccurl_easy_setopt'FREAD (ccurlptr curl))
   (\cb -> wrap_ccurl_read_callback (read_callback cb))
 
 read_callback :: CURL_read_callback -> CCURL_read_callback

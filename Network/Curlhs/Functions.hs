@@ -16,7 +16,7 @@
 module Network.Curlhs.Functions where
 
 import Foreign.Marshal.Alloc (alloca)
-import Foreign.Marshal.Utils (copyBytes)
+import Foreign.Marshal.Utils (copyBytes, fromBool, toBool)
 import Foreign.Storable      (peek, sizeOf)
 import Foreign.C.String      (peekCString, withCString)
 import Foreign.C.Types       (CChar, CInt)
@@ -249,8 +249,7 @@ getinfo'Socket ccurl cinfo = getinfo'Int ccurl cinfo >>= \v ->
   return $ if (v == (-1)) then Nothing else Just v
 
 getinfo'TimeCond :: Ptr CCURL -> CCURLinfo'CLong -> IO Bool
-getinfo'TimeCond ccurl cinfo = getinfo'Int ccurl cinfo >>= \v ->
-  return $ if (v == 0) then False else True
+getinfo'TimeCond ccurl cinfo = toBool <$> getinfo'Int ccurl cinfo
 
 getinfo'CurlAuth :: Ptr CCURL -> CCURLinfo'CLong -> IO [CURLauth]
 getinfo'CurlAuth ccurl cinfo = do
@@ -286,12 +285,26 @@ peek'CCURL_certinfo ptr =
 -------------------------------------------------------------------------------
 curl_easy_setopt :: CURL -> [CURLoption] -> IO ()
 curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
+  -- BEHAVIOR OPTIONS
+  CURLOPT_VERBOSE       v -> so'Bool curl cCURLOPT_VERBOSE       v
+  CURLOPT_HEADER        v -> so'Bool curl cCURLOPT_HEADER        v
+  CURLOPT_NOPROGRESS    v -> so'Bool curl cCURLOPT_NOPROGRESS    v
+  CURLOPT_NOSIGNAL      v -> so'Bool curl cCURLOPT_NOSIGNAL      v
+  CURLOPT_WILDCARDMATCH v -> so'Bool curl cCURLOPT_WILDCARDMATCH v |7210:----|
+  -- CALLBACK OPTIONS
   CURLOPT_WRITEFUNCTION f -> so'FWRITE curl f
   CURLOPT_READFUNCTION  f -> so'FREAD  curl f
+  -- NETWORK OPTIONS
   CURLOPT_URL           s -> so'String curl cCURLOPT_URL s
+  -- UNKNOWN OPTION
   _ -> throwIO CURLE_FAILED_INIT    |----:7214|
   _ -> throwIO CURLE_UNKNOWN_OPTION |7215:----|
 
+
+so'Bool :: CURL -> CCURLoption'CLong -> Bool -> IO ()
+so'Bool curl copt val = do
+  code <- fromC <$> ccurl_easy_setopt'CLong (ccurlptr curl) copt (fromBool val)
+  ifOK code (return ())
 
 so'String :: CURL -> CCURLoption'CString -> String -> IO ()
 so'String curl copt val = withCString val $ \ptr -> do

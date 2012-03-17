@@ -265,14 +265,14 @@ data CURL_read_response
 
 -------------------------------------------------------------------------------
 data CURLoption
--- BEHAVIOR OPTIONS
+  -- BEHAVIOR OPTIONS
   = CURLOPT_VERBOSE       Bool
   | CURLOPT_HEADER        Bool
   | CURLOPT_NOPROGRESS    Bool
   | CURLOPT_NOSIGNAL      Bool
-  | CURLOPT_WILDCARDMATCH Bool
+  | CURLOPT_WILDCARDMATCH Bool |7210:----|
 
--- CALLBACK OPTIONS
+  -- CALLBACK OPTIONS
   | CURLOPT_WRITEFUNCTION (Maybe CURL_write_callback)
   | CURLOPT_WRITEDATA
   | CURLOPT_READFUNCTION (Maybe CURL_read_callback)
@@ -306,9 +306,9 @@ data CURLoption
   | CURLOPT_FNMATCH_FUNCTION
   | CURLOPT_FNMATCH_DATA
 
--- ERROR OPTIONS
+  -- ERROR OPTIONS
 
--- NETWORK OPTIONS
+  -- NETWORK OPTIONS
   | CURLOPT_URL String
 
 -- NAMES and PASSWORDS OPTIONS (Authentication)

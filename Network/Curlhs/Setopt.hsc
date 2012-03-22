@@ -85,22 +85,22 @@ curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
   #{setopt CURLOPT_WILDCARDMATCH          , bool     } |7210:----|
 
   ---- ERROR OPTIONS ----------------------------------------------------------
-  --CURLOPT_ERRORBUFFER
-  --CURLOPT_STDERR
+  -- CURLOPT_ERRORBUFFER
+  -- CURLOPT_STDERR
   #{setopt CURLOPT_FAILONERROR            , bool     }
 
   ---- NETWORK OPTIONS --------------------------------------------------------
-  #{setopt CURLOPT_URL                    , cstring  }
-  #{setopt CURLOPT_PROTOCOLS              , proto    }
-  #{setopt CURLOPT_REDIR_PROTOCOLS        , proto    }
-  #{setopt CURLOPT_PROXY                  , cstring  }
+  #{setopt CURLOPT_URL                    , string   }
+  #{setopt CURLOPT_PROTOCOLS              , enum     }
+  #{setopt CURLOPT_REDIR_PROTOCOLS        , enum     }
+  #{setopt CURLOPT_PROXY                  , string   }
   #{setopt CURLOPT_PROXYPORT              , int      }
-  #{setopt CURLOPT_PROXYTYPE              , proxy    }
-  #{setopt CURLOPT_NOPROXY                , cstring  }
+  #{setopt CURLOPT_PROXYTYPE              , enum     }
+  #{setopt CURLOPT_NOPROXY                , string   }
   #{setopt CURLOPT_HTTPPROXYTUNNEL        , bool     }
-  #{setopt CURLOPT_SOCKS5_GSSAPI_SERVICE  , cstring  }
+  #{setopt CURLOPT_SOCKS5_GSSAPI_SERVICE  , string   }
   #{setopt CURLOPT_SOCKS5_GSSAPI_NEC      , bool     }
-  #{setopt CURLOPT_INTERFACE              , cstring  }
+  #{setopt CURLOPT_INTERFACE              , string   }
   #{setopt CURLOPT_LOCALPORT              , int      }
   #{setopt CURLOPT_LOCALPORTRANGE         , int      }
   #{setopt CURLOPT_DNS_CACHE_TIMEOUT      , int      }
@@ -111,60 +111,60 @@ curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
   #{setopt CURLOPT_ADDRESS_SCOPE          , int      }
 
   ---- NAMES and PASSWORDS OPTIONS (Authentication) ---------------------------
-  #{setopt CURLOPT_NETRC                  , netrc    }
-  #{setopt CURLOPT_NETRC_FILE             , cstring  }
-  #{setopt CURLOPT_USERPWD                , cstring  }
-  #{setopt CURLOPT_PROXYUSERPWD           , cstring  }
-  #{setopt CURLOPT_USERNAME               , cstring  }
-  #{setopt CURLOPT_PASSWORD               , cstring  }
-  #{setopt CURLOPT_PROXYUSERNAME          , cstring  }
-  #{setopt CURLOPT_PROXYPASSWORD          , cstring  }
-  #{setopt CURLOPT_HTTPAUTH               , auth     }
-  #{setopt CURLOPT_TLSAUTH_TYPE           , tlsauth  } |7214:----|
-  #{setopt CURLOPT_TLSAUTH_USERNAME       , cstring  } |7214:----|
-  #{setopt CURLOPT_TLSAUTH_PASSWORD       , cstring  } |7214:----|
-  #{setopt CURLOPT_PROXYAUTH              , auth     }
+  #{setopt CURLOPT_NETRC                  , enum     }
+  #{setopt CURLOPT_NETRC_FILE             , string   }
+  #{setopt CURLOPT_USERPWD                , string   }
+  #{setopt CURLOPT_PROXYUSERPWD           , string   }
+  #{setopt CURLOPT_USERNAME               , string   }
+  #{setopt CURLOPT_PASSWORD               , string   }
+  #{setopt CURLOPT_PROXYUSERNAME          , string   }
+  #{setopt CURLOPT_PROXYPASSWORD          , string   }
+  #{setopt CURLOPT_HTTPAUTH               , enum     }
+  #{setopt CURLOPT_TLSAUTH_TYPE           , enum     } |7214:----|
+  #{setopt CURLOPT_TLSAUTH_USERNAME       , string   } |7214:----|
+  #{setopt CURLOPT_TLSAUTH_PASSWORD       , string   } |7214:----|
+  #{setopt CURLOPT_PROXYAUTH              , enum     }
 
   ---- HTTP OPTIONS -----------------------------------------------------------
   #{setopt CURLOPT_AUTOREFERER            , bool     }
-  #{setopt CURLOPT_ENCODING               , cstring  } |----:7215|
-  #{setopt CURLOPT_ACCEPT_ENCODING        , cstring  } |7216:----|
-  #{setopt CURLOPT_TRANSFER_ENCODING      , cstring  } |7216:----|
+  #{setopt CURLOPT_ENCODING               , string   } |----:7215|
+  #{setopt CURLOPT_ACCEPT_ENCODING        , string   } |7216:----|
+  #{setopt CURLOPT_TRANSFER_ENCODING      , string   } |7216:----|
   #{setopt CURLOPT_FOLLOWLOCATION         , bool     }
   #{setopt CURLOPT_UNRESTRICTED_AUTH      , bool     }
   #{setopt CURLOPT_MAXREDIRS              , int      }
-  #{setopt CURLOPT_POSTREDIR              , redir    }
+  #{setopt CURLOPT_POSTREDIR              , enum     }
   #{setopt CURLOPT_PUT                    , bool     }
   #{setopt CURLOPT_POST                   , bool     }
   -- #{setopt CURLOPT_POSTFIELDS             , buffer   }
   #{setopt CURLOPT_POSTFIELDSIZE          , int      }
   #{setopt CURLOPT_POSTFIELDSIZE_LARGE    , int64    }
-  #{setopt CURLOPT_COPYPOSTFIELDS         , cstring  }
-  -- #{setopt CURLOPT_HTTPPOST               , httpp    }
-  #{setopt CURLOPT_REFERER                , cstring  }
-  #{setopt CURLOPT_USERAGENT              , cstring  }
+  #{setopt CURLOPT_COPYPOSTFIELDS         , string   }
+  -- CURLOPT_HTTPPOST
+  #{setopt CURLOPT_REFERER                , string   }
+  #{setopt CURLOPT_USERAGENT              , string   }
   -- #{setopt CURLOPT_HTTPHEADER             , slist    }
   -- #{setopt CURLOPT_HTTP200ALIASES         , slist    }
-  #{setopt CURLOPT_COOKIE                 , cstring  }
-  #{setopt CURLOPT_COOKIEFILE             , cstring  }
-  #{setopt CURLOPT_COOKIEJAR              , cstring  }
+  #{setopt CURLOPT_COOKIE                 , string   }
+  #{setopt CURLOPT_COOKIEFILE             , string   }
+  #{setopt CURLOPT_COOKIEJAR              , string   }
   #{setopt CURLOPT_COOKIESESSION          , bool     }
-  #{setopt CURLOPT_COOKIELIST             , cstring  }
+  #{setopt CURLOPT_COOKIELIST             , string   }
   #{setopt CURLOPT_HTTPGET                , bool     }
-  #{setopt CURLOPT_HTTP_VERSION           , httpver  }
+  #{setopt CURLOPT_HTTP_VERSION           , enum     }
   #{setopt CURLOPT_IGNORE_CONTENT_LENGTH  , bool     }
   #{setopt CURLOPT_HTTP_CONTENT_DECODING  , bool     }
   #{setopt CURLOPT_HTTP_TRANSFER_DECODING , bool     }
 
   ---- SMTP OPTIONS -----------------------------------------------------------
-  #{setopt CURLOPT_MAIL_FROM              , cstring  }
+  #{setopt CURLOPT_MAIL_FROM              , string   }
   -- #{setopt CURLOPT_MAIL_RCTP              , slist    }
 
   ---- TFTP OPTIONS -----------------------------------------------------------
   #{setopt CURLOPT_TFTP_BLKSIZE           , int      }
 
   ---- FTP OPTIONS ------------------------------------------------------------
-  #{setopt CURLOPT_FTPPORT                , cstring  }
+  #{setopt CURLOPT_FTPPORT                , string   }
   -- #{setopt CURLOPT_QUOTE                  , slist    }
   -- #{setopt CURLOPT_POSTQUOTE              , slist    }
   -- #{setopt CURLOPT_PREQUOTE               , slist    }
@@ -173,20 +173,20 @@ curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
   #{setopt CURLOPT_FTP_USE_EPRT           , bool     }
   #{setopt CURLOPT_FTP_USE_EPSV           , bool     }
   #{setopt CURLOPT_FTP_USE_PRET           , bool     }
-  #{setopt CURLOPT_FTP_CREATE_MISSING_DIRS, ftpcreate}
+  #{setopt CURLOPT_FTP_CREATE_MISSING_DIRS, enum     }
   #{setopt CURLOPT_FTP_RESPONSE_TIMEOUT   , int      }
-  #{setopt CURLOPT_FTP_ALTERNATIVE_TO_USER, cstring  }
+  #{setopt CURLOPT_FTP_ALTERNATIVE_TO_USER, string   }
   #{setopt CURLOPT_FTP_SKIP_PASV_IP       , bool     }
-  #{setopt CURLOPT_FTPSSLAUTH             , ftpauth  }
-  #{setopt CURLOPT_FTP_SSL_CCC            , ftpssl   }
-  #{setopt CURLOPT_FTP_ACCOUNT            , cstring  }
-  #{setopt CURLOPT_FTP_FILEMETHOD         , ftpmethod}
+  #{setopt CURLOPT_FTPSSLAUTH             , enum     }
+  #{setopt CURLOPT_FTP_SSL_CCC            , enum     }
+  #{setopt CURLOPT_FTP_ACCOUNT            , string   }
+  #{setopt CURLOPT_FTP_FILEMETHOD         , enum     }
 
   ---- RTSP OPTIONS -----------------------------------------------------------
-  #{setopt CURLOPT_RTSP_REQUEST           , rtspreq  }
-  #{setopt CURLOPT_RTSP_SESSION_ID        , cstring  }
-  #{setopt CURLOPT_RTSP_STREAM_URI        , cstring  }
-  #{setopt CURLOPT_RTSP_TRANSPORT         , cstring  }
+  #{setopt CURLOPT_RTSP_REQUEST           , enum     }
+  #{setopt CURLOPT_RTSP_SESSION_ID        , string   }
+  #{setopt CURLOPT_RTSP_STREAM_URI        , string   }
+  #{setopt CURLOPT_RTSP_TRANSPORT         , string   }
   -- #{setopt CURLOPT_RTSP_HEADER            , slist    }
   #{setopt CURLOPT_RTSP_CLIENT_CSEQ       , int      }
   #{setopt CURLOPT_RTSP_SERVER_CSEQ       , int      }
@@ -195,10 +195,10 @@ curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
   #{setopt CURLOPT_TRANSFERTEXT           , bool     }
   #{setopt CURLOPT_PROXY_TRANSFER_MODE    , bool     }
   #{setopt CURLOPT_CRLF                   , bool     }
-  #{setopt CURLOPT_RANGE                  , cstring  }
+  #{setopt CURLOPT_RANGE                  , string   }
   #{setopt CURLOPT_RESUME_FROM            , int      }
   #{setopt CURLOPT_RESUME_FROM_LARGE      , int64    }
-  #{setopt CURLOPT_CUSTOMREQUEST          , cstring  }
+  #{setopt CURLOPT_CUSTOMREQUEST          , string   }
   #{setopt CURLOPT_FILETIME               , bool     }
   #{setopt CURLOPT_NOBODY                 , bool     }
   #{setopt CURLOPT_INFILESIZE             , int      }
@@ -206,8 +206,8 @@ curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
   #{setopt CURLOPT_UPLOAD                 , bool     }
   #{setopt CURLOPT_MAXFILESIZE            , int      }
   #{setopt CURLOPT_MAXFILESIZE_LARGE      , int64    }
-  #{setopt CURLOPT_TIMECONDITION          , timecond }
-  #{setopt CURLOPT_TIMEVALUE              , utctime  }
+  #{setopt CURLOPT_TIMECONDITION          , enum     }
+  #{setopt CURLOPT_TIMEVALUE              , time     }
 
   ---- CONNECTION OPTIONS -----------------------------------------------------
   #{setopt CURLOPT_TIMEOUT                , int      }
@@ -217,53 +217,53 @@ curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
   #{setopt CURLOPT_MAX_SEND_SPEED_LARGE   , int64    }
   #{setopt CURLOPT_MAX_RECV_SPEED_LARGE   , int64    }
   #{setopt CURLOPT_MAXCONNECTS            , int      }
-  #{setopt CURLOPT_CLOSEPOLICY            , closepol }
+  #{setopt CURLOPT_CLOSEPOLICY            , enum     }
   #{setopt CURLOPT_FRESH_CONNECT          , bool     }
   #{setopt CURLOPT_FORBID_REUSE           , bool     }
   #{setopt CURLOPT_CONNECTTIMEOUT         , int      }
   #{setopt CURLOPT_CONNECTTIMEOUT_MS      , int      }
-  #{setopt CURLOPT_IPRESOLVE              , ipresolve}
+  #{setopt CURLOPT_IPRESOLVE              , enum     }
   #{setopt CURLOPT_CONNECT_ONLY           , bool     }
-  #{setopt CURLOPT_USE_SSL                , usessl   }
+  #{setopt CURLOPT_USE_SSL                , enum     }
   -- #{setopt CURLOPT_RESOLVE                , slist    } |7213:----|
-  #{setopt CURLOPT_DNS_SERVERS            , cstring  } |7240:----|
+  #{setopt CURLOPT_DNS_SERVERS            , string   } |7240:----|
   #{setopt CURLOPT_ACCEPTTIMEOUT_MS       , int      } |7240:----|
 
   ---- SSL and SECURITY OPTIONS -----------------------------------------------
-  #{setopt CURLOPT_SSLCERT                , cstring  }
-  #{setopt CURLOPT_SSLCERTTYPE            , cstring  }
-  #{setopt CURLOPT_SSLKEY                 , cstring  }
-  #{setopt CURLOPT_SSLKEYTYPE             , cstring  }
-  #{setopt CURLOPT_KEYPASSWD              , cstring  }
-  #{setopt CURLOPT_SSLENGINE              , cstring  }
-  -- #{setopt CURLOPT_SSLENGINE_DEFAULT      , nop      }
-  #{setopt CURLOPT_SSLVERSION             , sslver   }
+  #{setopt CURLOPT_SSLCERT                , string   }
+  #{setopt CURLOPT_SSLCERTTYPE            , string   }
+  #{setopt CURLOPT_SSLKEY                 , string   }
+  #{setopt CURLOPT_SSLKEYTYPE             , string   }
+  #{setopt CURLOPT_KEYPASSWD              , string   }
+  #{setopt CURLOPT_SSLENGINE              , string   }
+  #{setopt CURLOPT_SSLENGINE_DEFAULT      , bool     }
+  #{setopt CURLOPT_SSLVERSION             , enum     }
   #{setopt CURLOPT_SSL_VERIFYPEER         , bool     }
-  #{setopt CURLOPT_CAINFO                 , cstring  }
-  #{setopt CURLOPT_ISSUERCERT             , cstring  }
-  #{setopt CURLOPT_CAPATH                 , cstring  }
-  #{setopt CURLOPT_CRLFILE                , cstring  }
+  #{setopt CURLOPT_CAINFO                 , string   }
+  #{setopt CURLOPT_ISSUERCERT             , string   }
+  #{setopt CURLOPT_CAPATH                 , string   }
+  #{setopt CURLOPT_CRLFILE                , string   }
   #{setopt CURLOPT_SSL_VERIFYHOST         , int      }
   #{setopt CURLOPT_CERTINFO               , bool     }
-  #{setopt CURLOPT_RANDOM_FILE            , cstring  }
-  #{setopt CURLOPT_EGDSOCKET              , cstring  }
-  #{setopt CURLOPT_SSL_CIPHER_LIST        , cstring  }
+  #{setopt CURLOPT_RANDOM_FILE            , string   }
+  #{setopt CURLOPT_EGDSOCKET              , string   }
+  #{setopt CURLOPT_SSL_CIPHER_LIST        , string   }
   #{setopt CURLOPT_SSL_SESSIONID_CACHE    , bool     }
-  #{setopt CURLOPT_KRBLEVEL               , cstring  }
-  #{setopt CURLOPT_GSSAPI_DELEGATION      , gssapi   } |7220:----|
+  #{setopt CURLOPT_KRBLEVEL               , string   }
+  #{setopt CURLOPT_GSSAPI_DELEGATION      , enum     } |7220:----|
 
   ---- SSH OPTIONS ------------------------------------------------------------
-  #{setopt CURLOPT_SSH_AUTH_TYPES         , sshauth  }
-  #{setopt CURLOPT_SSH_HOST_PUBLIC_KEY_MD5, cstring  }
-  #{setopt CURLOPT_SSH_PUBLIC_KEYFILE     , cstring  }
-  #{setopt CURLOPT_SSH_PRIVATE_KEYFILE    , cstring  }
-  #{setopt CURLOPT_SSH_KNOWNHOSTS         , cstring  }
-  -- #{setopt CURLOPT_SSH_KEYFUNCTION        ,          }
-  -- #{setopt CURLOPT_SSH_KEYDATA            ,          }
+  #{setopt CURLOPT_SSH_AUTH_TYPES         , enum     }
+  #{setopt CURLOPT_SSH_HOST_PUBLIC_KEY_MD5, string   }
+  #{setopt CURLOPT_SSH_PUBLIC_KEYFILE     , string   }
+  #{setopt CURLOPT_SSH_PRIVATE_KEYFILE    , string   }
+  #{setopt CURLOPT_SSH_KNOWNHOSTS         , string   }
+  -- CURLOPT_SSH_KEYFUNCTION
+  -- CURLOPT_SSH_KEYDATA
 
   ---- OTHER OPTIONS ----------------------------------------------------------
-  -- #{setopt CURLOPT_PRIVATE                ,          }
-  -- #{setopt CURLOPT_SHARE                  , curlsh   }
+  -- CURLOPT_PRIVATE
+  -- CURLOPT_SHARE
   #{setopt CURLOPT_NEW_FILE_PERMS         , int      }
   #{setopt CURLOPT_NEW_DIRECTORY_PERMS    , int      }
 
@@ -272,30 +272,12 @@ curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
 
   -----------------------------------------------------------------------------
   where
-    cstring   copt s = setopt'CString curl copt s
-    int64     copt x = setopt'Int64 curl copt (fromIntegral   x)
-    int       copt x = setopt'CLong curl copt (fromIntegral   x)
-    bool      copt x = setopt'CLong curl copt (fromBool       x)
-    proto     copt x = setopt'CLong curl copt (fromProto      x)
-    proxy     copt x = setopt'CLong curl copt (fromProxy      x)
-    netrc     copt x = setopt'CLong curl copt (fromNetrc      x)
-    auth      copt x = setopt'CLong curl copt (fromAuth       x)
-    tlsauth   copt x = setopt'CLong curl copt (fromTlsauth    x) |7214:----|
-    redir     copt x = setopt'CLong curl copt (fromRedir      x)
-    httpver   copt x = setopt'CLong curl copt (fromHttpver    x)
-    ftpcreate copt x = setopt'CLong curl copt (fromFtpcreate  x)
-    ftpauth   copt x = setopt'CLong curl copt (fromFtpauth    x)
-    ftpssl    copt x = setopt'CLong curl copt (fromFtpssl     x)
-    ftpmethod copt x = setopt'CLong curl copt (fromFtpmethod  x)
-    rtspreq   copt x = setopt'CLong curl copt (fromRtspreq    x)
-    timecond  copt x = setopt'CLong curl copt (fromTimecond   x)
-    utctime   copt x = setopt'CLong curl copt (fromUTCTime    x)
-    closepol  copt x = setopt'CLong curl copt (fromClosepol   x)
-    ipresolve copt x = setopt'CLong curl copt (fromIpresolve  x)
-    usessl    copt x = setopt'CLong curl copt (fromUsessl     x)
-    sslver    copt x = setopt'CLong curl copt (fromSslver     x)
-    gssapi    copt x = setopt'CLong curl copt (fromGssapi     x) |7220:----|
-    sshauth   copt x = setopt'CLong curl copt (fromSshauth    x)
+    string copt s = setopt'CString curl copt s
+    int64  copt x = setopt'Int64   curl copt (fromIntegral   x)
+    int    copt x = setopt'CLong   curl copt (fromIntegral   x)
+    bool   copt x = setopt'CLong   curl copt (fromBool       x)
+    time   copt x = setopt'CLong   curl copt (fromUTCTime    x)
+    enum   copt x = setopt'CLong   curl copt (fromCURLenum   x)
 
 
 
@@ -349,212 +331,181 @@ read_callback fread buff size nmemb _ = do
 
 
 -------------------------------------------------------------------------------
-#define hsc_option(opt) printf(#opt " -> c" #opt);
-
-fromProto :: [CURLproto] -> CLong
-fromProto xs = foldl' (.|.) 0 $ flip map xs $ \x -> case x of
-  #{option CURLPROTO_ALL   }
-  #{option CURLPROTO_HTTP  }
-  #{option CURLPROTO_HTTPS }
-  #{option CURLPROTO_FTP   }
-  #{option CURLPROTO_FTPS  }
-  #{option CURLPROTO_SCP   }
-  #{option CURLPROTO_SFTP  }
-  #{option CURLPROTO_TELNET}
-  #{option CURLPROTO_LDAP  }
-  #{option CURLPROTO_LDAPS }
-  #{option CURLPROTO_DICT  }
-  #{option CURLPROTO_FILE  }
-  #{option CURLPROTO_TFTP  }
-  #{option CURLPROTO_IMAP  }
-  #{option CURLPROTO_IMAPS }
-  #{option CURLPROTO_POP3  }
-  #{option CURLPROTO_POP3S }
-  #{option CURLPROTO_SMTP  }
-  #{option CURLPROTO_SMTPS }
-  #{option CURLPROTO_RTSP  }
-  #{option CURLPROTO_RTMP  } |7210:----|
-  #{option CURLPROTO_RTMPT } |7210:----|
-  #{option CURLPROTO_RTMPE } |7210:----|
-  #{option CURLPROTO_RTMPTE} |7210:----|
-  #{option CURLPROTO_RTMPS } |7210:----|
-  #{option CURLPROTO_RTMPTS} |7210:----|
-  #{option CURLPROTO_GOPHER} |7212:----|
-
-
--------------------------------------------------------------------------------
-fromProxy :: CURLproxy -> CLong
-fromProxy x = case x of
-  #{option CURLPROXY_HTTP           }
-  #{option CURLPROXY_HTTP_1_0       }
-  #{option CURLPROXY_SOCKS4         }
-  #{option CURLPROXY_SOCKS5         }
-  #{option CURLPROXY_SOCKS4A        }
-  #{option CURLPROXY_SOCKS5_HOSTNAME}
-
-
--------------------------------------------------------------------------------
-fromNetrc :: CURLnetrc -> CLong
-fromNetrc x = case x of
-  #{option CURL_NETRC_IGNORED }
-  #{option CURL_NETRC_OPTIONAL}
-  #{option CURL_NETRC_REQUIRED}
-
-
--------------------------------------------------------------------------------
-fromAuth :: [CURLauth] -> CLong
-fromAuth xs = foldl' (.|.) 0 $ flip map xs $ \x -> case x of
-  #{option CURLAUTH_BASIC       }
-  #{option CURLAUTH_DIGEST      }
-  #{option CURLAUTH_DIGEST_IE   }
-  #{option CURLAUTH_GSSNEGOTIATE}
-  #{option CURLAUTH_NTLM        }
-  #{option CURLAUTH_NTLM_WB     } |7220:----|
-  #{option CURLAUTH_ONLY        } |7213:----|
-  #{option CURLAUTH_ANY         }
-  #{option CURLAUTH_ANYSAFE     }
-
-
--------------------------------------------------------------------------------
-fromTlsauth :: [CURLtlsauth] -> CLong                            |7214:----|
-fromTlsauth xs = foldl' (.|.) 0 $ flip map xs $ \x -> case x of  |7214:----|
-  #{option CURL_TLSAUTH_SRP}                                     |7214:----|
-
-
--------------------------------------------------------------------------------
-fromRedir :: [CURLredir] -> CLong
-fromRedir xs = foldl' (.|.) 0 $ flip map xs $ \x -> case x of
-  #{option CURL_REDIR_GET_ALL }
-  #{option CURL_REDIR_POST_301}
-  #{option CURL_REDIR_POST_302}
-  #{option CURL_REDIR_POST_ALL}
-
-
--------------------------------------------------------------------------------
-fromHttpver :: CURLhttpver -> CLong
-fromHttpver x = case x of
-  #{option CURL_HTTP_VERSION_NONE}
-  #{option CURL_HTTP_VERSION_1_0 }
-  #{option CURL_HTTP_VERSION_1_1 }
-
-
--------------------------------------------------------------------------------
-fromFtpcreate :: CURLftpcreate -> CLong
-fromFtpcreate x = case x of
-  #{option CURLFTP_CREATE_DIR_NONE }
-  #{option CURLFTP_CREATE_DIR      }
-  #{option CURLFTP_CREATE_DIR_RETRY}
-
-
--------------------------------------------------------------------------------
-fromFtpauth :: CURLftpauth -> CLong
-fromFtpauth x = case x of
-  #{option CURLFTPAUTH_DEFAULT}
-  #{option CURLFTPAUTH_SSL    }
-  #{option CURLFTPAUTH_TLS    }
-
-
--------------------------------------------------------------------------------
-fromFtpssl :: CURLftpssl -> CLong
-fromFtpssl x = case x of
-  #{option CURLFTPSSL_CCC_NONE   }
-  #{option CURLFTPSSL_CCC_PASSIVE}
-  #{option CURLFTPSSL_CCC_ACTIVE }
- 
-
--------------------------------------------------------------------------------
-fromFtpmethod :: CURLftpmethod -> CLong
-fromFtpmethod x = case x of
-  #{option CURLFTPMETHOD_DEFAULT  }
-  #{option CURLFTPMETHOD_MULTICWD }
-  #{option CURLFTPMETHOD_NOCWD    }
-  #{option CURLFTPMETHOD_SINGLECWD}
-
-
--------------------------------------------------------------------------------
-fromRtspreq :: CURLrtspreq -> CLong
-fromRtspreq x = case x of
-  #{option CURL_RTSPREQ_OPTIONS      }
-  #{option CURL_RTSPREQ_DESCRIBE     }
-  #{option CURL_RTSPREQ_ANNOUNCE     }
-  #{option CURL_RTSPREQ_SETUP        }
-  #{option CURL_RTSPREQ_PLAY         }
-  #{option CURL_RTSPREQ_PAUSE        }
-  #{option CURL_RTSPREQ_TEARDOWN     }
-  #{option CURL_RTSPREQ_GET_PARAMETER}
-  #{option CURL_RTSPREQ_SET_PARAMETER}
-  #{option CURL_RTSPREQ_RECORD       }
-  #{option CURL_RTSPREQ_RECEIVE      }
-
-
--------------------------------------------------------------------------------
-fromTimecond :: CURLtimecond -> CLong
-fromTimecond x = case x of
-  #{option CURL_TIMECOND_NONE        }
-  #{option CURL_TIMECOND_IFMODSINCE  }
-  #{option CURL_TIMECOND_IFUNMODSINCE}
-  #{option CURL_TIMECOND_LASTMOD     }
-
-
--------------------------------------------------------------------------------
 fromUTCTime :: UTCTime -> CLong
 fromUTCTime = truncate . utcTimeToPOSIXSeconds
 
 
 -------------------------------------------------------------------------------
-fromClosepol :: CURLclosepol -> CLong
-fromClosepol x = case x of
-  #{option CURLCLOSEPOLICY_NONE               }
-  #{option CURLCLOSEPOLICY_OLDEST             }
-  #{option CURLCLOSEPOLICY_LEAST_RECENTLY_USED}
-  #{option CURLCLOSEPOLICY_LEAST_TRAFFIC      }
-  #{option CURLCLOSEPOLICY_SLOWEST            }
-  #{option CURLCLOSEPOLICY_CALLBACK           }
+#define hsc_option(opt) printf(#opt " -> c" #opt);
 
+class CURLenum a where
+  fromCURLenum :: a -> CLong
 
--------------------------------------------------------------------------------
-fromIpresolve :: CURLipresolve -> CLong
-fromIpresolve x = case x of
-  #{option CURL_IPRESOLVE_WHATEVER}
-  #{option CURL_IPRESOLVE_V4      }
-  #{option CURL_IPRESOLVE_V6      }
+instance CURLenum a => CURLenum [a] where
+  fromCURLenum xs = foldl' (.|.) 0 $ map fromCURLenum xs
 
+instance CURLenum CURLproto where
+  fromCURLenum x = case x of
+    #{option CURLPROTO_ALL   }
+    #{option CURLPROTO_HTTP  }
+    #{option CURLPROTO_HTTPS }
+    #{option CURLPROTO_FTP   }
+    #{option CURLPROTO_FTPS  }
+    #{option CURLPROTO_SCP   }
+    #{option CURLPROTO_SFTP  }
+    #{option CURLPROTO_TELNET}
+    #{option CURLPROTO_LDAP  }
+    #{option CURLPROTO_LDAPS }
+    #{option CURLPROTO_DICT  }
+    #{option CURLPROTO_FILE  }
+    #{option CURLPROTO_TFTP  }
+    #{option CURLPROTO_IMAP  }
+    #{option CURLPROTO_IMAPS }
+    #{option CURLPROTO_POP3  }
+    #{option CURLPROTO_POP3S }
+    #{option CURLPROTO_SMTP  }
+    #{option CURLPROTO_SMTPS }
+    #{option CURLPROTO_RTSP  }
+    #{option CURLPROTO_RTMP  } |7210:----|
+    #{option CURLPROTO_RTMPT } |7210:----|
+    #{option CURLPROTO_RTMPE } |7210:----|
+    #{option CURLPROTO_RTMPTE} |7210:----|
+    #{option CURLPROTO_RTMPS } |7210:----|
+    #{option CURLPROTO_RTMPTS} |7210:----|
+    #{option CURLPROTO_GOPHER} |7212:----|
 
--------------------------------------------------------------------------------
-fromUsessl :: CURLusessl -> CLong
-fromUsessl x = case x of
-  #{option CURLUSESSL_NONE   }
-  #{option CURLUSESSL_TRY    }
-  #{option CURLUSESSL_CONTROL}
-  #{option CURLUSESSL_ALL    }
+instance CURLenum CURLproxy where
+  fromCURLenum x = case x of
+    #{option CURLPROXY_HTTP           }
+    #{option CURLPROXY_HTTP_1_0       }
+    #{option CURLPROXY_SOCKS4         }
+    #{option CURLPROXY_SOCKS5         }
+    #{option CURLPROXY_SOCKS4A        }
+    #{option CURLPROXY_SOCKS5_HOSTNAME}
 
+instance CURLenum CURLnetrc where
+  fromCURLenum x = case x of
+    #{option CURL_NETRC_IGNORED }
+    #{option CURL_NETRC_OPTIONAL}
+    #{option CURL_NETRC_REQUIRED}
 
--------------------------------------------------------------------------------
-fromSslver :: CURLsslver -> CLong
-fromSslver x = case x of
-  #{option CURL_SSLVERSION_DEFAULT}
-  #{option CURL_SSLVERSION_TLSv1  }
-  #{option CURL_SSLVERSION_SSLv2  }
-  #{option CURL_SSLVERSION_SSLv3  }
+instance CURLenum CURLauth where
+  fromCURLenum x = case x of
+    #{option CURLAUTH_BASIC       }
+    #{option CURLAUTH_DIGEST      }
+    #{option CURLAUTH_DIGEST_IE   }
+    #{option CURLAUTH_GSSNEGOTIATE}
+    #{option CURLAUTH_NTLM        }
+    #{option CURLAUTH_NTLM_WB     } |7220:----|
+    #{option CURLAUTH_ONLY        } |7213:----|
+    #{option CURLAUTH_ANY         }
+    #{option CURLAUTH_ANYSAFE     }
 
+instance CURLenum CURLtlsauth where                              |7214:----|
+  fromCURLenum x = case x of                                     |7214:----|
+    #{option CURL_TLSAUTH_SRP}                                   |7214:----|
 
--------------------------------------------------------------------------------
-fromGssapi :: CURLgssapi -> CLong                                |7220:----|
-fromGssapi x = case x of                                         |7220:----|
-  #{option CURLGSSAPI_DELEGATION_NONE       }                    |7220:----|
-  #{option CURLGSSAPI_DELEGATION_POLICY_FLAG}                    |7220:----|
-  #{option CURLGSSAPI_DELEGATION_FLAG       }                    |7220:----|
+instance CURLenum CURLredir where
+  fromCURLenum x = case x of
+    #{option CURL_REDIR_GET_ALL }
+    #{option CURL_REDIR_POST_301}
+    #{option CURL_REDIR_POST_302}
+    #{option CURL_REDIR_POST_ALL}
 
+instance CURLenum CURLhttpver where
+  fromCURLenum x = case x of
+    #{option CURL_HTTP_VERSION_NONE}
+    #{option CURL_HTTP_VERSION_1_0 }
+    #{option CURL_HTTP_VERSION_1_1 }
 
--------------------------------------------------------------------------------
-fromSshauth :: [CURLsshauth] -> CLong
-fromSshauth xs = foldl' (.|.) 0 $ flip map xs $ \x -> case x of
-  #{option CURLSSH_AUTH_ANY      }
-  #{option CURLSSH_AUTH_NONE     }
-  #{option CURLSSH_AUTH_PUBLICKEY}
-  #{option CURLSSH_AUTH_PASSWORD }
-  #{option CURLSSH_AUTH_HOST     }
-  #{option CURLSSH_AUTH_KEYBOARD }
-  #{option CURLSSH_AUTH_DEFAULT  }
+instance CURLenum CURLftpcreate where
+  fromCURLenum x = case x of
+    #{option CURLFTP_CREATE_DIR_NONE }
+    #{option CURLFTP_CREATE_DIR      }
+    #{option CURLFTP_CREATE_DIR_RETRY}
 
+instance CURLenum CURLftpauth where
+  fromCURLenum x = case x of
+    #{option CURLFTPAUTH_DEFAULT}
+    #{option CURLFTPAUTH_SSL    }
+    #{option CURLFTPAUTH_TLS    }
+
+instance CURLenum CURLftpssl where
+  fromCURLenum x = case x of
+    #{option CURLFTPSSL_CCC_NONE   }
+    #{option CURLFTPSSL_CCC_PASSIVE}
+    #{option CURLFTPSSL_CCC_ACTIVE }
+
+instance CURLenum CURLftpmethod where
+  fromCURLenum x = case x of
+    #{option CURLFTPMETHOD_DEFAULT  }
+    #{option CURLFTPMETHOD_MULTICWD }
+    #{option CURLFTPMETHOD_NOCWD    }
+    #{option CURLFTPMETHOD_SINGLECWD}
+
+instance CURLenum CURLrtspreq where
+  fromCURLenum x = case x of
+    #{option CURL_RTSPREQ_OPTIONS      }
+    #{option CURL_RTSPREQ_DESCRIBE     }
+    #{option CURL_RTSPREQ_ANNOUNCE     }
+    #{option CURL_RTSPREQ_SETUP        }
+    #{option CURL_RTSPREQ_PLAY         }
+    #{option CURL_RTSPREQ_PAUSE        }
+    #{option CURL_RTSPREQ_TEARDOWN     }
+    #{option CURL_RTSPREQ_GET_PARAMETER}
+    #{option CURL_RTSPREQ_SET_PARAMETER}
+    #{option CURL_RTSPREQ_RECORD       }
+    #{option CURL_RTSPREQ_RECEIVE      }
+
+instance CURLenum CURLtimecond where
+  fromCURLenum x = case x of
+    #{option CURL_TIMECOND_NONE        }
+    #{option CURL_TIMECOND_IFMODSINCE  }
+    #{option CURL_TIMECOND_IFUNMODSINCE}
+    #{option CURL_TIMECOND_LASTMOD     }
+
+instance CURLenum CURLclosepol where
+  fromCURLenum x = case x of
+    #{option CURLCLOSEPOLICY_NONE               }
+    #{option CURLCLOSEPOLICY_OLDEST             }
+    #{option CURLCLOSEPOLICY_LEAST_RECENTLY_USED}
+    #{option CURLCLOSEPOLICY_LEAST_TRAFFIC      }
+    #{option CURLCLOSEPOLICY_SLOWEST            }
+    #{option CURLCLOSEPOLICY_CALLBACK           }
+
+instance CURLenum CURLipresolve where
+  fromCURLenum x = case x of
+    #{option CURL_IPRESOLVE_WHATEVER}
+    #{option CURL_IPRESOLVE_V4      }
+    #{option CURL_IPRESOLVE_V6      }
+
+instance CURLenum CURLusessl where
+  fromCURLenum x = case x of
+    #{option CURLUSESSL_NONE   }
+    #{option CURLUSESSL_TRY    }
+    #{option CURLUSESSL_CONTROL}
+    #{option CURLUSESSL_ALL    }
+
+instance CURLenum CURLsslver where
+  fromCURLenum x = case x of
+    #{option CURL_SSLVERSION_DEFAULT}
+    #{option CURL_SSLVERSION_TLSv1  }
+    #{option CURL_SSLVERSION_SSLv2  }
+    #{option CURL_SSLVERSION_SSLv3  }
+
+instance CURLenum CURLgssapi where                               |7220:----|
+  fromCURLenum x = case x of                                     |7220:----|
+    #{option CURLGSSAPI_DELEGATION_NONE       }                  |7220:----|
+    #{option CURLGSSAPI_DELEGATION_POLICY_FLAG}                  |7220:----|
+    #{option CURLGSSAPI_DELEGATION_FLAG       }                  |7220:----|
+
+instance CURLenum CURLsshauth where
+  fromCURLenum x = case x of
+    #{option CURLSSH_AUTH_ANY      }
+    #{option CURLSSH_AUTH_NONE     }
+    #{option CURLSSH_AUTH_PUBLICKEY}
+    #{option CURLSSH_AUTH_PASSWORD }
+    #{option CURLSSH_AUTH_HOST     }
+    #{option CURLSSH_AUTH_KEYBOARD }
+    #{option CURLSSH_AUTH_DEFAULT  }
 

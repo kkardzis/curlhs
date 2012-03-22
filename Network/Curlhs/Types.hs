@@ -447,7 +447,7 @@ data CURLoption
   | CURLOPT_SSLKEYTYPE              ByteString
   | CURLOPT_KEYPASSWD               ByteString
   | CURLOPT_SSLENGINE               ByteString
- -- CURLOPT_SSLENGINE_DEFAULT
+  | CURLOPT_SSLENGINE_DEFAULT       Bool
   | CURLOPT_SSLVERSION              CURLsslver
   | CURLOPT_SSL_VERIFYPEER          Bool
   | CURLOPT_CAINFO                  ByteString

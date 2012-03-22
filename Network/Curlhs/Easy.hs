@@ -26,13 +26,37 @@ module Network.Curlhs.Easy
   -- module Network.Curlhs.Types
   , CURL
   , CURLcode (..)
-  , CURLauth (..)
-  , CURLinfo (..)
-  , CURLoption (..)
+
   , CURL_version_info_data (..)
   , CURL_version (..)
+
+  , CURLinfo (..)
+
+  , CURLoption (..)
+
+  , CURLproto     (..)
+  , CURLproxy     (..)
+  , CURLnetrc     (..)
+  , CURLauth      (..)
+  , CURLtlsauth   (..) |7214:----|
+  , CURLredir     (..)
+  , CURLhttpver   (..)
+  , CURLftpcreate (..)
+  , CURLftpauth   (..)
+  , CURLftpssl    (..)
+  , CURLftpmethod (..)
+  , CURLrtspreq   (..)
+  , CURLtimecond  (..)
+  , CURLclosepol  (..)
+  , CURLipresolve (..)
+  , CURLusessl    (..)
+  , CURLsslver    (..)
+  , CURLgssapi    (..) |7220:----|
+  , CURLsshauth   (..)
+
   , CURL_write_callback, CURL_write_response (..)
-  , CURL_read_callback,  CURL_read_response (..)
+  , CURL_read_callback , CURL_read_response  (..)
+
   ) where
 
 import Network.Curlhs.Functions

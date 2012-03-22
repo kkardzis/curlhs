@@ -518,14 +518,12 @@ foreign import ccall "wrapper"
 
  
 -------------------------------------------------------------------------------
-newtype CCURL_proxytype = CCURL_proxytype CInt deriving (Eq, Show)
-
-#{symbol CURLPROXY_HTTP           , CURL_proxytype}
-#{symbol CURLPROXY_HTTP_1_0       , CURL_proxytype}
-#{symbol CURLPROXY_SOCKS4         , CURL_proxytype}
-#{symbol CURLPROXY_SOCKS5         , CURL_proxytype}
-#{symbol CURLPROXY_SOCKS4A        , CURL_proxytype}
-#{symbol CURLPROXY_SOCKS5_HOSTNAME, CURL_proxytype}
+#{cconst CURLPROXY_HTTP           , CLong}
+#{cconst CURLPROXY_HTTP_1_0       , CLong}
+#{cconst CURLPROXY_SOCKS4         , CLong}
+#{cconst CURLPROXY_SOCKS5         , CLong}
+#{cconst CURLPROXY_SOCKS4A        , CLong}
+#{cconst CURLPROXY_SOCKS5_HOSTNAME, CLong}
 
 
 -------------------------------------------------------------------------------
@@ -549,7 +547,7 @@ newtype CCURL_proxytype = CCURL_proxytype CInt deriving (Eq, Show)
 #{cconst CURLSSH_AUTH_HOST     , CLong}
 #{cconst CURLSSH_AUTH_KEYBOARD , CLong}
 #{cconst CURLSSH_AUTH_DEFAULT  , CLong}
- 
+
 
 -------------------------------------------------------------------------------
 #{cconst CURLGSSAPI_DELEGATION_NONE       , CLong}               |7220:----|
@@ -605,45 +603,35 @@ foreign import ccall "wrapper"
 
  
 -------------------------------------------------------------------------------
-newtype CCURL_usessl = CCURL_usessl CInt deriving (Eq, Show)
-
-#{symbol CURLUSESSL_NONE   , CURL_usessl}
-#{symbol CURLUSESSL_TRY    , CURL_usessl}
-#{symbol CURLUSESSL_CONTROL, CURL_usessl}
-#{symbol CURLUSESSL_ALL    , CURL_usessl}
+#{cconst CURLUSESSL_NONE   , CLong}
+#{cconst CURLUSESSL_TRY    , CLong}
+#{cconst CURLUSESSL_CONTROL, CLong}
+#{cconst CURLUSESSL_ALL    , CLong}
 
 
 -------------------------------------------------------------------------------
-newtype CCURL_ftpccc = CCURL_ftpccc CInt deriving (Eq, Show)
-
-#{symbol CURLFTPSSL_CCC_NONE   , CURL_ftpccc}
-#{symbol CURLFTPSSL_CCC_PASSIVE, CURL_ftpccc}
-#{symbol CURLFTPSSL_CCC_ACTIVE , CURL_ftpccc}
+#{cconst CURLFTPSSL_CCC_NONE   , CLong}
+#{cconst CURLFTPSSL_CCC_PASSIVE, CLong}
+#{cconst CURLFTPSSL_CCC_ACTIVE , CLong}
  
 
 -------------------------------------------------------------------------------
-newtype CCURL_ftpauth = CCURL_ftpauth CInt deriving (Eq, Show)
-
-#{symbol CURLFTPAUTH_DEFAULT, CURL_ftpauth}
-#{symbol CURLFTPAUTH_SSL    , CURL_ftpauth}
-#{symbol CURLFTPAUTH_TLS    , CURL_ftpauth}
+#{cconst CURLFTPAUTH_DEFAULT, CLong}
+#{cconst CURLFTPAUTH_SSL    , CLong}
+#{cconst CURLFTPAUTH_TLS    , CLong}
 
 
 -------------------------------------------------------------------------------
-newtype CCURL_ftpcreatedir = CCURL_ftpcreatedir CInt deriving (Eq, Show)
-
-#{symbol CURLFTP_CREATE_DIR_NONE , CURL_ftpcreatedir}
-#{symbol CURLFTP_CREATE_DIR      , CURL_ftpcreatedir}
-#{symbol CURLFTP_CREATE_DIR_RETRY, CURL_ftpcreatedir}
+#{cconst CURLFTP_CREATE_DIR_NONE , CLong}
+#{cconst CURLFTP_CREATE_DIR      , CLong}
+#{cconst CURLFTP_CREATE_DIR_RETRY, CLong}
 
 
 -------------------------------------------------------------------------------
-newtype CCURL_ftpmethod = CCURL_ftpmethod CInt deriving (Eq, Show)
-
-#{symbol CURLFTPMETHOD_DEFAULT  , CURL_ftpmethod}
-#{symbol CURLFTPMETHOD_MULTICWD , CURL_ftpmethod}
-#{symbol CURLFTPMETHOD_NOCWD    , CURL_ftpmethod}
-#{symbol CURLFTPMETHOD_SINGLECWD, CURL_ftpmethod}
+#{cconst CURLFTPMETHOD_DEFAULT  , CLong}
+#{cconst CURLFTPMETHOD_MULTICWD , CLong}
+#{cconst CURLFTPMETHOD_NOCWD    , CLong}
+#{cconst CURLFTPMETHOD_SINGLECWD, CLong}
 
 
 -------------------------------------------------------------------------------
@@ -901,7 +889,7 @@ newtype CCURLoption'FunPtr  = CCURLoption'FunPtr  CInt deriving (Eq, Show)
 #{cconst CURL_IPRESOLVE_V4      , CLong}
 #{cconst CURL_IPRESOLVE_V6      , CLong}
 
- 
+
 -------------------------------------------------------------------------------
 #{cconst CURL_HTTP_VERSION_NONE, CLong}
 #{cconst CURL_HTTP_VERSION_1_0 , CLong}
@@ -1244,14 +1232,12 @@ newtype CCURLinfo'CertI   = CCURLinfo'CertI   CInt deriving (Eq, Show)
 
 
 -------------------------------------------------------------------------------
-newtype CCURL_closepolicy = CCURL_closepolicy CInt deriving (Eq, Show)
-
-#{symbol CURLCLOSEPOLICY_NONE               , CURL_closepolicy}
-#{symbol CURLCLOSEPOLICY_OLDEST             , CURL_closepolicy}
-#{symbol CURLCLOSEPOLICY_LEAST_RECENTLY_USED, CURL_closepolicy}
-#{symbol CURLCLOSEPOLICY_LEAST_TRAFFIC      , CURL_closepolicy}
-#{symbol CURLCLOSEPOLICY_SLOWEST            , CURL_closepolicy}
-#{symbol CURLCLOSEPOLICY_CALLBACK           , CURL_closepolicy}
+#{cconst CURLCLOSEPOLICY_NONE               , CLong}
+#{cconst CURLCLOSEPOLICY_OLDEST             , CLong}
+#{cconst CURLCLOSEPOLICY_LEAST_RECENTLY_USED, CLong}
+#{cconst CURLCLOSEPOLICY_LEAST_TRAFFIC      , CLong}
+#{cconst CURLCLOSEPOLICY_SLOWEST            , CLong}
+#{cconst CURLCLOSEPOLICY_CALLBACK           , CLong}
 
 
 -------------------------------------------------------------------------------

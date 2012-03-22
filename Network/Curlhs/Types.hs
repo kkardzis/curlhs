@@ -15,13 +15,14 @@
 
 module Network.Curlhs.Types where
 
-import Foreign.Ptr (Ptr, FunPtr)
+import Foreign.Ptr     (Ptr, FunPtr)
 
 import Data.ByteString (ByteString)
 import Data.Typeable   (Typeable)
 import Data.IORef      (IORef)
 import Data.Tuple      (swap)
 import Data.Time       (UTCTime)
+import Data.Int        (Int64)
 
 import Control.Exception (Exception)
 
@@ -232,18 +233,6 @@ knownCURLcode =
   ]
 
 
-
--------------------------------------------------------------------------------
-data CURLauth
-  = CURLAUTH_BASIC
-  | CURLAUTH_DIGEST
-  | CURLAUTH_DIGEST_IE
-  | CURLAUTH_GSSNEGOTIATE
-  | CURLAUTH_NTLM
-  | CURLAUTH_NTLM_WB
-  deriving (Eq, Show)
-
-
 -------------------------------------------------------------------------------
 type CURL_write_callback = ByteString -> IO CURL_write_response
 
@@ -265,71 +254,435 @@ data CURL_read_response
 
 -------------------------------------------------------------------------------
 data CURLoption
-  -- BEHAVIOR OPTIONS
-  = CURLOPT_VERBOSE       Bool
-  | CURLOPT_HEADER        Bool
-  | CURLOPT_NOPROGRESS    Bool
-  | CURLOPT_NOSIGNAL      Bool
-  | CURLOPT_WILDCARDMATCH Bool |7210:----|
+  ---- BEHAVIOR OPTIONS -------------------------------------------------------
+  = CURLOPT_VERBOSE                 Bool
+  | CURLOPT_HEADER                  Bool
+  | CURLOPT_NOPROGRESS              Bool
+  | CURLOPT_NOSIGNAL                Bool
+  | CURLOPT_WILDCARDMATCH           Bool |7210:----|
 
-  -- CALLBACK OPTIONS
-  | CURLOPT_WRITEFUNCTION (Maybe CURL_write_callback)
-  | CURLOPT_WRITEDATA
-  | CURLOPT_READFUNCTION (Maybe CURL_read_callback)
-  | CURLOPT_READDATA
-  | CURLOPT_IOCTLFUNCTION
-  | CURLOPT_IOCTLDATA
-  | CURLOPT_SEEKFUNCTION
-  | CURLOPT_SEEKDATA
-  | CURLOPT_SOCKOPTFUNCTION
-  | CURLOPT_SOCKOPTDATA
-  | CURLOPT_OPENSOCKETFUNCTION
-  | CURLOPT_OPENSOCKETDATA
-  | CURLOPT_CLOSESOCKETFUNCTION
-  | CURLOPT_CLOSESOCKETDATA
-  | CURLOPT_PROGRESSFUNCTION
-  | CURLOPT_PROGRESSDATA
-  | CURLOPT_HEADERFUNCTION
-  | CURLOPT_HEADERDATA
-  | CURLOPT_DEBUGFUNCTION
-  | CURLOPT_DEBUGDATA
-  | CURLOPT_SSL_CTX_FUNCTION
-  | CURLOPT_SSL_CTX_DATA
-  | CURLOPT_CONV_TO_NETWORK_FUNCTION
-  | CURLOPT_CONV_FROM_NETWORK_FUNCTION
-  | CURLOPT_CONV_FROM_UTF8_FUNCTION
-  | CURLOPT_INTERLEAVEFUNCTION
-  | CURLOPT_INTERLEAVEDATA
-  | CURLOPT_CHUNK_BGN_FUNCTION
-  | CURLOPT_CHUNK_END_FUNCTION
-  | CURLOPT_CHUNK_DATA
-  | CURLOPT_FNMATCH_FUNCTION
-  | CURLOPT_FNMATCH_DATA
+  ---- CALLBACK OPTIONS -------------------------------------------------------
+  | CURLOPT_WRITEFUNCTION           (Maybe CURL_write_callback)
+ -- CURLOPT_WRITEDATA
+  | CURLOPT_READFUNCTION            (Maybe CURL_read_callback)
+ -- CURLOPT_READDATA
+ -- CURLOPT_IOCTLFUNCTION
+ -- CURLOPT_IOCTLDATA
+ -- CURLOPT_SEEKFUNCTION
+ -- CURLOPT_SEEKDATA
+ -- CURLOPT_SOCKOPTFUNCTION
+ -- CURLOPT_SOCKOPTDATA
+ -- CURLOPT_OPENSOCKETFUNCTION
+ -- CURLOPT_OPENSOCKETDATA
+ -- CURLOPT_CLOSESOCKETFUNCTION |7217:----|
+ -- CURLOPT_CLOSESOCKETDATA     |7217:----|
+ -- CURLOPT_PROGRESSFUNCTION
+ -- CURLOPT_PROGRESSDATA
+ -- CURLOPT_HEADERFUNCTION
+ -- CURLOPT_HEADERDATA
+ -- CURLOPT_DEBUGFUNCTION
+ -- CURLOPT_DEBUGDATA
+ -- CURLOPT_SSL_CTX_FUNCTION
+ -- CURLOPT_SSL_CTX_DATA
+ -- CURLOPT_CONV_TO_NETWORK_FUNCTION
+ -- CURLOPT_CONV_FROM_NETWORK_FUNCTION
+ -- CURLOPT_CONV_FROM_UTF8_FUNCTION
+ -- CURLOPT_INTERLEAVEFUNCTION
+ -- CURLOPT_INTERLEAVEDATA
+ -- CURLOPT_CHUNK_BGN_FUNCTION |7210:----|
+ -- CURLOPT_CHUNK_END_FUNCTION |7210:----|
+ -- CURLOPT_CHUNK_DATA         |7210:----|
+ -- CURLOPT_FNMATCH_FUNCTION   |7210:----|
+ -- CURLOPT_FNMATCH_DATA       |7210:----|
 
-  -- ERROR OPTIONS
+  ---- ERROR OPTIONS ----------------------------------------------------------
+ -- CURLOPT_ERRORBUFFER             (IORef (Maybe ByteString))
+ -- CURLOPT_STDERR                  Handle
+  | CURLOPT_FAILONERROR             Bool
 
-  -- NETWORK OPTIONS
-  | CURLOPT_URL String
+  ---- NETWORK OPTIONS --------------------------------------------------------
+  | CURLOPT_URL                     ByteString
+  | CURLOPT_PROTOCOLS               [CURLproto]
+  | CURLOPT_REDIR_PROTOCOLS         [CURLproto]
+  | CURLOPT_PROXY                   ByteString
+  | CURLOPT_PROXYPORT               Int
+  | CURLOPT_PROXYTYPE               CURLproxy
+  | CURLOPT_NOPROXY                 ByteString
+  | CURLOPT_HTTPPROXYTUNNEL         Bool
+  | CURLOPT_SOCKS5_GSSAPI_SERVICE   ByteString
+  | CURLOPT_SOCKS5_GSSAPI_NEC       Bool
+  | CURLOPT_INTERFACE               ByteString
+  | CURLOPT_LOCALPORT               Int
+  | CURLOPT_LOCALPORTRANGE          Int
+  | CURLOPT_DNS_CACHE_TIMEOUT       Int
+  | CURLOPT_DNS_USE_GLOBAL_CACHE    Bool
+  | CURLOPT_BUFFERSIZE              Int
+  | CURLOPT_PORT                    Int
+  | CURLOPT_TCP_NODELAY             Bool
+  | CURLOPT_ADDRESS_SCOPE           Int
 
--- NAMES and PASSWORDS OPTIONS (Authentication)
--- HTTP OPTIONS
--- SMTP OPTIONS
--- TFTP OPTIONS
--- FTP OPTIONS
--- RTSP OPTIONS
--- PROTOCOL OPTIONS
--- CONNECTION OPTIONS
--- SSL and SECURITY OPTIONS
--- SSH OPTIONS
--- OTHER OPTIONS
--- TELNET OPTIONS
--- SMTP OPTIONS
+  ---- NAMES and PASSWORDS OPTIONS (Authentication) ---------------------------
+  | CURLOPT_NETRC                   CURLnetrc
+  | CURLOPT_NETRC_FILE              ByteString
+  | CURLOPT_USERPWD                 ByteString
+  | CURLOPT_PROXYUSERPWD            ByteString
+  | CURLOPT_USERNAME                ByteString
+  | CURLOPT_PASSWORD                ByteString
+  | CURLOPT_PROXYUSERNAME           ByteString
+  | CURLOPT_PROXYPASSWORD           ByteString
+  | CURLOPT_HTTPAUTH                [CURLauth]
+  | CURLOPT_TLSAUTH_TYPE            [CURLtlsauth] |7214:----|
+  | CURLOPT_TLSAUTH_USERNAME        ByteString    |7214:----|
+  | CURLOPT_TLSAUTH_PASSWORD        ByteString    |7214:----|
+  | CURLOPT_PROXYAUTH               [CURLauth]
+
+  ---- HTTP OPTIONS -----------------------------------------------------------
+  | CURLOPT_AUTOREFERER             Bool
+  | CURLOPT_ENCODING                ByteString    |----:7215|
+  | CURLOPT_ACCEPT_ENCODING         ByteString    |7216:----|
+  | CURLOPT_TRANSFER_ENCODING       ByteString    |7216:----|
+  | CURLOPT_FOLLOWLOCATION          Bool
+  | CURLOPT_UNRESTRICTED_AUTH       Bool
+  | CURLOPT_MAXREDIRS               Int
+  | CURLOPT_POSTREDIR               [CURLredir]
+  | CURLOPT_PUT                     Bool
+  | CURLOPT_POST                    Bool
+ -- CURLOPT_POSTFIELDS              ByteString -- not copied
+  | CURLOPT_POSTFIELDSIZE           Int
+  | CURLOPT_POSTFIELDSIZE_LARGE     Int64
+  | CURLOPT_COPYPOSTFIELDS          ByteString
+ -- CURLOPT_HTTPPOST                [CURL_httppost]
+  | CURLOPT_REFERER                 ByteString
+  | CURLOPT_USERAGENT               ByteString
+ -- CURLOPT_HTTPHEADER              [ByteString]
+ -- CURLOPT_HTTP200ALIASES          [ByteString]
+  | CURLOPT_COOKIE                  ByteString
+  | CURLOPT_COOKIEFILE              ByteString
+  | CURLOPT_COOKIEJAR               ByteString
+  | CURLOPT_COOKIESESSION           Bool
+  | CURLOPT_COOKIELIST              ByteString
+  | CURLOPT_HTTPGET                 Bool
+  | CURLOPT_HTTP_VERSION            CURLhttpver
+  | CURLOPT_IGNORE_CONTENT_LENGTH   Bool
+  | CURLOPT_HTTP_CONTENT_DECODING   Bool
+  | CURLOPT_HTTP_TRANSFER_DECODING  Bool
+
+  ---- SMTP OPTIONS -----------------------------------------------------------
+  | CURLOPT_MAIL_FROM               ByteString
+ -- CURLOPT_MAIL_RCTP               [ByteString]
+
+  ---- TFTP OPTIONS -----------------------------------------------------------
+  | CURLOPT_TFTP_BLKSIZE            Int
+
+  ---- FTP OPTIONS ------------------------------------------------------------
+  | CURLOPT_FTPPORT                 ByteString
+ -- CURLOPT_QUOTE                   [ByteString]
+ -- CURLOPT_POSTQUOTE               [ByteString]
+ -- CURLOPT_PREQUOTE                [ByteString]
+  | CURLOPT_DIRLISTONLY             Bool
+  | CURLOPT_APPEND                  Bool
+  | CURLOPT_FTP_USE_EPRT            Bool
+  | CURLOPT_FTP_USE_EPSV            Bool
+  | CURLOPT_FTP_USE_PRET            Bool
+  | CURLOPT_FTP_CREATE_MISSING_DIRS CURLftpcreate
+  | CURLOPT_FTP_RESPONSE_TIMEOUT    Int
+  | CURLOPT_FTP_ALTERNATIVE_TO_USER ByteString
+  | CURLOPT_FTP_SKIP_PASV_IP        Bool
+  | CURLOPT_FTPSSLAUTH              CURLftpauth
+  | CURLOPT_FTP_SSL_CCC             CURLftpssl
+  | CURLOPT_FTP_ACCOUNT             ByteString
+  | CURLOPT_FTP_FILEMETHOD          CURLftpmethod
+
+  ---- RTSP OPTIONS -----------------------------------------------------------
+  | CURLOPT_RTSP_REQUEST            CURLrtspreq
+  | CURLOPT_RTSP_SESSION_ID         ByteString
+  | CURLOPT_RTSP_STREAM_URI         ByteString
+  | CURLOPT_RTSP_TRANSPORT          ByteString
+ -- CURLOPT_RTSP_HEADER             [ByteString]
+  | CURLOPT_RTSP_CLIENT_CSEQ        Int
+  | CURLOPT_RTSP_SERVER_CSEQ        Int
+
+  ---- PROTOCOL OPTIONS -------------------------------------------------------
+  | CURLOPT_TRANSFERTEXT            Bool
+  | CURLOPT_PROXY_TRANSFER_MODE     Bool
+  | CURLOPT_CRLF                    Bool
+  | CURLOPT_RANGE                   ByteString
+  | CURLOPT_RESUME_FROM             Int
+  | CURLOPT_RESUME_FROM_LARGE       Int64
+  | CURLOPT_CUSTOMREQUEST           ByteString
+  | CURLOPT_FILETIME                Bool
+  | CURLOPT_NOBODY                  Bool
+  | CURLOPT_INFILESIZE              Int
+  | CURLOPT_INFILESIZE_LARGE        Int64
+  | CURLOPT_UPLOAD                  Bool
+  | CURLOPT_MAXFILESIZE             Int
+  | CURLOPT_MAXFILESIZE_LARGE       Int64
+  | CURLOPT_TIMECONDITION           CURLtimecond
+  | CURLOPT_TIMEVALUE               UTCTime
+
+  ---- CONNECTION OPTIONS -----------------------------------------------------
+  | CURLOPT_TIMEOUT                 Int
+  | CURLOPT_TIMEOUT_MS              Int
+  | CURLOPT_LOW_SPEED_LIMIT         Int
+  | CURLOPT_LOW_SPEED_TIME          Int
+  | CURLOPT_MAX_SEND_SPEED_LARGE    Int64
+  | CURLOPT_MAX_RECV_SPEED_LARGE    Int64
+  | CURLOPT_MAXCONNECTS             Int
+  | CURLOPT_CLOSEPOLICY             CURLclosepol
+  | CURLOPT_FRESH_CONNECT           Bool
+  | CURLOPT_FORBID_REUSE            Bool
+  | CURLOPT_CONNECTTIMEOUT          Int
+  | CURLOPT_CONNECTTIMEOUT_MS       Int
+  | CURLOPT_IPRESOLVE               CURLipresolve
+  | CURLOPT_CONNECT_ONLY            Bool
+  | CURLOPT_USE_SSL                 CURLusessl
+ -- CURLOPT_RESOLVE                 [ByteString]  |7213:----|
+  | CURLOPT_DNS_SERVERS             ByteString    |7240:----|
+  | CURLOPT_ACCEPTTIMEOUT_MS        Int           |7240:----|
+
+  ---- SSL and SECURITY OPTIONS -----------------------------------------------
+  | CURLOPT_SSLCERT                 ByteString
+  | CURLOPT_SSLCERTTYPE             ByteString
+  | CURLOPT_SSLKEY                  ByteString
+  | CURLOPT_SSLKEYTYPE              ByteString
+  | CURLOPT_KEYPASSWD               ByteString
+  | CURLOPT_SSLENGINE               ByteString
+ -- CURLOPT_SSLENGINE_DEFAULT
+  | CURLOPT_SSLVERSION              CURLsslver
+  | CURLOPT_SSL_VERIFYPEER          Bool
+  | CURLOPT_CAINFO                  ByteString
+  | CURLOPT_ISSUERCERT              ByteString
+  | CURLOPT_CAPATH                  ByteString
+  | CURLOPT_CRLFILE                 ByteString
+  | CURLOPT_SSL_VERIFYHOST          Int
+  | CURLOPT_CERTINFO                Bool
+  | CURLOPT_RANDOM_FILE             ByteString
+  | CURLOPT_EGDSOCKET               ByteString
+  | CURLOPT_SSL_CIPHER_LIST         ByteString
+  | CURLOPT_SSL_SESSIONID_CACHE     Bool
+  | CURLOPT_KRBLEVEL                ByteString
+  | CURLOPT_GSSAPI_DELEGATION       CURLgssapi    |7220:----|
+
+  ---- SSH OPTIONS ------------------------------------------------------------
+  | CURLOPT_SSH_AUTH_TYPES          [CURLsshauth]
+  | CURLOPT_SSH_HOST_PUBLIC_KEY_MD5 ByteString
+  | CURLOPT_SSH_PUBLIC_KEYFILE      ByteString
+  | CURLOPT_SSH_PRIVATE_KEYFILE     ByteString
+  | CURLOPT_SSH_KNOWNHOSTS          ByteString
+ -- CURLOPT_SSH_KEYFUNCTION         (Maybe CURL_sshkey_callback)
+ -- CURLOPT_SSH_KEYDATA             -- ?
+
+  ---- OTHER OPTIONS ----------------------------------------------------------
+ -- CURLOPT_PRIVATE                 -- ?
+ -- CURLOPT_SHARE                   CURLSH
+  | CURLOPT_NEW_FILE_PERMS          Int
+  | CURLOPT_NEW_DIRECTORY_PERMS     Int
+
+  ---- TELNET OPTIONS ---------------------------------------------------------
+ -- CURLOPT_TELNETOPTIONS           [ByteString]
 
 
+-------------------------------------------------------------------------------
+data CURLproto
+  = CURLPROTO_ALL
+  | CURLPROTO_HTTP
+  | CURLPROTO_HTTPS
+  | CURLPROTO_FTP
+  | CURLPROTO_FTPS
+  | CURLPROTO_SCP
+  | CURLPROTO_SFTP
+  | CURLPROTO_TELNET
+  | CURLPROTO_LDAP
+  | CURLPROTO_LDAPS
+  | CURLPROTO_DICT
+  | CURLPROTO_FILE
+  | CURLPROTO_TFTP
+  | CURLPROTO_IMAP
+  | CURLPROTO_IMAPS
+  | CURLPROTO_POP3
+  | CURLPROTO_POP3S
+  | CURLPROTO_SMTP
+  | CURLPROTO_SMTPS
+  | CURLPROTO_RTSP
+  | CURLPROTO_RTMP   |7210:----|
+  | CURLPROTO_RTMPT  |7210:----|
+  | CURLPROTO_RTMPE  |7210:----|
+  | CURLPROTO_RTMPTE |7210:----|
+  | CURLPROTO_RTMPS  |7210:----|
+  | CURLPROTO_RTMPTS |7210:----|
+  | CURLPROTO_GOPHER |7212:----|
+  deriving (Eq, Show)
 
 
+-------------------------------------------------------------------------------
+data CURLproxy
+  = CURLPROXY_HTTP
+  | CURLPROXY_HTTP_1_0
+  | CURLPROXY_SOCKS4
+  | CURLPROXY_SOCKS5
+  | CURLPROXY_SOCKS4A
+  | CURLPROXY_SOCKS5_HOSTNAME
+  deriving (Eq, Show)
 
 
+-------------------------------------------------------------------------------
+data CURLnetrc
+  = CURL_NETRC_IGNORED
+  | CURL_NETRC_OPTIONAL
+  | CURL_NETRC_REQUIRED
+  deriving (Eq, Show)
+
+
+-------------------------------------------------------------------------------
+data CURLauth
+  = CURLAUTH_BASIC
+  | CURLAUTH_DIGEST
+  | CURLAUTH_DIGEST_IE
+  | CURLAUTH_GSSNEGOTIATE
+  | CURLAUTH_NTLM
+  | CURLAUTH_NTLM_WB      |7220:----|
+  | CURLAUTH_ONLY         |7213:----|
+  | CURLAUTH_ANY
+  | CURLAUTH_ANYSAFE
+  deriving (Eq, Show)
+
+
+-------------------------------------------------------------------------------
+data CURLtlsauth                                                 |7214:----|
+  = CURL_TLSAUTH_SRP                                             |7214:----|
+  deriving (Eq, Show)                                            |7214:----|
+
+
+-------------------------------------------------------------------------------
+data CURLredir
+  = CURL_REDIR_GET_ALL
+  | CURL_REDIR_POST_301
+  | CURL_REDIR_POST_302
+  | CURL_REDIR_POST_ALL
+  deriving (Eq, Show)
+
+
+-------------------------------------------------------------------------------
+data CURLhttpver
+  = CURL_HTTP_VERSION_NONE
+  | CURL_HTTP_VERSION_1_0
+  | CURL_HTTP_VERSION_1_1
+  deriving (Eq, Show)
+
+
+-------------------------------------------------------------------------------
+data CURLftpcreate
+  = CURLFTP_CREATE_DIR_NONE
+  | CURLFTP_CREATE_DIR
+  | CURLFTP_CREATE_DIR_RETRY
+  deriving (Eq, Show)
+
+
+-------------------------------------------------------------------------------
+data CURLftpauth
+  = CURLFTPAUTH_DEFAULT
+  | CURLFTPAUTH_SSL
+  | CURLFTPAUTH_TLS
+  deriving (Eq, Show)
+
+
+-------------------------------------------------------------------------------
+data CURLftpssl
+  = CURLFTPSSL_CCC_NONE
+  | CURLFTPSSL_CCC_PASSIVE
+  | CURLFTPSSL_CCC_ACTIVE
+  deriving (Eq, Show)
+ 
+
+-------------------------------------------------------------------------------
+data CURLftpmethod
+  = CURLFTPMETHOD_DEFAULT
+  | CURLFTPMETHOD_MULTICWD
+  | CURLFTPMETHOD_NOCWD
+  | CURLFTPMETHOD_SINGLECWD
+  deriving (Eq, Show)
+
+
+-------------------------------------------------------------------------------
+data CURLrtspreq
+  = CURL_RTSPREQ_OPTIONS
+  | CURL_RTSPREQ_DESCRIBE
+  | CURL_RTSPREQ_ANNOUNCE
+  | CURL_RTSPREQ_SETUP
+  | CURL_RTSPREQ_PLAY
+  | CURL_RTSPREQ_PAUSE
+  | CURL_RTSPREQ_TEARDOWN
+  | CURL_RTSPREQ_GET_PARAMETER
+  | CURL_RTSPREQ_SET_PARAMETER
+  | CURL_RTSPREQ_RECORD
+  | CURL_RTSPREQ_RECEIVE
+  deriving (Eq, Show)
+
+
+-------------------------------------------------------------------------------
+data CURLtimecond
+  = CURL_TIMECOND_NONE
+  | CURL_TIMECOND_IFMODSINCE
+  | CURL_TIMECOND_IFUNMODSINCE
+  | CURL_TIMECOND_LASTMOD
+  deriving (Eq, Show)
+
+
+-------------------------------------------------------------------------------
+data CURLclosepol
+  = CURLCLOSEPOLICY_NONE
+  | CURLCLOSEPOLICY_OLDEST
+  | CURLCLOSEPOLICY_LEAST_RECENTLY_USED
+  | CURLCLOSEPOLICY_LEAST_TRAFFIC
+  | CURLCLOSEPOLICY_SLOWEST
+  | CURLCLOSEPOLICY_CALLBACK
+  deriving (Eq, Show)
+
+
+-------------------------------------------------------------------------------
+data CURLipresolve
+  = CURL_IPRESOLVE_WHATEVER
+  | CURL_IPRESOLVE_V4
+  | CURL_IPRESOLVE_V6
+  deriving (Eq, Show)
+
+
+-------------------------------------------------------------------------------
+data CURLusessl
+  = CURLUSESSL_NONE
+  | CURLUSESSL_TRY
+  | CURLUSESSL_CONTROL
+  | CURLUSESSL_ALL
+  deriving (Eq, Show)
+
+
+-------------------------------------------------------------------------------
+data CURLsslver
+  = CURL_SSLVERSION_DEFAULT
+  | CURL_SSLVERSION_TLSv1
+  | CURL_SSLVERSION_SSLv2
+  | CURL_SSLVERSION_SSLv3
+  deriving (Eq, Show)
+
+
+-------------------------------------------------------------------------------
+data CURLgssapi                                                  |7220:----|
+  = CURLGSSAPI_DELEGATION_NONE                                   |7220:----|
+  | CURLGSSAPI_DELEGATION_POLICY_FLAG                            |7220:----|
+  | CURLGSSAPI_DELEGATION_FLAG                                   |7220:----|
+  deriving (Eq, Show)                                            |7220:----|
+
+
+-------------------------------------------------------------------------------
+data CURLsshauth
+  = CURLSSH_AUTH_ANY
+  | CURLSSH_AUTH_NONE
+  | CURLSSH_AUTH_PUBLICKEY
+  | CURLSSH_AUTH_PASSWORD
+  | CURLSSH_AUTH_HOST
+  | CURLSSH_AUTH_KEYBOARD
+  | CURLSSH_AUTH_DEFAULT
+  deriving (Eq, Show)
 
 
 -------------------------------------------------------------------------------

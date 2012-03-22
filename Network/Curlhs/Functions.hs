@@ -13,29 +13,35 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
 
-module Network.Curlhs.Functions where
+module Network.Curlhs.Functions
+  ( curl_version
+  , curl_version_info
+  , curl_easy_strerror
+  , curl_easy_init
+  , curl_easy_reset
+  , curl_easy_cleanup
+  , curl_easy_perform
+  , curl_easy_getinfo
+  , curl_easy_setopt
+  ) where
 
 import Foreign.Marshal.Alloc (alloca)
-import Foreign.Marshal.Utils (copyBytes, fromBool, toBool)
+import Foreign.Marshal.Utils (toBool)
 import Foreign.Storable      (peek, sizeOf)
-import Foreign.C.String      (peekCString, withCString)
+import Foreign.C.String      (peekCString)
 import Foreign.C.Types       (CChar, CInt)
-import Foreign.Ptr           (Ptr, FunPtr, nullPtr, plusPtr, nullFunPtr,
-                              freeHaskellFunPtr)
+import Foreign.Ptr           (Ptr, nullPtr, plusPtr)
 
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 import Data.Time.Clock       (UTCTime)
 import Data.Maybe            (mapMaybe)
 import Data.Bits             ((.&.))
-import Data.IORef            (IORef, newIORef, atomicModifyIORef)
-
-import qualified Data.ByteString as BS
-import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
-import Data.ByteString        (packCStringLen)
+import Data.IORef            (newIORef)
 
 import Control.Applicative   ((<$>), (<*>))
 import Control.Exception     (throwIO)
 
+import Network.Curlhs.Setopt
 import Network.Curlhs.Types
 import Network.Curlhs.Base
 
@@ -119,28 +125,6 @@ curl_easy_reset curl =
 curl_easy_cleanup :: CURL -> IO ()
 curl_easy_cleanup curl =
   ccurl_easy_cleanup (ccurlptr curl) >> freeCallbacks curl
-
-freeCallbacks :: CURL -> IO ()
-freeCallbacks curl = do
-  keepCallback (cb_write curl) Nothing
-  keepCallback (cb_read  curl) Nothing
-
-keepCallback :: IORef (Maybe (FunPtr a)) -> Maybe (FunPtr a) -> IO ()
-keepCallback r mf =
-  atomicModifyIORef r (\v -> (mf, v)) >>= maybe (return ()) freeHaskellFunPtr
-
-makeCallback :: Maybe cb -> IORef (Maybe (FunPtr a))
-             -> (FunPtr a -> IO CCURLcode) -> (cb -> IO (FunPtr a)) -> IO ()
-makeCallback (Just cb) ref setcb wrapcb = do
-  fptr <- wrapcb cb
-  code <- fromC <$> setcb fptr
-  if (code == CURLE_OK)
-    then keepCallback ref (Just fptr)
-    else freeHaskellFunPtr fptr >> throwIO code
-makeCallback Nothing ref setcb _ = do
-  code <- fromC <$> setcb nullFunPtr
-  keepCallback ref Nothing
-  ifOK code (return ())
 
 
 -------------------------------------------------------------------------------
@@ -279,73 +263,4 @@ peek'CCURL_certinfo ptr =
     let ptr0 = ccurl_certinfo_certinfo certinfo
     let ptrs = map (\i -> plusPtr ptr0 (i * size)) [0 .. (numOfCerts - 1)]
     mapM (\sptr -> peek sptr >>= peek'CCURL_slist) ptrs
-
-
-
--------------------------------------------------------------------------------
-curl_easy_setopt :: CURL -> [CURLoption] -> IO ()
-curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
-  -- BEHAVIOR OPTIONS
-  CURLOPT_VERBOSE       v -> so'Bool curl cCURLOPT_VERBOSE       v
-  CURLOPT_HEADER        v -> so'Bool curl cCURLOPT_HEADER        v
-  CURLOPT_NOPROGRESS    v -> so'Bool curl cCURLOPT_NOPROGRESS    v
-  CURLOPT_NOSIGNAL      v -> so'Bool curl cCURLOPT_NOSIGNAL      v
-  CURLOPT_WILDCARDMATCH v -> so'Bool curl cCURLOPT_WILDCARDMATCH v |7210:----|
-  -- CALLBACK OPTIONS
-  CURLOPT_WRITEFUNCTION f -> so'FWRITE curl f
-  CURLOPT_READFUNCTION  f -> so'FREAD  curl f
-  -- NETWORK OPTIONS
-  CURLOPT_URL           s -> so'String curl cCURLOPT_URL s
-  -- UNKNOWN OPTION
-  _ -> throwIO CURLE_FAILED_INIT    |----:7214|
-  _ -> throwIO CURLE_UNKNOWN_OPTION |7215:----|
-
-
-so'Bool :: CURL -> CCURLoption'CLong -> Bool -> IO ()
-so'Bool curl copt val = do
-  code <- fromC <$> ccurl_easy_setopt'CLong (ccurlptr curl) copt (fromBool val)
-  ifOK code (return ())
-
-so'String :: CURL -> CCURLoption'CString -> String -> IO ()
-so'String curl copt val = withCString val $ \ptr -> do
-  code <- fromC <$> ccurl_easy_setopt'CString (ccurlptr curl) copt ptr
-  ifOK code (return ())
-
-
-so'FWRITE :: CURL -> Maybe CURL_write_callback -> IO ()
-so'FWRITE curl mcb = makeCallback mcb (cb_write curl)
-  (ccurl_easy_setopt'FWRITE (ccurlptr curl))
-  (\cb -> wrap_ccurl_write_callback (write_callback cb))
-
-write_callback :: CURL_write_callback -> CCURL_write_callback
-write_callback fwrite ptr size nmemb _ = do
-  stat <- packCStringLen (ptr, fromIntegral (size * nmemb)) >>= fwrite
-  return $ case stat of
-    CURL_WRITEFUNC_OK    -> (size * nmemb)
-    CURL_WRITEFUNC_FAIL  -> 0
-    CURL_WRITEFUNC_PAUSE -> cCURL_WRITEFUNC_PAUSE
-
-
-so'FREAD :: CURL -> Maybe CURL_read_callback -> IO ()
-so'FREAD curl mcb = makeCallback mcb (cb_read curl)
-  (ccurl_easy_setopt'FREAD (ccurlptr curl))
-  (\cb -> wrap_ccurl_read_callback (read_callback cb))
-
-read_callback :: CURL_read_callback -> CCURL_read_callback
-read_callback fread buff size nmemb _ = do
-  let buffLen = fromIntegral (size * nmemb)
-  stat <- fread buffLen
-  case stat of
-    CURL_READFUNC_PAUSE -> return cCURL_READFUNC_PAUSE
-    CURL_READFUNC_ABORT -> return cCURL_READFUNC_ABORT
-    CURL_READFUNC_OK bs -> unsafeUseAsCStringLen (BS.take buffLen bs)
-      (\(cs, cl) -> copyBytes buff cs cl >> return (fromIntegral cl))
-
-
-
-
--------------------------------------------------------------------------------
-ifOK :: CURLcode -> IO a -> IO a
-ifOK CURLE_OK action = action
-ifOK code     _      = throwIO code
 

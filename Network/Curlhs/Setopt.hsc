@@ -13,7 +13,6 @@
 module Network.Curlhs.Setopt
   ( curl_easy_setopt
   , freeCallbacks
-  , ifOK
   ) where
 
 import Foreign.Marshal.Utils (copyBytes, fromBool)
@@ -30,17 +29,9 @@ import qualified Data.ByteString as BS
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.ByteString        (ByteString, useAsCString, packCStringLen)
 
-import Control.Applicative   ((<$>))
-import Control.Exception     (throwIO)
-
+import Network.Curlhs.Errors
 import Network.Curlhs.Types
 import Network.Curlhs.Base
-
-
--------------------------------------------------------------------------------
-ifOK :: CURLcode -> IO a -> IO a
-ifOK CURLE_OK action = action
-ifOK code     _      = throwIO code
 
 
 -------------------------------------------------------------------------------
@@ -55,16 +46,17 @@ keepCallback r mf =
 
 makeCallback :: Maybe cb -> IORef (Maybe (FunPtr a))
              -> (FunPtr a -> IO CCURLcode) -> (cb -> IO (FunPtr a)) -> IO ()
-makeCallback (Just cb) ref setcb wrapcb = do
+makeCallback (Just cb) ref setcb wrapcb = withCODE $ do
   fptr <- wrapcb cb
-  code <- fromC <$> setcb fptr
-  if (code == CURLE_OK)
+  code <- setcb fptr
+  if (code == cCURLE_OK)
     then keepCallback ref (Just fptr)
-    else freeHaskellFunPtr fptr >> throwIO code
-makeCallback Nothing ref setcb _ = do
-  code <- fromC <$> setcb nullFunPtr
+    else freeHaskellFunPtr fptr
+  return code
+makeCallback Nothing ref setcb _ = withCODE $ do
+  code <- setcb nullFunPtr
   keepCallback ref Nothing
-  ifOK code (return ())
+  return code
 
 
 -------------------------------------------------------------------------------
@@ -283,19 +275,16 @@ curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
 
 -------------------------------------------------------------------------------
 setopt'CString :: CURL -> CCURLoption'CString -> ByteString -> IO ()
-setopt'CString curl copt val = useAsCString val $ \ptr -> do
-  code <- fromC <$> ccurl_easy_setopt'CString (ccurlptr curl) copt ptr
-  ifOK code (return ())
+setopt'CString curl copt val = useAsCString val $ \ptr ->
+  withCODE $ ccurl_easy_setopt'CString (ccurlptr curl) copt ptr
 
 setopt'Int64 :: CURL -> CCURLoption'Int64 -> CCURL_off_t -> IO ()
-setopt'Int64 curl copt cval = do
-  code <- fromC <$> ccurl_easy_setopt'Int64 (ccurlptr curl) copt cval
-  ifOK code (return ())
+setopt'Int64 curl copt cval =
+  withCODE $ ccurl_easy_setopt'Int64 (ccurlptr curl) copt cval
 
 setopt'CLong :: CURL -> CCURLoption'CLong -> CLong -> IO ()
-setopt'CLong curl copt cval = do
-  code <- fromC <$> ccurl_easy_setopt'CLong (ccurlptr curl) copt cval
-  ifOK code (return ())
+setopt'CLong curl copt cval =
+  withCODE $ ccurl_easy_setopt'CLong (ccurlptr curl) copt cval
 
 
 -------------------------------------------------------------------------------

@@ -10,9 +10,6 @@
 --
 -------------------------------------------------------------------------------
 
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeSynonymInstances  #-}
-
 module Network.Curlhs.Functions
   ( curl_version
   , curl_version_info
@@ -41,6 +38,7 @@ import Data.IORef            (newIORef)
 import Control.Applicative   ((<$>), (<*>))
 import Control.Exception     (throwIO)
 
+import Network.Curlhs.Errors
 import Network.Curlhs.Setopt
 import Network.Curlhs.Types
 import Network.Curlhs.Base
@@ -106,11 +104,6 @@ peekCFeatures mask =
 
 
 -------------------------------------------------------------------------------
-curl_easy_strerror :: CURLcode -> IO String
-curl_easy_strerror code = ccurl_easy_strerror (fromH code) >>= peekCString
-
-
--------------------------------------------------------------------------------
 curl_easy_init :: IO CURL
 curl_easy_init = ccurl_easy_init >>= \ccurl -> if (ccurl == nullPtr)
   then throwIO CURLE_FAILED_INIT
@@ -129,9 +122,7 @@ curl_easy_cleanup curl =
 
 -------------------------------------------------------------------------------
 curl_easy_perform :: CURL -> IO ()
-curl_easy_perform curl = do
-  code <- fromC <$> ccurl_easy_perform (ccurlptr curl)
-  ifOK code $ return ()
+curl_easy_perform curl = withCODE $ ccurl_easy_perform (ccurlptr curl)
 
 
 -------------------------------------------------------------------------------
@@ -182,20 +173,20 @@ curl_easy_getinfo curl = let ccurl = ccurlptr curl in CURLinfo
 
 getinfo'String :: Ptr CCURL -> CCURLinfo'CString -> IO String
 getinfo'String ccurl cinfo = alloca $ \ptr -> do
-  code <- fromC <$> ccurl_easy_getinfo'CString ccurl cinfo ptr
-  ifOK code (peek ptr >>= peekCString)
+  withCODE $ ccurl_easy_getinfo'CString ccurl cinfo ptr
+  peek ptr >>= peekCString
 
 getinfo'MString :: Ptr CCURL -> CCURLinfo'CString -> IO (Maybe String)
 getinfo'MString ccurl cinfo = alloca $ \ptr -> do
-  code <- fromC <$> ccurl_easy_getinfo'CString ccurl cinfo ptr
-  ifOK code $ peek ptr >>= \csptr -> if (csptr /= nullPtr)
+  withCODE $ ccurl_easy_getinfo'CString ccurl cinfo ptr
+  peek ptr >>= \csptr -> if (csptr /= nullPtr)
     then Just <$> peekCString csptr
     else return Nothing
 
 getinfo'Double :: Ptr CCURL -> CCURLinfo'CDouble -> IO Double
 getinfo'Double ccurl cinfo = alloca $ \ptr -> do
-  code <- fromC <$> ccurl_easy_getinfo'CDouble ccurl cinfo ptr
-  ifOK code (realToFrac <$> peek ptr)
+  withCODE $ ccurl_easy_getinfo'CDouble ccurl cinfo ptr
+  realToFrac <$> peek ptr
 
 getinfo'ContentL :: Ptr CCURL -> CCURLinfo'CDouble -> IO (Maybe Double)
 getinfo'ContentL ccurl cinfo = getinfo'Double ccurl cinfo >>= \v ->
@@ -203,21 +194,21 @@ getinfo'ContentL ccurl cinfo = getinfo'Double ccurl cinfo >>= \v ->
 
 getinfo'SList :: Ptr CCURL -> CCURLinfo'SList -> IO [String]
 getinfo'SList ccurl cinfo = alloca $ \ptr -> do
-  code <- fromC <$> ccurl_easy_getinfo'SList ccurl cinfo ptr
-  ifOK code $ peek ptr >>= \slist -> do
+  withCODE $ ccurl_easy_getinfo'SList ccurl cinfo ptr
+  peek ptr >>= \slist -> do
     strings <- peek'CCURL_slist slist
     ccurl_slist_free_all slist
     return strings
 
 getinfo'CertInfo :: Ptr CCURL -> CCURLinfo'CertI -> IO [[String]]
 getinfo'CertInfo ccurl cinfo = alloca $ \ptr -> do
-  code <- fromC <$> ccurl_easy_getinfo'CertI ccurl cinfo ptr
-  ifOK code (peek ptr >>= peek'CCURL_certinfo)
+  withCODE $ ccurl_easy_getinfo'CertI ccurl cinfo ptr
+  peek ptr >>= peek'CCURL_certinfo
 
 getinfo'Int :: Ptr CCURL -> CCURLinfo'CLong -> IO Int
 getinfo'Int ccurl cinfo = alloca $ \ptr -> do
-  code <- fromC <$> ccurl_easy_getinfo'CLong ccurl cinfo ptr
-  ifOK code (fromIntegral <$> peek ptr)
+  withCODE $ ccurl_easy_getinfo'CLong ccurl cinfo ptr
+  fromIntegral <$> peek ptr
 
 getinfo'RespCode :: Ptr CCURL -> CCURLinfo'CLong -> IO (Maybe Int)
 getinfo'RespCode ccurl cinfo = getinfo'Int ccurl cinfo >>= \v ->

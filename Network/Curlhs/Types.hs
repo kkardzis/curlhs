@@ -288,7 +288,8 @@ data CURLoption
   | CURLOPT_PROXYUSERNAME           ByteString
   | CURLOPT_PROXYPASSWORD           ByteString
   | CURLOPT_HTTPAUTH                [CURLauth]
-  | CURLOPT_TLSAUTH_TYPE            [CURLtlsauth] |7214:----|
+ -- CURLOPT_TLSAUTH_TYPE            [CURLtlsauth] |7214:----|
+  | CURLOPT_TLSAUTH_TYPE            ByteString    |7214:----|
   | CURLOPT_TLSAUTH_USERNAME        ByteString    |7214:----|
   | CURLOPT_TLSAUTH_PASSWORD        ByteString    |7214:----|
   | CURLOPT_PROXYAUTH               [CURLauth]
@@ -297,7 +298,7 @@ data CURLoption
   | CURLOPT_AUTOREFERER             Bool
   | CURLOPT_ENCODING                ByteString    |----:7215|
   | CURLOPT_ACCEPT_ENCODING         ByteString    |7216:----|
-  | CURLOPT_TRANSFER_ENCODING       ByteString    |7216:----|
+  | CURLOPT_TRANSFER_ENCODING       Bool          |7216:----|
   | CURLOPT_FOLLOWLOCATION          Bool
   | CURLOPT_UNRESTRICTED_AUTH       Bool
   | CURLOPT_MAXREDIRS               Int

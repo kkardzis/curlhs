@@ -112,7 +112,7 @@ curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
   #{setopt CURLOPT_PROXYUSERNAME          , string   }
   #{setopt CURLOPT_PROXYPASSWORD          , string   }
   #{setopt CURLOPT_HTTPAUTH               , enum     }
-  #{setopt CURLOPT_TLSAUTH_TYPE           , enum     } |7214:----|
+  #{setopt CURLOPT_TLSAUTH_TYPE           , string   } |7214:----|
   #{setopt CURLOPT_TLSAUTH_USERNAME       , string   } |7214:----|
   #{setopt CURLOPT_TLSAUTH_PASSWORD       , string   } |7214:----|
   #{setopt CURLOPT_PROXYAUTH              , enum     }
@@ -121,7 +121,7 @@ curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
   #{setopt CURLOPT_AUTOREFERER            , bool     }
   #{setopt CURLOPT_ENCODING               , string   } |----:7215|
   #{setopt CURLOPT_ACCEPT_ENCODING        , string   } |7216:----|
-  #{setopt CURLOPT_TRANSFER_ENCODING      , string   } |7216:----|
+  #{setopt CURLOPT_TRANSFER_ENCODING      , bool     } |7216:----|
   #{setopt CURLOPT_FOLLOWLOCATION         , bool     }
   #{setopt CURLOPT_UNRESTRICTED_AUTH      , bool     }
   #{setopt CURLOPT_MAXREDIRS              , int      }

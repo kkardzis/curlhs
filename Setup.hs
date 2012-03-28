@@ -104,5 +104,6 @@ parseVTAG = count 4 get >>= \vtag -> if (vtag == "----") then return Nothing
     , ("7230", 0x071700)
     , ("7231", 0x071701)
     , ("7240", 0x071800)
+    , ("7250", 0x071900)
     ]
 

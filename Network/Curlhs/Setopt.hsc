@@ -105,6 +105,9 @@ curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
   #{setopt CURLOPT_PORT                   , int      }
   #{setopt CURLOPT_TCP_NODELAY            , bool     }
   #{setopt CURLOPT_ADDRESS_SCOPE          , int      }
+  #{setopt CURLOPT_TCP_KEEPALIVE          , bool     } |7250:----|
+  #{setopt CURLOPT_TCP_KEEPIDLE           , int      } |7250:----|
+  #{setopt CURLOPT_TCP_KEEPINTVL          , int      } |7250:----|
 
   ---- NAMES and PASSWORDS OPTIONS (Authentication) ---------------------------
   #{setopt CURLOPT_NETRC                  , enum     }
@@ -155,6 +158,7 @@ curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
   ---- SMTP OPTIONS -----------------------------------------------------------
   #{setopt CURLOPT_MAIL_FROM              , string   }
   -- #{setopt CURLOPT_MAIL_RCTP              , slist    }
+  #{setopt CURLOPT_MAIL_AUTH              , string   } |7250:----|
 
   ---- TFTP OPTIONS -----------------------------------------------------------
   #{setopt CURLOPT_TFTP_BLKSIZE           , int      }
@@ -245,6 +249,7 @@ curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
   #{setopt CURLOPT_EGDSOCKET              , string   }
   #{setopt CURLOPT_SSL_CIPHER_LIST        , string   }
   #{setopt CURLOPT_SSL_SESSIONID_CACHE    , bool     }
+  #{setopt CURLOPT_SSL_OPTIONS            , enum     } |7250:----|
   #{setopt CURLOPT_KRBLEVEL               , string   }
   #{setopt CURLOPT_GSSAPI_DELEGATION      , enum     } |7220:----|
 
@@ -485,6 +490,10 @@ instance CURLenum CURLsslver where
     #{option CURL_SSLVERSION_TLSv1  }
     #{option CURL_SSLVERSION_SSLv2  }
     #{option CURL_SSLVERSION_SSLv3  }
+
+instance CURLenum CURLsslopt where                               |7250:----|
+  fromCURLenum x = case x of                                     |7250:----|
+    #{option CURLSSLOPT_ALLOW_BEAST}                             |7250:----|
 
 instance CURLenum CURLgssapi where                               |7220:----|
   fromCURLenum x = case x of                                     |7220:----|

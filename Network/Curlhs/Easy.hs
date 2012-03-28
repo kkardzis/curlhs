@@ -69,6 +69,7 @@ module Network.Curlhs.Easy (
   , CURLipresolve (..)
   , CURLusessl    (..)
   , CURLsslver    (..)
+  , CURLsslopt    (..) |7250:----|
   , CURLgssapi    (..) |7220:----|
   , CURLsshauth   (..)
 

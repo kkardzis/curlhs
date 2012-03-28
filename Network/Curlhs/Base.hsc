@@ -610,6 +610,10 @@ foreign import ccall "wrapper"
 
 
 -------------------------------------------------------------------------------
+#{cconst CURLSSLOPT_ALLOW_BEAST, CLong}                          |7250:----|
+
+
+-------------------------------------------------------------------------------
 #{cconst CURLFTPSSL_CCC_NONE   , CLong}
 #{cconst CURLFTPSSL_CCC_PASSIVE, CLong}
 #{cconst CURLFTPSSL_CCC_ACTIVE , CLong}
@@ -877,6 +881,11 @@ newtype CCURLoption'FunPtr  = CCURLoption'FunPtr  CInt deriving (Eq, Show)
 #{curlopt CURLOPT_GSSAPI_DELEGATION          , CLong   } |7220:----|
 #{curlopt CURLOPT_DNS_SERVERS                , CString } |7240:----|
 #{curlopt CURLOPT_ACCEPTTIMEOUT_MS           , CLong   } |7240:----|
+#{curlopt CURLOPT_TCP_KEEPALIVE              , CLong   } |7250:----|
+#{curlopt CURLOPT_TCP_KEEPIDLE               , CLong   } |7250:----|
+#{curlopt CURLOPT_TCP_KEEPINTVL              , CLong   } |7250:----|
+#{curlopt CURLOPT_SSL_OPTIONS                , CLong   } |7250:----|
+#{curlopt CURLOPT_MAIL_AUTH                  , CString } |7250:----|
 
 #{curlopt CURLOPT_WRITEDATA                  , UsrPtr  }
 #{curlopt CURLOPT_READDATA                   , UsrPtr  }

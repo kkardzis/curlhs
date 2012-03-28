@@ -277,6 +277,9 @@ data CURLoption
   | CURLOPT_PORT                    Int
   | CURLOPT_TCP_NODELAY             Bool
   | CURLOPT_ADDRESS_SCOPE           Int
+  | CURLOPT_TCP_KEEPALIVE           Bool          |7250:----|
+  | CURLOPT_TCP_KEEPIDLE            Int           |7250:----|
+  | CURLOPT_TCP_KEEPINTVL           Int           |7250:----|
 
   ---- NAMES and PASSWORDS OPTIONS (Authentication) ---------------------------
   | CURLOPT_NETRC                   CURLnetrc
@@ -328,6 +331,7 @@ data CURLoption
   ---- SMTP OPTIONS -----------------------------------------------------------
   | CURLOPT_MAIL_FROM               ByteString
  -- CURLOPT_MAIL_RCTP               [ByteString]
+  | CURLOPT_MAIL_AUTH               ByteString    |7250:----|
 
   ---- TFTP OPTIONS -----------------------------------------------------------
   | CURLOPT_TFTP_BLKSIZE            Int
@@ -418,6 +422,7 @@ data CURLoption
   | CURLOPT_EGDSOCKET               ByteString
   | CURLOPT_SSL_CIPHER_LIST         ByteString
   | CURLOPT_SSL_SESSIONID_CACHE     Bool
+  | CURLOPT_SSL_OPTIONS             CURLsslopt    |7250:----|
   | CURLOPT_KRBLEVEL                ByteString
   | CURLOPT_GSSAPI_DELEGATION       CURLgssapi    |7220:----|
 
@@ -621,6 +626,12 @@ data CURLsslver
   | CURL_SSLVERSION_SSLv2
   | CURL_SSLVERSION_SSLv3
   deriving (Eq, Show)
+
+
+-------------------------------------------------------------------------------
+data CURLsslopt                                                  |7250:----|
+  = CURLSSLOPT_ALLOW_BEAST                                       |7250:----|
+  deriving (Eq, Show)                                            |7250:----|
 
 
 -------------------------------------------------------------------------------

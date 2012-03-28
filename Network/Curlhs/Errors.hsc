@@ -31,6 +31,9 @@ withCODE action =
 
 
 -------------------------------------------------------------------------------
+-- | Returns a string describing error code
+--   (<http://curl.haxx.se/libcurl/c/curl_easy_strerror.html>).
+-------------------------------------------------------------------------------
 curl_easy_strerror :: CURLcode -> IO ByteString
 curl_easy_strerror code =
   ccurl_easy_strerror (fromCURLcode code) >>= packCString

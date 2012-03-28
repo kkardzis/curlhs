@@ -10,30 +10,48 @@
 --
 -------------------------------------------------------------------------------
 
-module Network.Curlhs.Easy
+module Network.Curlhs.Easy (
 
-  -- module Network.Curlhs.Functions
-  ( curl_version
+  -- * Global interface
+
+  -- ** Version info
+    curl_version
   , curl_version_info
-  , curl_easy_strerror
-  , curl_easy_init
-  , curl_easy_reset
-  , curl_easy_cleanup
-  , curl_easy_perform
-  , curl_easy_getinfo
-  , curl_easy_setopt
-
-  -- module Network.Curlhs.Types
-  , CURL
-  , CURLcode (..)
-
   , CURL_version_info_data (..)
   , CURL_version (..)
 
+  -- ** Error codes
+  -- |  More about error codes in libcurl on
+  --    <http://curl.haxx.se/libcurl/c/libcurl-errors.html>
+  , curl_easy_strerror
+  , CURLcode (..)
+
+  -- * Easy interface
+  -- | See <http://curl.haxx.se/libcurl/c/libcurl-easy.html>
+  --   for easy interface overview.
+
+  -- ** Init, reset, cleanup
+  , curl_easy_init
+  , curl_easy_reset
+  , curl_easy_cleanup
+  , CURL
+
+  -- ** Transfer
+  , curl_easy_perform
+
+  -- ** Get info
+  , curl_easy_getinfo
   , CURLinfo (..)
 
+  -- ** Set options
+  , curl_easy_setopt
   , CURLoption (..)
 
+  -- *** Callbacks
+  , CURL_write_callback, CURL_write_response (..)
+  , CURL_read_callback , CURL_read_response  (..)
+
+  -- *** Constants
   , CURLproto     (..)
   , CURLproxy     (..)
   , CURLnetrc     (..)
@@ -53,9 +71,6 @@ module Network.Curlhs.Easy
   , CURLsslver    (..)
   , CURLgssapi    (..) |7220:----|
   , CURLsshauth   (..)
-
-  , CURL_write_callback, CURL_write_response (..)
-  , CURL_read_callback , CURL_read_response  (..)
 
   ) where
 

@@ -62,6 +62,10 @@ makeCallback Nothing ref setcb _ = withCODE $ do
 -------------------------------------------------------------------------------
 #define hsc_setopt(opt, fun) printf(#opt " x -> " #fun " c" #opt " x");
 
+-------------------------------------------------------------------------------
+-- | Set options for a curl easy handle
+--   (<http://curl.haxx.se/libcurl/c/curl_easy_setopt.html>).
+-------------------------------------------------------------------------------
 curl_easy_setopt :: CURL -> [CURLoption] -> IO ()
 curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
 

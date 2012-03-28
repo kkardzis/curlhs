@@ -45,9 +45,17 @@ import Network.Curlhs.Base
 
 
 -------------------------------------------------------------------------------
+-- | Returns the libcurl version string
+--   (<http://curl.haxx.se/libcurl/c/curl_version.html>).
+-------------------------------------------------------------------------------
 curl_version :: IO String
 curl_version = ccurl_version >>= peekCString
 
+
+-------------------------------------------------------------------------------
+-- | Returns run-time libcurl version info
+--   (<http://curl.haxx.se/libcurl/c/curl_version_info.html>).
+-------------------------------------------------------------------------------
 curl_version_info :: IO CURL_version_info_data
 curl_version_info = ccurl_version_info cCURLVERSION_NOW >>= peek >>=
   \cval -> CURL_version_info_data
@@ -104,6 +112,9 @@ peekCFeatures mask =
 
 
 -------------------------------------------------------------------------------
+-- | Start a libcurl easy session
+--   (<http://curl.haxx.se/libcurl/c/curl_easy_init.html>).
+-------------------------------------------------------------------------------
 curl_easy_init :: IO CURL
 curl_easy_init = ccurl_easy_init >>= \ccurl -> if (ccurl == nullPtr)
   then throwIO CURLE_FAILED_INIT
@@ -111,20 +122,36 @@ curl_easy_init = ccurl_easy_init >>= \ccurl -> if (ccurl == nullPtr)
     <$> newIORef Nothing
     <*> newIORef Nothing
 
+
+-------------------------------------------------------------------------------
+-- | Reset all options of a libcurl session handle
+--   (<http://curl.haxx.se/libcurl/c/curl_easy_reset.html>).
+-------------------------------------------------------------------------------
 curl_easy_reset :: CURL -> IO ()
 curl_easy_reset curl =
   ccurl_easy_reset (ccurlptr curl) >> freeCallbacks curl
 
+
+-------------------------------------------------------------------------------
+-- | End a libcurl easy session
+--   (<http://curl.haxx.se/libcurl/c/curl_easy_cleanup.html>).
+-------------------------------------------------------------------------------
 curl_easy_cleanup :: CURL -> IO ()
 curl_easy_cleanup curl =
   ccurl_easy_cleanup (ccurlptr curl) >> freeCallbacks curl
 
 
 -------------------------------------------------------------------------------
+-- | Perform a file transfer
+--   (<http://curl.haxx.se/libcurl/c/curl_easy_perform.html>).
+-------------------------------------------------------------------------------
 curl_easy_perform :: CURL -> IO ()
 curl_easy_perform curl = withCODE $ ccurl_easy_perform (ccurlptr curl)
 
 
+-------------------------------------------------------------------------------
+-- | Extract information from a curl handle
+--   (<http://curl.haxx.se/libcurl/c/curl_easy_getinfo.html>).
 -------------------------------------------------------------------------------
 curl_easy_getinfo :: CURL -> IO CURLinfo
 curl_easy_getinfo curl = let ccurl = ccurlptr curl in CURLinfo

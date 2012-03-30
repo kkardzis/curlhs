@@ -8,6 +8,28 @@
 -- Stability   :  experimental
 -- Portability :  non-portable
 --
+-- Module "Network.Curlhs.Base" provides a direct, low-level interface to
+-- libcurl, a library which powers the famous curl tool (please look at
+-- <http://curl.haxx.se/>). It is basically a 1:1 mapping of the
+-- libcurl's C API - a direct translation of the \"curl/curl.h\" headers to
+-- Haskell FFI. A higher level interface, without ubiquitous pointers and
+-- all of that C stuff, is provided through the module "Network.Curlhs.Core".
+--
+-- Documentation about the library and/or particular functions may be found
+-- in the libcurl's man pages or on the libcurl's project site
+-- (<http://curl.haxx.se/libcurl/>). Because API of this module mirrors API
+-- of the external library, particular symbols may exist or not,
+-- dependently of that, which version of libcurl was used to compile
+-- the package. The module as closely as possible tries to follow
+-- the original libcurl API. The main differences are in types of functions
+-- such as 'curl_easy_setopt' and 'curl_easy_getinfo'. Besides that all
+-- symbol names are prefixed with \'c\' or \'C\'. 
+--
+-- As the name of the module may suggest, this module is a basis for the
+-- rest of curlhs package. For now exposed API is somewhat incomplete,
+-- still lacks some things (like the \"multi interface\"), but the aim is
+-- to provide here a complete API of libcurl, as defined in their C headers.
+--
 -------------------------------------------------------------------------------
 
 {-# LANGUAGE ForeignFunctionInterface #-}
@@ -43,7 +65,7 @@ import Foreign.C.Types  (CUIntPtr)
 
 
 -------------------------------------------------------------------------------
--- from "curlver.h"
+-- * Definitions from \"curl/curlver.h\"
 -------------------------------------------------------------------------------
 libCURL_COPYRIGHT :: String
 libCURL_COPYRIGHT = #{const_str LIBCURL_COPYRIGHT}
@@ -68,19 +90,19 @@ libCURL_VERSION_PATCH = #{const LIBCURL_VERSION_PATCH}
 
 
 -------------------------------------------------------------------------------
--- from "curlbuild.h"
+-- * Definitions from \"curl/curlbuild.h\"
 -------------------------------------------------------------------------------
 type CCURL_off_t = CLLong  -- ??
 
 
 -------------------------------------------------------------------------------
--- from "curlrules.h"
+-- * Definitions from \"curl/curlrules.h\"
 -------------------------------------------------------------------------------
 -- todo
 
 
 -------------------------------------------------------------------------------
--- from "curl.h"
+-- * Definitions from \"curl/curl.h\"
 -------------------------------------------------------------------------------
 data CCURL
 
@@ -95,6 +117,8 @@ type CCURL_socket_t = CInt
 #{cconst CURL_SOCKET_BAD, CCURL_socket_t}
 
 
+-------------------------------------------------------------------------------
+-- ** CURL_httppost
 -------------------------------------------------------------------------------
 data CCURL_httppost = CCURL_httppost
   { ccurl_httppost_next           :: Ptr CCURL_httppost
@@ -126,7 +150,10 @@ data CCURL_httppost = CCURL_httppost
 #{cconst HTTPPOST_PTRBUFFER  , CLong}
 #{cconst HTTPPOST_CALLBACK   , CLong}
  
-
+-------------------------------------------------------------------------------
+-- ** Callbacks
+-------------------------------------------------------------------------------
+-- *** CURL_progress_callback
 -------------------------------------------------------------------------------
 type CCURL_progress_callback
   = Ptr () -> CDouble -> CDouble -> CDouble -> CDouble -> IO CInt
@@ -137,6 +164,8 @@ foreign import ccall "wrapper"
     -> IO (FunPtr CCURL_progress_callback)
 
 
+-------------------------------------------------------------------------------
+-- *** CURL_write_callback
 -------------------------------------------------------------------------------
 #{cconst CURL_MAX_WRITE_SIZE , CSize}
 #{cconst CURL_MAX_HTTP_HEADER, CSize}
@@ -151,6 +180,8 @@ foreign import ccall "wrapper"
     -> IO (FunPtr CCURL_write_callback)
 
 
+-------------------------------------------------------------------------------
+-- ** CURL_fileinfo
 -------------------------------------------------------------------------------
 newtype CCURLfiletype = CCURLfiletype CInt deriving (Eq, Show)   |7210:----|
 
@@ -201,6 +232,10 @@ data CCURL_fileinfo = CCURL_fileinfo                             |7210:----|
 
  
 -------------------------------------------------------------------------------
+-- ** Callbacks
+-------------------------------------------------------------------------------
+-- *** CURL_chunk_bgn_callback
+-------------------------------------------------------------------------------
 #{cconst CURL_CHUNK_BGN_FUNC_OK  , CLong}                        |7210:----|
 #{cconst CURL_CHUNK_BGN_FUNC_FAIL, CLong}                        |7210:----|
 #{cconst CURL_CHUNK_BGN_FUNC_SKIP, CLong}                        |7210:----|
@@ -215,6 +250,8 @@ foreign import ccall "wrapper"                                   |7210:----|
 
 
 -------------------------------------------------------------------------------
+-- *** CURL_chunk_end_callback
+-------------------------------------------------------------------------------
 #{cconst CURL_CHUNK_END_FUNC_OK  , CLong}                        |7210:----|
 #{cconst CURL_CHUNK_END_FUNC_FAIL, CLong}                        |7210:----|
 
@@ -227,6 +264,8 @@ foreign import ccall "wrapper"                                   |7210:----|
     -> IO (FunPtr CCURL_chunk_end_callback)                      |7210:----|
 
  
+-------------------------------------------------------------------------------
+-- *** CURL_fnmatch_callback
 -------------------------------------------------------------------------------
 #{cconst CURL_FNMATCHFUNC_MATCH  , CInt}                         |7210:----|
 #{cconst CURL_FNMATCHFUNC_NOMATCH, CInt}                         |7210:----|
@@ -242,6 +281,8 @@ foreign import ccall "wrapper"                                   |7210:----|
 
  
 -------------------------------------------------------------------------------
+-- *** CURL_seek_callback
+-------------------------------------------------------------------------------
 #{cconst CURL_SEEKFUNC_OK      , CInt}
 #{cconst CURL_SEEKFUNC_FAIL    , CInt}
 #{cconst CURL_SEEKFUNC_CANTSEEK, CInt}
@@ -256,6 +297,8 @@ foreign import ccall "wrapper"
 
 
 -------------------------------------------------------------------------------
+-- *** CURL_read_callback
+-------------------------------------------------------------------------------
 #{cconst CURL_READFUNC_ABORT, CSize}
 #{cconst CURL_READFUNC_PAUSE, CSize}
 
@@ -268,6 +311,8 @@ foreign import ccall "wrapper"
     -> IO (FunPtr CCURL_read_callback)
 
 
+-------------------------------------------------------------------------------
+-- *** CURL_sockopt_callback
 -------------------------------------------------------------------------------
 newtype CCURLsocktype = CCURLsocktype CInt deriving (Eq, Show)
 
@@ -286,6 +331,8 @@ foreign import ccall "wrapper"
     -> IO (FunPtr CCURL_sockopt_callback)
 
 
+-------------------------------------------------------------------------------
+-- *** CURL_opensocket_callback
 -------------------------------------------------------------------------------
 data CCURL_sockaddr = CCURL_sockaddr
   { ccurl_sockaddr_family   :: CInt
@@ -311,6 +358,8 @@ foreign import ccall "wrapper"
 
 
 -------------------------------------------------------------------------------
+-- *** CURL_closesocket_callback
+-------------------------------------------------------------------------------
 type CCURL_closesocket_callback                                  |7217:----|
   = Ptr () -> CCURL_socket_t -> IO CInt                          |7217:----|
 
@@ -320,6 +369,8 @@ foreign import ccall "wrapper"                                   |7217:----|
     -> IO (FunPtr CCURL_closesocket_callback)                    |7217:----|
 
  
+-------------------------------------------------------------------------------
+-- *** CURL_ioctl_callback
 -------------------------------------------------------------------------------
 newtype CCURLioerr = CCURLioerr CInt deriving (Eq, Show)
 
@@ -342,6 +393,8 @@ foreign import ccall "wrapper"
 
 
 -------------------------------------------------------------------------------
+-- *** CURL_malloc_callback
+-------------------------------------------------------------------------------
 type CCURL_malloc_callback
   = CSize -> IO (Ptr ())
 
@@ -351,6 +404,8 @@ foreign import ccall "wrapper"
     -> IO (FunPtr CCURL_malloc_callback)
 
 
+-------------------------------------------------------------------------------
+-- *** CURL_free_callback
 -------------------------------------------------------------------------------
 type CCURL_free_callback
   = Ptr () -> IO ()
@@ -362,6 +417,8 @@ foreign import ccall "wrapper"
 
 
 -------------------------------------------------------------------------------
+-- *** CURL_realloc_callback
+-------------------------------------------------------------------------------
 type CCURL_realloc_callback
   = Ptr () -> CSize -> IO (Ptr ())
 
@@ -371,6 +428,8 @@ foreign import ccall "wrapper"
     -> IO (FunPtr CCURL_realloc_callback)
 
 
+-------------------------------------------------------------------------------
+-- *** CURL_strdup_callback
 -------------------------------------------------------------------------------
 type CCURL_strdup_callback
   = Ptr CChar -> IO (Ptr CChar)
@@ -382,6 +441,8 @@ foreign import ccall "wrapper"
 
 
 -------------------------------------------------------------------------------
+-- *** CURL_calloc_callback
+-------------------------------------------------------------------------------
 type CCURL_calloc_callback
   = CSize -> CSize -> IO (Ptr ())
 
@@ -391,6 +452,8 @@ foreign import ccall "wrapper"
     -> IO (FunPtr CCURL_calloc_callback)
 
  
+-------------------------------------------------------------------------------
+-- *** CURL_debug_callback
 -------------------------------------------------------------------------------
 newtype CCURL_infotype = CCURL_infotype CInt deriving (Eq, Show)
 
@@ -412,6 +475,10 @@ foreign import ccall "wrapper"
     -> IO (FunPtr CCURL_debug_callback)
 
 
+-------------------------------------------------------------------------------
+-- ** Constants
+-------------------------------------------------------------------------------
+-- *** CURLcode
 -------------------------------------------------------------------------------
 newtype CCURLcode = CCURLcode CInt deriving (Eq, Show)
 
@@ -498,6 +565,10 @@ newtype CCURLcode = CCURLcode CInt deriving (Eq, Show)
 
 
 -------------------------------------------------------------------------------
+-- ** Callbacks
+-------------------------------------------------------------------------------
+-- *** CURL_conv_callback
+-------------------------------------------------------------------------------
 type CCURL_conv_callback
   = Ptr CChar -> CSize -> IO CCURLcode
 
@@ -507,6 +578,8 @@ foreign import ccall "wrapper"
     -> IO (FunPtr CCURL_conv_callback)
 
 
+-------------------------------------------------------------------------------
+-- *** CURL_ssl_ctx_callback
 -------------------------------------------------------------------------------
 type CCURL_ssl_ctx_callback
   = Ptr CCURL -> Ptr () -> Ptr () -> IO CCURLcode
@@ -518,6 +591,10 @@ foreign import ccall "wrapper"
 
  
 -------------------------------------------------------------------------------
+-- ** Constants
+-------------------------------------------------------------------------------
+-- *** CURLproxy
+-------------------------------------------------------------------------------
 #{cconst CURLPROXY_HTTP           , CLong}
 #{cconst CURLPROXY_HTTP_1_0       , CLong}
 #{cconst CURLPROXY_SOCKS4         , CLong}
@@ -526,6 +603,8 @@ foreign import ccall "wrapper"
 #{cconst CURLPROXY_SOCKS5_HOSTNAME, CLong}
 
 
+-------------------------------------------------------------------------------
+-- *** CURLauth
 -------------------------------------------------------------------------------
 #{cconst CURLAUTH_NONE        , CLong}
 #{cconst CURLAUTH_BASIC       , CLong}
@@ -540,6 +619,8 @@ foreign import ccall "wrapper"
 
 
 -------------------------------------------------------------------------------
+-- *** CURLsshauth
+-------------------------------------------------------------------------------
 #{cconst CURLSSH_AUTH_ANY      , CLong}
 #{cconst CURLSSH_AUTH_NONE     , CLong}
 #{cconst CURLSSH_AUTH_PUBLICKEY, CLong}
@@ -550,15 +631,23 @@ foreign import ccall "wrapper"
 
 
 -------------------------------------------------------------------------------
+-- *** CURLgssapi
+-------------------------------------------------------------------------------
 #{cconst CURLGSSAPI_DELEGATION_NONE       , CLong}               |7220:----|
 #{cconst CURLGSSAPI_DELEGATION_POLICY_FLAG, CLong}               |7220:----|
 #{cconst CURLGSSAPI_DELEGATION_FLAG       , CLong}               |7220:----|
 
 
 -------------------------------------------------------------------------------
+-- *** CURL_error_size
+-------------------------------------------------------------------------------
 #{cconst CURL_ERROR_SIZE, CLong}
 
 
+-------------------------------------------------------------------------------
+-- ** Callbacks
+-------------------------------------------------------------------------------
+-- *** CURL_sshkey_callback
 -------------------------------------------------------------------------------
 data CCURL_khkey = CCURL_khkey
   { ccurl_khkey_key     :: Ptr CChar
@@ -603,6 +692,10 @@ foreign import ccall "wrapper"
 
  
 -------------------------------------------------------------------------------
+-- ** Constants
+-------------------------------------------------------------------------------
+-- *** CURLusessl
+-------------------------------------------------------------------------------
 #{cconst CURLUSESSL_NONE   , CLong}
 #{cconst CURLUSESSL_TRY    , CLong}
 #{cconst CURLUSESSL_CONTROL, CLong}
@@ -610,9 +703,13 @@ foreign import ccall "wrapper"
 
 
 -------------------------------------------------------------------------------
+-- *** CURLsslopt
+-------------------------------------------------------------------------------
 #{cconst CURLSSLOPT_ALLOW_BEAST, CLong}                          |7250:----|
 
 
+-------------------------------------------------------------------------------
+-- *** CURLftpssl
 -------------------------------------------------------------------------------
 #{cconst CURLFTPSSL_CCC_NONE   , CLong}
 #{cconst CURLFTPSSL_CCC_PASSIVE, CLong}
@@ -620,11 +717,15 @@ foreign import ccall "wrapper"
  
 
 -------------------------------------------------------------------------------
+-- *** CURLftpauth
+-------------------------------------------------------------------------------
 #{cconst CURLFTPAUTH_DEFAULT, CLong}
 #{cconst CURLFTPAUTH_SSL    , CLong}
 #{cconst CURLFTPAUTH_TLS    , CLong}
 
 
+-------------------------------------------------------------------------------
+-- *** CURLftpcreate
 -------------------------------------------------------------------------------
 #{cconst CURLFTP_CREATE_DIR_NONE , CLong}
 #{cconst CURLFTP_CREATE_DIR      , CLong}
@@ -632,12 +733,16 @@ foreign import ccall "wrapper"
 
 
 -------------------------------------------------------------------------------
+-- *** CURLftpmethod
+-------------------------------------------------------------------------------
 #{cconst CURLFTPMETHOD_DEFAULT  , CLong}
 #{cconst CURLFTPMETHOD_MULTICWD , CLong}
 #{cconst CURLFTPMETHOD_NOCWD    , CLong}
 #{cconst CURLFTPMETHOD_SINGLECWD, CLong}
 
 
+-------------------------------------------------------------------------------
+-- *** CURLproto
 -------------------------------------------------------------------------------
 #{cconst CURLPROTO_HTTP  , CLong}
 #{cconst CURLPROTO_HTTPS , CLong}
@@ -668,6 +773,8 @@ foreign import ccall "wrapper"
 #{cconst CURLPROTO_ALL   , CLong}
 
 
+-------------------------------------------------------------------------------
+-- *** CURLoption
 -------------------------------------------------------------------------------
 newtype CCURLoption'CLong   = CCURLoption'CLong   CInt deriving (Eq, Show)
 newtype CCURLoption'Int64   = CCURLoption'Int64   CInt deriving (Eq, Show)
@@ -894,17 +1001,23 @@ newtype CCURLoption'FunPtr  = CCURLoption'FunPtr  CInt deriving (Eq, Show)
 
 
 -------------------------------------------------------------------------------
+-- *** CURLipresolve
+-------------------------------------------------------------------------------
 #{cconst CURL_IPRESOLVE_WHATEVER, CLong}
 #{cconst CURL_IPRESOLVE_V4      , CLong}
 #{cconst CURL_IPRESOLVE_V6      , CLong}
 
 
 -------------------------------------------------------------------------------
+-- *** CURLhttpver
+-------------------------------------------------------------------------------
 #{cconst CURL_HTTP_VERSION_NONE, CLong}
 #{cconst CURL_HTTP_VERSION_1_0 , CLong}
 #{cconst CURL_HTTP_VERSION_1_1 , CLong}
 
 
+-------------------------------------------------------------------------------
+-- *** CURLrtspreq
 -------------------------------------------------------------------------------
 #{cconst CURL_RTSPREQ_NONE         , CLong}
 #{cconst CURL_RTSPREQ_OPTIONS      , CLong}
@@ -921,11 +1034,15 @@ newtype CCURLoption'FunPtr  = CCURLoption'FunPtr  CInt deriving (Eq, Show)
 
 
 -------------------------------------------------------------------------------
+-- *** CURLnetrc
+-------------------------------------------------------------------------------
 #{cconst CURL_NETRC_IGNORED , CLong}
 #{cconst CURL_NETRC_OPTIONAL, CLong}
 #{cconst CURL_NETRC_REQUIRED, CLong}
 
 
+-------------------------------------------------------------------------------
+-- *** CURLsslver
 -------------------------------------------------------------------------------
 #{cconst CURL_SSLVERSION_DEFAULT, CLong}
 #{cconst CURL_SSLVERSION_TLSv1  , CLong}
@@ -934,10 +1051,14 @@ newtype CCURLoption'FunPtr  = CCURLoption'FunPtr  CInt deriving (Eq, Show)
 
 
 -------------------------------------------------------------------------------
+-- *** CURLtlsauth
+-------------------------------------------------------------------------------
 #{cconst CURL_TLSAUTH_NONE, CLong}                               |7214:----|
 #{cconst CURL_TLSAUTH_SRP , CLong}                               |7214:----|
 
 
+-------------------------------------------------------------------------------
+-- *** CURLredir
 -------------------------------------------------------------------------------
 #{cconst CURL_REDIR_GET_ALL , CLong}
 #{cconst CURL_REDIR_POST_301, CLong}
@@ -946,12 +1067,16 @@ newtype CCURLoption'FunPtr  = CCURLoption'FunPtr  CInt deriving (Eq, Show)
 
 
 -------------------------------------------------------------------------------
+-- *** CURLtimecond
+-------------------------------------------------------------------------------
 #{cconst CURL_TIMECOND_NONE        , CLong}
 #{cconst CURL_TIMECOND_IFMODSINCE  , CLong}
 #{cconst CURL_TIMECOND_IFUNMODSINCE, CLong}
 #{cconst CURL_TIMECOND_LASTMOD     , CLong}
 
 
+-------------------------------------------------------------------------------
+-- ** Functions
 -------------------------------------------------------------------------------
 {-# DEPRECATED ccurl_strequal "" #-}
 foreign import ccall "curl_strequal"
@@ -971,6 +1096,8 @@ foreign import ccall "curl_strnequal"
     -> IO CInt
 
 
+-------------------------------------------------------------------------------
+-- ** CURL_forms
 -------------------------------------------------------------------------------
 newtype CCURLformoption = CCURLformoption CInt deriving (Eq, Show)
  
@@ -1051,6 +1178,8 @@ foreign import ccall "curl_formfree"
     -> IO ()
 
 
+-------------------------------------------------------------------------------
+-- ** Functions
 -------------------------------------------------------------------------------
 {-# DEPRECATED ccurl_getenv "" #-}
 foreign import ccall "curl_getenv"
@@ -1133,6 +1262,8 @@ foreign import ccall "curl_global_cleanup"
 
 
 -------------------------------------------------------------------------------
+-- ** CURL_slist
+-------------------------------------------------------------------------------
 data CCURL_slist = CCURL_slist
   { ccurl_slist_data :: Ptr CChar
   , ccurl_slist_next :: Ptr CCURL_slist
@@ -1147,6 +1278,8 @@ instance Storable CCURL_slist where
     <*> #{peek struct curl_slist, next} ptr
 
  
+-------------------------------------------------------------------------------
+-- ** Functions
 -------------------------------------------------------------------------------
 foreign import ccall "curl_slist_append"
   ccurl_slist_append
@@ -1171,6 +1304,8 @@ foreign import ccall "curl_getdate"
 
 
 -------------------------------------------------------------------------------
+-- ** CURL_certinfo
+-------------------------------------------------------------------------------
 data CCURL_certinfo = CCURL_certinfo
   { ccurl_certinfo_num_of_certs :: CInt
   , ccurl_certinfo_certinfo     :: Ptr (Ptr CCURL_slist)
@@ -1185,6 +1320,10 @@ instance Storable CCURL_certinfo where
     <*> #{peek struct curl_certinfo, certinfo    } ptr
 
 
+-------------------------------------------------------------------------------
+-- ** Constants
+-------------------------------------------------------------------------------
+-- *** CURLinfo
 -------------------------------------------------------------------------------
 newtype CCURLinfo'CString = CCURLinfo'CString CInt deriving (Eq, Show)
 newtype CCURLinfo'CDouble = CCURLinfo'CDouble CInt deriving (Eq, Show)
@@ -1241,6 +1380,8 @@ newtype CCURLinfo'CertI   = CCURLinfo'CertI   CInt deriving (Eq, Show)
 
 
 -------------------------------------------------------------------------------
+-- *** CURLclosepol
+-------------------------------------------------------------------------------
 #{cconst CURLCLOSEPOLICY_NONE               , CLong}
 #{cconst CURLCLOSEPOLICY_OLDEST             , CLong}
 #{cconst CURLCLOSEPOLICY_LEAST_RECENTLY_USED, CLong}
@@ -1250,6 +1391,8 @@ newtype CCURLinfo'CertI   = CCURLinfo'CertI   CInt deriving (Eq, Show)
 
 
 -------------------------------------------------------------------------------
+-- *** CURLglobal
+-------------------------------------------------------------------------------
 #{cconst CURL_GLOBAL_SSL    , CLong}
 #{cconst CURL_GLOBAL_WIN32  , CLong}
 #{cconst CURL_GLOBAL_ALL    , CLong}
@@ -1257,6 +1400,8 @@ newtype CCURLinfo'CertI   = CCURLinfo'CertI   CInt deriving (Eq, Show)
 #{cconst CURL_GLOBAL_DEFAULT, CLong}
 
 
+-------------------------------------------------------------------------------
+-- ** Share interface
 -------------------------------------------------------------------------------
 newtype CCURL_lock_data = CCURL_lock_data CInt deriving (Eq, Show)
 
@@ -1370,6 +1515,8 @@ foreign import ccall "curl_share_cleanup"
 
 
 -------------------------------------------------------------------------------
+-- ** CURL_version_info
+-------------------------------------------------------------------------------
 newtype CCURLversion = CCURLversion CInt deriving (Eq, Show)
 
 instance Storable CCURLversion where
@@ -1444,6 +1591,8 @@ instance Storable CCURL_version_info_data where
 
  
 -------------------------------------------------------------------------------
+-- ** Functions
+-------------------------------------------------------------------------------
 foreign import ccall "curl_version_info"
   ccurl_version_info
     :: CCURLversion
@@ -1480,7 +1629,7 @@ foreign import ccall "curl_easy_pause"
 
 
 -------------------------------------------------------------------------------
--- from "easy.h"
+-- * Definitions from \"curl/easy.h\"
 -------------------------------------------------------------------------------
 foreign import ccall "curl_easy_init"
   ccurl_easy_init
@@ -1664,7 +1813,7 @@ foreign import ccall "curl_easy_send"
 
  
 -------------------------------------------------------------------------------
--- from "multi.h"
+-- * Definitions from \"curl/multi.h\"
 -------------------------------------------------------------------------------
 -- todo
 

@@ -8,27 +8,27 @@
 -- Stability   :  experimental
 -- Portability :  non-portable
 --
--- Module "Network.Curlhs.Base" provides a direct, low-level interface to
--- libcurl, a library which powers the famous curl tool (please look at
--- <http://curl.haxx.se/>). It is basically a 1:1 mapping of the
--- libcurl's C API - a direct translation of the \"curl/curl.h\" headers to
--- Haskell FFI. A higher level interface, without ubiquitous pointers and
--- all of that C stuff, is provided through the module "Network.Curlhs.Core".
+--
+-- Module "Network.Curlhs.Base" provides a direct low-level bindings to
+-- @libcurl@. It is basically a 1:1 mapping of the @libcurl@'s C API,
+-- a direct translation of \"curl/curl.h\" header files to Haskell FFI.
+-- A higher level interface, without ubiquitous pointers and all of that
+-- C stuff, is provided through the module "Network.Curlhs.Core".
 --
 -- Documentation about the library and/or particular functions may be found
--- in the libcurl's man pages or on the libcurl's project site
+-- in the @libcurl@'s manual pages or on the @libcurl@'s project site
 -- (<http://curl.haxx.se/libcurl/>). Because API of this module mirrors API
 -- of the external library, particular symbols may exist or not,
--- dependently of that, which version of libcurl was used to compile
--- the package. The module as closely as possible tries to follow
--- the original libcurl API. The main differences are in types of functions
--- such as 'curl_easy_setopt' and 'curl_easy_getinfo'. Besides that all
+-- dependently of that, which version of @libcurl@ is used during compilation
+-- of the package. The module as closely as possible tries to follow
+-- the original @libcurl@ API. The main differences are in types of functions
+-- such as @curl_easy_setopt@ and @curl_easy_getinfo@. Besides that all
 -- symbol names are prefixed with \'c\' or \'C\'. 
 --
 -- As the name of the module may suggest, this module is a basis for the
--- rest of curlhs package. For now exposed API is somewhat incomplete,
+-- rest of @curlhs@ package. For now exposed API is somewhat incomplete,
 -- still lacks some things (like the \"multi interface\"), but the aim is
--- to provide here a complete API of libcurl, as defined in their C headers.
+-- to provide here a complete API of @libcurl@, as defined in its C headers.
 --
 -------------------------------------------------------------------------------
 

@@ -1,4 +1,6 @@
-This package provides a Haskell bindings to libcurl. It is basically a 1:1
-mapping of libcurl's C API (please see http://curl.haxx.se/libcurl/).
+This package provides a Haskell bindings to libcurl, the multiprotocol file
+transfer library which powers the popular tool curl (see http://curl.haxx.se
+and http://curl.haxx.se/libcurl/ for more info).
 
 The project is in early stage so please be patient.
+

@@ -12,27 +12,41 @@ build-type:     Custom
 cabal-version:  >=1.6
 tested-with:    GHC ==7.0.3
 
-synopsis:       libcurl bindings
+synopsis:       bindings to libcurl, the multiprotocol file transfer library
 description:
-  This package provides a Haskell bindings to libcurl. It is basically a 1:1
-  mapping of libcurl's C API (please see <http://curl.haxx.se/libcurl/>).
+  Package @curlhs@ provides a mid-level interface to @libcurl@, the
+  multiprotocol file transfer library which powers the popular tool
+  @curl@ (see <http://curl.haxx.se>). As described on the @libcurl@
+  project site (<http://curl.haxx.se/libcurl/>):
   .
-  libcurl is a free and easy-to-use client-side URL transfer library,
-  supporting DICT, FILE, FTP, FTPS, GOPHER, HTTP, HTTPS, IMAP, IMAPS, LDAP,
-  LDAPS, POP3, POP3S, RTMP, RTSP, SCP, SFTP, SMTP, SMTPS, TELNET and TFTP.
-  libcurl supports SSL certificates, HTTP POST, HTTP PUT, FTP uploading, HTTP
-  form based upload, proxies, cookies, user+password authentication (Basic,
-  Digest, NTLM, Negotiate, Kerberos), file transfer resume, http proxy
-  tunneling and more!
+  /libcurl is a free and easy-to-use client-side URL transfer library,       /
+  /supporting DICT, FILE, FTP, FTPS, GOPHER, HTTP, HTTPS, IMAP, IMAPS, LDAP, /
+  /LDAPS, POP3, POP3S, RTMP, RTSP, SCP, SFTP, SMTP, SMTPS, TELNET and TFTP.  /
+  /libcurl supports SSL certificates, HTTP POST, HTTP PUT, FTP uploading,    /
+  /HTTP form based upload, proxies, cookies, user+password authentication    /
+  /(Basic, Digest, NTLM, Negotiate, Kerberos), file transfer resume,         /
+  /http proxy tunneling and more!                                            /
   .
-  libcurl is highly portable, it builds and works identically on numerous
-  platforms, including Solaris, NetBSD, FreeBSD, OpenBSD, Darwin, HPUX, IRIX,
-  AIX, Tru64, Linux, UnixWare, HURD, Windows, Amiga, OS/2, BeOs, Mac OS X,
-  Ultrix, QNX, OpenVMS, RISC OS, Novell NetWare, DOS and more...
+  /libcurl is highly portable, it builds and works identically on numerous   /
+  /platforms, including Solaris, NetBSD, FreeBSD, OpenBSD, Darwin, HPUX,     /
+  /IRIX, AIX, Tru64, Linux, UnixWare, HURD, Windows, Amiga, OS/\//2, BeOs,   /
+  /Mac OS X, Ultrix, QNX, OpenVMS, RISC OS, Novell NetWare, DOS and more...  /
   .
-  libcurl is free, thread-safe, IPv6 compatible, feature rich, well supported,
-  fast, thoroughly documented and is already used by many known, big and
-  successful companies and numerous applications. 
+  /libcurl is free, thread-safe, IPv6 compatible, feature rich, well         /
+  /supported, fast, thoroughly documented and is already used by many        /
+  /known, big and successful companies and numerous applications.            /
+  .
+  Package @curlhs@ depends on @libcurl@, as an external library. To compile
+  and later use @curlhs@ it is required to first install @libcurl@ somewhere
+  on the system, best in place that is easy to locate by the compiler.
+  Information about how to compile and install @libcurl@ may be found on
+  its project site. A simple way may be to use one of the available
+  precompiled packages.
+  .
+  Current version of @curlhs@ follows @libcurl@ in version 7.25.0. It is
+  also possible to use @curlhs@ with the older versions of @libcurl@, but
+  some features may not be available then (@curlhs@ should easily compile
+  with @libcurl@ from version 7.20.0 upward).
 
 library
   extra-libraries: curl

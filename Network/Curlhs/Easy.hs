@@ -8,6 +8,26 @@
 -- Stability   :  experimental
 -- Portability :  non-portable
 --
+--
+-- Module "Network.Curlhs.Core" provides a mid-level interface to @libcurl@.
+-- For a direct low-level bindings go to "Network.Curlhs.Base".
+--
+-- API of this module follows the API of @libcurl@ as defined in version
+-- 7.25.0 of the library. But it also depends on the version of @libcurl@
+-- that is used during compilation of the @curlhs@ package. It is possible
+-- to use @curlhs@ with older versions of @libcurl@, just keep in mind
+-- that some features may not be available then.
+--
+-- There is not much documentation here, maybe the future will change that,
+-- but for now please use the original @libcurl@ documentation. API provided
+-- here follows the original API, so this shouldn't be a big problem.
+-- Documentation about @libcurl@ and/or its particular functions may be
+-- found in manual pages, which are available among others at the @libcurl@
+-- project site (please refer to <http://curl.haxx.se/libcurl/>).
+-- 
+-- Exposed API is still somewhat incomplete, but is usable.
+-- Work on the rest are in progress.
+--
 -------------------------------------------------------------------------------
 
 module Network.Curlhs.Easy (

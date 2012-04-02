@@ -60,12 +60,12 @@ library
 
   exposed-modules:
     Network.Curlhs.Base
+    Network.Curlhs.Core
+
+  other-modules:
     Network.Curlhs.Easy
     -- Network.Curlhs.Multi
     -- Network.Curlhs.Share
-
-  other-modules:
-    Network.Curlhs.Functions
     Network.Curlhs.Setopt
     Network.Curlhs.Errors
     Network.Curlhs.Types

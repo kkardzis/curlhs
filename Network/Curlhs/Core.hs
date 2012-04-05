@@ -28,6 +28,28 @@
 -- Exposed API is still somewhat incomplete, but is usable.
 -- Work on the rest are in progress.
 --
+-- Simple example:
+--
+-- > import qualified Data.ByteString.Char8 as BS
+-- > import Data.IORef (newIORef, readIORef, atomicModifyIORef)
+-- > import Control.Exception (bracket)
+-- > import Network.Curlhs.Core
+-- > 
+-- > curlGET :: BS.ByteString -> IO BS.ByteString
+-- > curlGET url = do
+-- >   buff <- newIORef BS.empty
+-- >   bracket (curl_easy_init) (curl_easy_cleanup) $ \curl -> do
+-- >     curl_easy_setopt curl
+-- >       [ CURLOPT_URL     url
+-- >       , CURLOPT_VERBOSE True
+-- >       , CURLOPT_WRITEFUNCTION $ Just (memwrite buff)
+-- >       ]
+-- >     curl_easy_perform curl
+-- >   readIORef buff
+-- > 
+-- > memwrite buff newbs = atomicModifyIORef buff $ \oldbuff ->
+-- >   (BS.append oldbuff newbs, CURL_WRITEFUNC_OK)
+--
 -------------------------------------------------------------------------------
 
 module Network.Curlhs.Core (

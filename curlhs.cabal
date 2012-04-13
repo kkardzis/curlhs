@@ -51,6 +51,9 @@ description:
   Package is distributed under ISC License (MIT/BSD-style, see LICENSE file
   for details). It is marked as @OtherLicense@ due to limitations of Cabal.
 
+extra-source-files:
+  README
+
 library
   extra-libraries: curl
   build-tools:     hsc2hs
@@ -73,11 +76,10 @@ library
     Network.Curlhs.Errors
     Network.Curlhs.Types
 
-  -- Maybe not elegant, but convenient during tests. Precompiled libcurl from:
-  -- http://curl.haxx.se/gknw.net/win32/curl-7.25.0-devel-mingw32.zip
-  if os(windows)
-    include-dirs:   .\curl-7.25.0-devel-mingw32\include
-    extra-lib-dirs: .\curl-7.25.0-devel-mingw32\bin
+  -- maybe not elegant, but convenient during tests
+  -- if os(windows)
+  --   include-dirs:   .\curl-7.25.0-devel-mingw32\include
+  --   extra-lib-dirs: .\curl-7.25.0-devel-mingw32\bin
 
 source-repository head
   type:     git

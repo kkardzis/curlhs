@@ -1,5 +1,6 @@
 name:           curlhs
 version:        0.0.1
+synopsis:       bindings to libcurl, the multiprotocol file transfer library
 author:         Krzysztof Kardzis <kkardzis@gmail.com>
 maintainer:     Krzysztof Kardzis <kkardzis@gmail.com>
 copyright:      Copyright © 2012 Krzysztof Kardzis
@@ -12,12 +13,11 @@ build-type:     Custom
 cabal-version:  >=1.6
 tested-with:    GHC ==7.0.3
 
-synopsis:       bindings to libcurl, the multiprotocol file transfer library
 description:
   Package @curlhs@ provides a mid-level interface to @libcurl@, the
-  multiprotocol file transfer library which powers the popular tool
-  @curl@ (see <http://curl.haxx.se>). As described on the @libcurl@
-  project site (<http://curl.haxx.se/libcurl/>):
+  multiprotocol file transfer library which powers the popular tool @curl@
+  (please see <http://curl.haxx.se/> for more info). As described on the
+  @libcurl@'s project site (<http://curl.haxx.se/libcurl/>):
   .
   /libcurl is a free and easy-to-use client-side URL transfer library,       /
   /supporting DICT, FILE, FTP, FTPS, GOPHER, HTTP, HTTPS, IMAP, IMAPS, LDAP, /
@@ -36,16 +36,16 @@ description:
   /supported, fast, thoroughly documented and is already used by many        /
   /known, big and successful companies and numerous applications.            /
   .
-  Package @curlhs@ depends on @libcurl@, as an external library. To compile
-  and later use @curlhs@ it is required to first install @libcurl@ somewhere
+  Package @curlhs@ depends on @libcurl@ as an external library. To compile
+  and later use @curlhs@, it is required to first install @libcurl@ somewhere
   on the system, best in place that is easy to locate by the compiler.
   Information about how to compile and install @libcurl@ may be found on
   its project site. A simple way may be to use one of the available
   precompiled packages.
   .
   Current version of @curlhs@ follows @libcurl@ in version 7.25.0. It is
-  also possible to use @curlhs@ with the older versions of @libcurl@, but
-  some features may not be available then (@curlhs@ should easily compile
+  also possible to use @curlhs@ with older versions of @libcurl@, but some
+  features may not be available then (@curlhs@ should easily compile
   with @libcurl@ from version 7.20.0 upward).
 
 library
@@ -69,6 +69,12 @@ library
     Network.Curlhs.Setopt
     Network.Curlhs.Errors
     Network.Curlhs.Types
+
+  -- Maybe not elegant, but convenient during tests. Precompiled libcurl from:
+  -- http://curl.haxx.se/gknw.net/win32/curl-7.25.0-devel-mingw32.zip
+  if os(windows)
+    include-dirs:   .\curl-7.25.0-devel-mingw32\include
+    extra-lib-dirs: .\curl-7.25.0-devel-mingw32\bin
 
 source-repository head
   type:     git

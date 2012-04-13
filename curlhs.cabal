@@ -7,11 +7,12 @@ copyright:      Copyright © 2012 Krzysztof Kardzis
 -- license:     ISC License (MIT/BSD-style, see LICENSE file for details)
 license:        OtherLicense
 license-file:   LICENSE
-category:       Network
+category:       Network, Web, FFI
 stability:      Experimental
 build-type:     Custom
 cabal-version:  >=1.6
 tested-with:    GHC ==7.0.3
+homepage:       https://github.com/kkardzis/curlhs
 
 description:
   Package @curlhs@ provides a mid-level interface to @libcurl@, the
@@ -83,5 +84,5 @@ library
 
 source-repository head
   type:     git
-  location: https://github.com/kkardzis/curlhs.git
+  location: https://github.com/kkardzis/curlhs
 

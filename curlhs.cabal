@@ -47,6 +47,9 @@ description:
   also possible to use @curlhs@ with older versions of @libcurl@, but some
   features may not be available then (@curlhs@ should easily compile
   with @libcurl@ from version 7.20.0 upward).
+  .
+  Package is distributed under ISC License (MIT/BSD-style, see LICENSE file
+  for details). It is marked as @OtherLicense@ due to limitations of Cabal.
 
 library
   extra-libraries: curl

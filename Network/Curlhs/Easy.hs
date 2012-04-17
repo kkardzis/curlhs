@@ -11,7 +11,9 @@
 -------------------------------------------------------------------------------
 
 module Network.Curlhs.Easy
-  ( curl_version
+  ( curl_global_init
+  , curl_global_cleanup
+  , curl_version
   , curl_version_info
   , curl_easy_strerror
   , curl_easy_init
@@ -32,7 +34,8 @@ import Foreign.Ptr           (Ptr, nullPtr, plusPtr)
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 import Data.Time.Clock       (UTCTime)
 import Data.Maybe            (mapMaybe)
-import Data.Bits             ((.&.))
+import Data.Bits             ((.&.), (.|.))
+import Data.List             (foldl')
 import Data.IORef            (newIORef)
 
 import Control.Applicative   ((<$>), (<*>))
@@ -42,6 +45,29 @@ import Network.Curlhs.Errors
 import Network.Curlhs.Setopt
 import Network.Curlhs.Types
 import Network.Curlhs.Base
+
+
+-------------------------------------------------------------------------------
+-- | Global libcurl initialisation
+--   (<http://curl.haxx.se/libcurl/c/curl_global_init.html>).
+-------------------------------------------------------------------------------
+curl_global_init :: [CURLglobal] -> IO ()
+curl_global_init xs = withCODE $ ccurl_global_init flags
+  where
+    flags = foldl' (.|.) 0 $ flip map xs $ \x -> case x of
+      CURL_GLOBAL_ALL     -> cCURL_GLOBAL_ALL
+      CURL_GLOBAL_SSL     -> cCURL_GLOBAL_SSL
+      CURL_GLOBAL_WIN32   -> cCURL_GLOBAL_WIN32
+      CURL_GLOBAL_NOTHING -> cCURL_GLOBAL_NOTHING
+      CURL_GLOBAL_DEFAULT -> cCURL_GLOBAL_DEFAULT
+
+
+-------------------------------------------------------------------------------
+-- | Global libcurl cleanup
+--   (<http://curl.haxx.se/libcurl/c/curl_global_cleanup.html>).
+-------------------------------------------------------------------------------
+curl_global_cleanup :: IO ()
+curl_global_cleanup = ccurl_global_cleanup
 
 
 -------------------------------------------------------------------------------

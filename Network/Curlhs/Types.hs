@@ -123,6 +123,16 @@ instance Exception CURLcode
 
 
 -------------------------------------------------------------------------------
+data CURLglobal
+  = CURL_GLOBAL_ALL
+  | CURL_GLOBAL_SSL
+  | CURL_GLOBAL_WIN32
+  | CURL_GLOBAL_NOTHING
+  | CURL_GLOBAL_DEFAULT
+  deriving (Eq, Show)
+
+
+-------------------------------------------------------------------------------
 data CURL_version_info_data = CURL_version_info_data
   { curl_version_info_data_version         :: String
   , curl_version_info_data_version_num     :: Int

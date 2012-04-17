@@ -56,8 +56,13 @@ module Network.Curlhs.Core (
 
   -- * Global interface
 
+  -- ** Init and cleanup
+    curl_global_init
+  , curl_global_cleanup
+  , CURLglobal (..)
+
   -- ** Version info
-    curl_version
+  , curl_version
   , curl_version_info
   , CURL_version_info_data (..)
   , CURL_version (..)

@@ -22,9 +22,11 @@ module Network.Curlhs.Easy
   , curl_easy_perform
   , curl_easy_getinfo
   , curl_easy_setopt
+  , curl_easy_recv
+  , curl_easy_send
   ) where
 
-import Foreign.Marshal.Alloc (alloca)
+import Foreign.Marshal.Alloc (alloca, allocaBytes)
 import Foreign.Marshal.Utils (toBool)
 import Foreign.Storable      (peek, sizeOf)
 import Foreign.C.String      (peekCString)
@@ -37,6 +39,9 @@ import Data.Maybe            (mapMaybe)
 import Data.Bits             ((.&.), (.|.))
 import Data.List             (foldl')
 import Data.IORef            (newIORef)
+
+import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
+import Data.ByteString        (ByteString, packCStringLen)
 
 import Control.Applicative   ((<$>), (<*>))
 import Control.Exception     (throwIO)
@@ -307,4 +312,26 @@ peek'CCURL_certinfo ptr =
     let ptr0 = ccurl_certinfo_certinfo certinfo
     let ptrs = map (\i -> plusPtr ptr0 (i * size)) [0 .. (numOfCerts - 1)]
     mapM (\sptr -> peek sptr >>= peek'CCURL_slist) ptrs
+
+
+-------------------------------------------------------------------------------
+-- | Receives raw data on an "easy" connection
+--   (<http://curl.haxx.se/libcurl/c/curl_easy_recv.html>).
+-------------------------------------------------------------------------------
+curl_easy_recv :: CURL -> Int -> IO ByteString
+curl_easy_recv curl len = alloca $ \nptr -> allocaBytes len $ \buff -> do
+  withCODE $ ccurl_easy_recv (ccurlptr curl) buff (fromIntegral len) nptr
+  n <- fromIntegral <$> peek nptr
+  packCStringLen (buff, n)
+
+
+-------------------------------------------------------------------------------
+-- | Sends raw data over an "easy" connection
+--   (<http://curl.haxx.se/libcurl/c/curl_easy_send.html>).
+-------------------------------------------------------------------------------
+curl_easy_send :: CURL -> ByteString -> IO Int
+curl_easy_send curl bs = alloca $ \nptr -> do
+  withCODE $ unsafeUseAsCStringLen bs $ \(cs, cl) ->
+    ccurl_easy_send (ccurlptr curl) cs (fromIntegral cl) nptr
+  fromIntegral <$> peek nptr
 

@@ -85,6 +85,8 @@ module Network.Curlhs.Core (
 
   -- ** Transfer
   , curl_easy_perform
+  , curl_easy_recv
+  , curl_easy_send
 
   -- ** Get info
   , curl_easy_getinfo

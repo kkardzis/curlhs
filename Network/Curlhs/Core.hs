@@ -57,9 +57,7 @@ module Network.Curlhs.Core (
   -- * Global interface
 
   -- ** Init and cleanup
-    curl_global_init
-  , curl_global_cleanup
-  , CURLglobal (..)
+    withLIBCURL
 
   -- ** Version info
   , curl_version
@@ -78,10 +76,9 @@ module Network.Curlhs.Core (
   --   for easy interface overview.
 
   -- ** Init, reset, cleanup
-  , curl_easy_init
-  , curl_easy_reset
-  , curl_easy_cleanup
   , CURL
+  , withCURL
+  , curl_easy_reset
 
   -- ** Transfer
   , curl_easy_perform

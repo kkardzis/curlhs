@@ -11,14 +11,11 @@
 -------------------------------------------------------------------------------
 
 module Network.Curlhs.Easy
-  ( curl_global_init
-  , curl_global_cleanup
+  ( withLIBCURL, withCURL
   , curl_version
   , curl_version_info
   , curl_easy_strerror
-  , curl_easy_init
   , curl_easy_reset
-  , curl_easy_cleanup
   , curl_easy_perform
   , curl_easy_getinfo
   , curl_easy_setopt
@@ -43,13 +40,68 @@ import Data.IORef            (newIORef)
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.ByteString        (ByteString, packCStringLen)
 
-import Control.Applicative   ((<$>), (<*>))
-import Control.Exception     (throwIO)
+import Control.Applicative    ((<$>), (<*>))
+import Control.Concurrent     (MVar, newMVar, newEmptyMVar, takeMVar, putMVar)
+import Control.Concurrent     (modifyMVar, modifyMVar_, tryTakeMVar)
+import Control.Exception      (throwIO, bracket, bracket_)
+
+import System.IO.Unsafe       (unsafePerformIO)
 
 import Network.Curlhs.Errors
 import Network.Curlhs.Setopt
 import Network.Curlhs.Types
 import Network.Curlhs.Base
+
+
+-------------------------------------------------------------------------------
+curlGlobalInitFlag :: MVar ()
+curlGlobalInitFlag = unsafePerformIO $ newMVar ()
+{-# NOINLINE curlGlobalInitFlag #-}
+
+curlGlobalLocks :: MVar ([MVar ()])
+curlGlobalLocks = unsafePerformIO $ newMVar []
+{-# NOINLINE curlGlobalLocks #-}
+
+
+-------------------------------------------------------------------------------
+withLIBCURL :: IO a -> IO a
+withLIBCURL userIO = tryTakeMVar curlGlobalInitFlag >>= maybe userIO wrappedIO
+  where wrappedIO _ = bracket_ globalInit globalCleanup userIO
+
+globalInit :: IO ()
+globalInit = modifyMVar_ curlGlobalLocks $ \_ ->
+  curl_global_init [CURL_GLOBAL_ALL] >> newMVar () >>= \lock -> return [lock]
+
+globalCleanup :: IO ()
+globalCleanup = waitForLocks >> curl_global_cleanup
+
+waitForLocks :: IO ()
+waitForLocks = getLock >>= maybe (return ()) (\x -> takeMVar x >> waitForLocks)
+  where getLock = modifyMVar curlGlobalLocks $ \locks -> case locks of
+          [ ]   -> return ([], Nothing)
+          [_]   -> return ([], Nothing)
+          (x:_) -> return (locks, Just x)
+
+
+-------------------------------------------------------------------------------
+withCURL :: (CURL -> IO a) -> IO a
+withCURL = bracket (withLock curl_easy_init) (withUnlock curl_easy_cleanup)
+
+withLock :: IO a -> IO a
+withLock takeCurlResource = modifyMVar curlGlobalLocks $ \locks ->
+  if (null locks) then (throwIO CURLE_FAILED_INIT) else do
+    curl <- takeCurlResource
+    lock <- newEmptyMVar
+    return ((lock:locks), curl)
+
+withUnlock :: (a -> IO ()) -> a -> IO ()
+withUnlock freeCurlResource curl = modifyMVar_ curlGlobalLocks $ \locks ->
+  if (null locks) then (error "something bad with 'curlhs'") else do
+    freeCurlResource curl
+    putMVar (head locks) ()
+    return (tail locks)
+
+
 
 
 -------------------------------------------------------------------------------

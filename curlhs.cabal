@@ -72,10 +72,11 @@ library
   other-modules:
     Network.Curlhs.Easy
     -- Network.Curlhs.Multi
-    -- Network.Curlhs.Share
+    Network.Curlhs.Share
     Network.Curlhs.Setopt
     Network.Curlhs.Errors
     Network.Curlhs.Types
+    Network.Curlhs.Debug
 
   -- maybe not elegant, but convenient during tests
   -- if os(windows)

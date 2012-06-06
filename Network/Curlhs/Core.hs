@@ -70,6 +70,8 @@ module Network.Curlhs.Core (
   --    <http://curl.haxx.se/libcurl/c/libcurl-errors.html>
   , curl_easy_strerror
   , CURLcode (..)
+  , curl_share_strerror
+  , CURLSHcode (..)
 
   -- * Easy interface
   -- | See <http://curl.haxx.se/libcurl/c/libcurl-easy.html>
@@ -119,8 +121,24 @@ module Network.Curlhs.Core (
   , CURLgssapi    (..) |7220:----|
   , CURLsshauth   (..)
 
+  -- * Share interface
+  -- | See <http://curl.haxx.se/libcurl/c/libcurl-share.html>
+  --   for share interface overview.
+
+  -- ** Init, cleanup
+  , CURLSH
+  , withCURLSH
+
+  -- ** Set options
+  , curl_share_setopt
+  , CURLSHoption (..)
+
+  -- *** Constants
+  , CURLSHlockdata (..)
+
   ) where
 
 import Network.Curlhs.Types
 import Network.Curlhs.Easy
+import Network.Curlhs.Share
 

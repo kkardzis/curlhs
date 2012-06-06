@@ -447,7 +447,7 @@ data CURLoption
 
   ---- OTHER OPTIONS ----------------------------------------------------------
  -- CURLOPT_PRIVATE                 -- ?
- -- CURLOPT_SHARE                   CURLSH
+  | CURLOPT_SHARE                   (Maybe CURLSH)
   | CURLOPT_NEW_FILE_PERMS          Int
   | CURLOPT_NEW_DIRECTORY_PERMS     Int
 
@@ -681,5 +681,45 @@ data CURL_read_response
   | CURL_READFUNC_ABORT
   | CURL_READFUNC_PAUSE
   deriving (Eq)
+
+
+
+-------------------------------------------------------------------------------
+data CURLSH = CURLSH
+  { asCCURLSH :: Ptr CCURLSH
+  , cb_lock   :: FunPtr CCURL_lock_function
+  , cb_unlock :: FunPtr CCURL_unlock_function
+  }
+
+
+-------------------------------------------------------------------------------
+data CURLSHcode
+  = CURLSHE_OK
+  | CURLSHE_BAD_OPTION
+  | CURLSHE_IN_USE
+  | CURLSHE_INVALID
+  | CURLSHE_NOMEM
+  | CURLSHE_NOT_BUILT_IN |7230:----|
+  deriving (Eq, Show, Typeable)
+
+instance Exception CURLSHcode
+
+
+-------------------------------------------------------------------------------
+data CURLSHoption
+  = CURLSHOPT_SHARE      CURLSHlockdata
+  | CURLSHOPT_UNSHARE    CURLSHlockdata
+ -- CURLSHOPT_LOCKFUNC  , FLOCK  }
+ -- CURLSHOPT_UNLOCKFUNC, FUNLOCK}
+ -- CURLSHOPT_USERDATA  , UsrPtr }
+
+
+-------------------------------------------------------------------------------
+data CURLSHlockdata
+  = CURL_LOCK_DATA_COOKIE
+  | CURL_LOCK_DATA_DNS
+  | CURL_LOCK_DATA_SSL_SESSION
+ -- CURL_LOCK_DATA_CONNECT
+  deriving (Eq, Show)
 
 

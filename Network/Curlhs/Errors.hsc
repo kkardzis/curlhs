@@ -11,8 +11,10 @@
 -------------------------------------------------------------------------------
 
 module Network.Curlhs.Errors
-  ( curl_easy_strerror
-  , withCODE
+  ( withCODE
+  , curl_easy_strerror
+  , withCURLSHE
+  , curl_share_strerror
   ) where
 
 import Data.ByteString   (ByteString, packCString)
@@ -213,4 +215,48 @@ fromCCURLcode x
   #{ccurlcode CURLE_CHUNK_FAILED            } |7210:----|
   | otherwise = error "unknown CURLcode"
 
+
+
+
+-------------------------------------------------------------------------------
+withCURLSHE :: IO CCURLSHcode -> IO ()
+withCURLSHE action =
+  action >>= \code ->
+    when (code /= cCURLSHE_OK) (throwIO (fromCCURLSHcode code))
+
+
+-------------------------------------------------------------------------------
+-- | Returns a string describing error code
+--   (<http://curl.haxx.se/libcurl/c/curl_share_strerror.html>).
+-------------------------------------------------------------------------------
+curl_share_strerror :: CURLSHcode -> IO ByteString
+curl_share_strerror code =
+  ccurl_share_strerror (fromCURLSHcode code) >>= packCString
+
+
+-------------------------------------------------------------------------------
+#define hsc_curlshcode(code) printf(#code " -> c" #code);
+
+fromCURLSHcode :: CURLSHcode -> CCURLSHcode
+fromCURLSHcode x = case x of
+  #{curlshcode CURLSHE_OK          }
+  #{curlshcode CURLSHE_BAD_OPTION  }
+  #{curlshcode CURLSHE_IN_USE      }
+  #{curlshcode CURLSHE_INVALID     }
+  #{curlshcode CURLSHE_NOMEM       }
+  #{curlshcode CURLSHE_NOT_BUILT_IN} |7230:----|
+
+
+-------------------------------------------------------------------------------
+#define hsc_ccurlshcode(code) printf("| x == c" #code " = " #code);
+
+fromCCURLSHcode :: CCURLSHcode -> CURLSHcode
+fromCCURLSHcode x
+  #{ccurlshcode CURLSHE_OK          }
+  #{ccurlshcode CURLSHE_BAD_OPTION  }
+  #{ccurlshcode CURLSHE_IN_USE      }
+  #{ccurlshcode CURLSHE_INVALID     }
+  #{ccurlshcode CURLSHE_NOMEM       }
+  #{ccurlshcode CURLSHE_NOT_BUILT_IN} |7230:----|
+  | otherwise = error "unknown CURLSHcode"
 

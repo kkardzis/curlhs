@@ -17,7 +17,7 @@ module Network.Curlhs.Setopt
 
 import Foreign.Marshal.Utils (copyBytes, fromBool)
 import Foreign.C.Types       (CLong)
-import Foreign.Ptr           (FunPtr, nullFunPtr, freeHaskellFunPtr)
+import Foreign.Ptr           (FunPtr, nullFunPtr, freeHaskellFunPtr, nullPtr)
 
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import Data.Time.Clock       (UTCTime)
@@ -264,7 +264,7 @@ curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
 
   ---- OTHER OPTIONS ----------------------------------------------------------
   -- CURLOPT_PRIVATE
-  -- CURLOPT_SHARE
+  #{setopt CURLOPT_SHARE                  , curlsh   }
   #{setopt CURLOPT_NEW_FILE_PERMS         , int      }
   #{setopt CURLOPT_NEW_DIRECTORY_PERMS    , int      }
 
@@ -273,7 +273,8 @@ curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
 
   -----------------------------------------------------------------------------
   where
-    string copt s = setopt'CString curl copt s
+    curlsh copt x = setopt'CCURLSH curl copt x
+    string copt x = setopt'CString curl copt x
     int64  copt x = setopt'Int64   curl copt (fromIntegral   x)
     int    copt x = setopt'CLong   curl copt (fromIntegral   x)
     bool   copt x = setopt'CLong   curl copt (fromBool       x)
@@ -283,6 +284,11 @@ curl_easy_setopt curl opts = flip mapM_ opts $ \opt -> case opt of
 
 
 -------------------------------------------------------------------------------
+setopt'CCURLSH :: CURL -> CCURLoption'CURLSH -> Maybe CURLSH -> IO ()
+setopt'CCURLSH curl copt val =
+  withCODE $ ccurl_easy_setopt'CURLSH (ccurlptr curl) copt ccurlsh
+    where ccurlsh = maybe nullPtr asCCURLSH val
+
 setopt'CString :: CURL -> CCURLoption'CString -> ByteString -> IO ()
 setopt'CString curl copt val = useAsCString val $ \ptr ->
   withCODE $ ccurl_easy_setopt'CString (ccurlptr curl) copt ptr

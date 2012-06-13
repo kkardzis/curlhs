@@ -10,77 +10,84 @@
 --
 -------------------------------------------------------------------------------
 
-module Network.Curlhs.Easy
-  ( withLIBCURL, withCURL
-  , curl_version
-  , curl_version_info
-  , curl_easy_strerror
+module Network.Curlhs.Easy (
+
+  -- * Init, reset, cleanup
+    CURL
+  , withCURL
   , curl_easy_reset
+
+  -- * Transfer
   , curl_easy_perform
-  , curl_easy_getinfo
-  , curl_easy_setopt
   , curl_easy_recv
   , curl_easy_send
+
+  -- * Get info
+  , curl_easy_getinfo
+  , CURLinfo (..)
+
+  -- * Set options
+  , curl_easy_setopt
+  , CURLoption (..)
+
+  -- ** Callbacks
+  , CURL_write_callback, CURL_write_response (..)
+  , CURL_read_callback , CURL_read_response  (..)
+
+  -- ** Constants
+  , CURLproto     (..)
+  , CURLproxy     (..)
+  , CURLnetrc     (..)
+  , CURLauth      (..)
+  , CURLtlsauth   (..) |7214:----|
+  , CURLredir     (..)
+  , CURLhttpver   (..)
+  , CURLftpcreate (..)
+  , CURLftpauth   (..)
+  , CURLftpssl    (..)
+  , CURLftpmethod (..)
+  , CURLrtspreq   (..)
+  , CURLtimecond  (..)
+  , CURLclosepol  (..)
+  , CURLipresolve (..)
+  , CURLusessl    (..)
+  , CURLsslver    (..)
+  , CURLsslopt    (..) |7250:----|
+  , CURLgssapi    (..) |7220:----|
+  , CURLsshauth   (..)
+
+  -- * Exceptions
+  -- | More about error codes in libcurl on
+  --   <http://curl.haxx.se/libcurl/c/libcurl-errors.html>
+  , curl_easy_strerror
+  , CURLcode (..)
+
   ) where
 
 import Foreign.Marshal.Alloc (alloca, allocaBytes)
 import Foreign.Marshal.Utils (toBool)
 import Foreign.Storable      (peek, sizeOf)
 import Foreign.C.String      (peekCString)
-import Foreign.C.Types       (CChar, CInt)
 import Foreign.Ptr           (Ptr, nullPtr, plusPtr)
 
 import Data.Time.Clock.POSIX (posixSecondsToUTCTime)
 import Data.Time.Clock       (UTCTime)
 import Data.Maybe            (mapMaybe)
-import Data.Bits             ((.&.), (.|.))
-import Data.List             (foldl')
+import Data.Bits             ((.&.))
 import Data.IORef            (newIORef)
 
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.ByteString        (ByteString, packCStringLen)
 
 import Control.Applicative    ((<$>), (<*>))
-import Control.Concurrent     (MVar, newMVar, newEmptyMVar, takeMVar, putMVar)
-import Control.Concurrent     (modifyMVar, modifyMVar_, tryTakeMVar)
-import Control.Exception      (throwIO, bracket, bracket_)
+import Control.Concurrent     (newEmptyMVar, putMVar)
+import Control.Concurrent     (modifyMVar, modifyMVar_)
+import Control.Exception      (throwIO, bracket)
 
-import System.IO.Unsafe       (unsafePerformIO)
-
-import Network.Curlhs.Errors
-import Network.Curlhs.Setopt
-import Network.Curlhs.Types
 import Network.Curlhs.Base
-
-
--------------------------------------------------------------------------------
-curlGlobalInitFlag :: MVar ()
-curlGlobalInitFlag = unsafePerformIO $ newMVar ()
-{-# NOINLINE curlGlobalInitFlag #-}
-
-curlGlobalLocks :: MVar ([MVar ()])
-curlGlobalLocks = unsafePerformIO $ newMVar []
-{-# NOINLINE curlGlobalLocks #-}
-
-
--------------------------------------------------------------------------------
-withLIBCURL :: IO a -> IO a
-withLIBCURL userIO = tryTakeMVar curlGlobalInitFlag >>= maybe userIO wrappedIO
-  where wrappedIO _ = bracket_ globalInit globalCleanup userIO
-
-globalInit :: IO ()
-globalInit = modifyMVar_ curlGlobalLocks $ \_ ->
-  curl_global_init [CURL_GLOBAL_ALL] >> newMVar () >>= \lock -> return [lock]
-
-globalCleanup :: IO ()
-globalCleanup = waitForLocks >> curl_global_cleanup
-
-waitForLocks :: IO ()
-waitForLocks = getLock >>= maybe (return ()) (\x -> takeMVar x >> waitForLocks)
-  where getLock = modifyMVar curlGlobalLocks $ \locks -> case locks of
-          [ ]   -> return ([], Nothing)
-          [_]   -> return ([], Nothing)
-          (x:_) -> return (locks, Just x)
+import Network.Curlhs.Core
+import Network.Curlhs.Types
+import Network.Curlhs.Easy2
 
 
 -------------------------------------------------------------------------------
@@ -101,97 +108,6 @@ withUnlock freeCurlResource curl = modifyMVar_ curlGlobalLocks $ \locks ->
     putMVar (head locks) ()
     return (tail locks)
 
-
-
-
--------------------------------------------------------------------------------
--- | Global libcurl initialisation
---   (<http://curl.haxx.se/libcurl/c/curl_global_init.html>).
--------------------------------------------------------------------------------
-curl_global_init :: [CURLglobal] -> IO ()
-curl_global_init xs = withCODE $ ccurl_global_init flags
-  where
-    flags = foldl' (.|.) 0 $ flip map xs $ \x -> case x of
-      CURL_GLOBAL_ALL     -> cCURL_GLOBAL_ALL
-      CURL_GLOBAL_SSL     -> cCURL_GLOBAL_SSL
-      CURL_GLOBAL_WIN32   -> cCURL_GLOBAL_WIN32
-      CURL_GLOBAL_NOTHING -> cCURL_GLOBAL_NOTHING
-      CURL_GLOBAL_DEFAULT -> cCURL_GLOBAL_DEFAULT
-
-
--------------------------------------------------------------------------------
--- | Global libcurl cleanup
---   (<http://curl.haxx.se/libcurl/c/curl_global_cleanup.html>).
--------------------------------------------------------------------------------
-curl_global_cleanup :: IO ()
-curl_global_cleanup = ccurl_global_cleanup
-
-
--------------------------------------------------------------------------------
--- | Returns the libcurl version string
---   (<http://curl.haxx.se/libcurl/c/curl_version.html>).
--------------------------------------------------------------------------------
-curl_version :: IO String
-curl_version = ccurl_version >>= peekCString
-
-
--------------------------------------------------------------------------------
--- | Returns run-time libcurl version info
---   (<http://curl.haxx.se/libcurl/c/curl_version_info.html>).
--------------------------------------------------------------------------------
-curl_version_info :: IO CURL_version_info_data
-curl_version_info = ccurl_version_info cCURLVERSION_NOW >>= peek >>=
-  \cval -> CURL_version_info_data
-    <$> (peekCString      $ ccurl_version_info_data_version         cval)
-    <*> (peekCIntegral    $ ccurl_version_info_data_version_num     cval)
-    <*> (peekCString      $ ccurl_version_info_data_host            cval)
-    <*> (peekCFeatures    $ ccurl_version_info_data_features        cval)
-    <*> (peekCStringMaybe $ ccurl_version_info_data_ssl_version     cval)
-    <*> (peekCIntegral    $ ccurl_version_info_data_ssl_version_num cval)
-    <*> (peekCStringMaybe $ ccurl_version_info_data_libz_version    cval)
-    <*> (peekCStringList  $ ccurl_version_info_data_protocols       cval)
-    <*> (peekCStringMaybe $ ccurl_version_info_data_ares            cval)
-    <*> (peekCIntegral    $ ccurl_version_info_data_ares_num        cval)
-    <*> (peekCStringMaybe $ ccurl_version_info_data_libidn          cval)
-    <*> (peekCIntegral    $ ccurl_version_info_data_iconv_ver_num   cval)
-    <*> (peekCStringMaybe $ ccurl_version_info_data_libssh_version  cval)
-
-peekCStringList :: Ptr (Ptr CChar) -> IO [String]
-peekCStringList ptr = peek ptr >>= \cstring ->
-  if (cstring == nullPtr) then return [] else do
-    let size = sizeOf (undefined :: Ptr CChar)
-    strings <- peekCStringList (plusPtr ptr size)
-    string  <- peekCString cstring
-    return (string : strings)
-
-peekCStringMaybe :: Ptr CChar -> IO (Maybe String)
-peekCStringMaybe ptr = if (ptr /= nullPtr)
-  then Just <$> peekCString ptr
-  else return Nothing
-
-peekCIntegral :: (Num h, Integral c) => c -> IO h
-peekCIntegral = return . fromIntegral
-
-peekCFeatures :: CInt -> IO [CURL_version]
-peekCFeatures mask =
-  return $ mapMaybe (\(v, b) -> if (mask .&. b == 0) then Nothing else Just v)
-    [ (CURL_VERSION_IPV6        , cCURL_VERSION_IPV6        )
-    , (CURL_VERSION_KERBEROS4   , cCURL_VERSION_KERBEROS4   )
-    , (CURL_VERSION_SSL         , cCURL_VERSION_SSL         )
-    , (CURL_VERSION_LIBZ        , cCURL_VERSION_LIBZ        )
-    , (CURL_VERSION_NTLM        , cCURL_VERSION_NTLM        )
-    , (CURL_VERSION_GSSNEGOTIATE, cCURL_VERSION_GSSNEGOTIATE)
-    , (CURL_VERSION_DEBUG       , cCURL_VERSION_DEBUG       )
-    , (CURL_VERSION_ASYNCHDNS   , cCURL_VERSION_ASYNCHDNS   )
-    , (CURL_VERSION_SPNEGO      , cCURL_VERSION_SPNEGO      )
-    , (CURL_VERSION_LARGEFILE   , cCURL_VERSION_LARGEFILE   )
-    , (CURL_VERSION_IDN         , cCURL_VERSION_IDN         )
-    , (CURL_VERSION_SSPI        , cCURL_VERSION_SSPI        )
-    , (CURL_VERSION_CONV        , cCURL_VERSION_CONV        )
-    , (CURL_VERSION_CURLDEBUG   , cCURL_VERSION_CURLDEBUG   )
-    , (CURL_VERSION_TLSAUTH_SRP , cCURL_VERSION_TLSAUTH_SRP ) |7214:----|
-    , (CURL_VERSION_NTLM_WB     , cCURL_VERSION_NTLM_WB     ) |7220:----|
-    ]
 
 
 -------------------------------------------------------------------------------

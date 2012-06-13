@@ -10,12 +10,27 @@
 --
 -------------------------------------------------------------------------------
 
-module Network.Curlhs.Share
-  ( withCURLSH
+module Network.Curlhs.Share (
+
+  -- * Init, cleanup
+    CURLSH
+  , withCURLSH
   , curl_share_init
   , curl_share_cleanup
+
+  -- * Set options
   , curl_share_setopt
+  , CURLSHoption (..)
+
+  -- ** Constants
+  , CURLSHlockdata (..)
+
+  -- * Exceptions
+  -- | More about error codes in libcurl on
+  --   <http://curl.haxx.se/libcurl/c/libcurl-errors.html>
   , curl_share_strerror
+  , CURLSHcode (..)
+
   ) where
 
 import Foreign.Ptr        (Ptr, freeHaskellFunPtr, nullPtr)
@@ -23,16 +38,9 @@ import Foreign.Ptr        (Ptr, freeHaskellFunPtr, nullPtr)
 import Control.Exception  (throwIO, bracket, bracketOnError)
 import Control.Concurrent (MVar, newMVar, takeMVar, tryPutMVar, modifyMVar)
 
-import Network.Curlhs.Errors
-import Network.Curlhs.Types
 import Network.Curlhs.Base
-
--- import Network.Curlhs.Debug
-
-
--------------------------------------------------------------------------------
-withGlobalInitCheck :: IO a -> IO a
-withGlobalInitCheck action = action
+import Network.Curlhs.Core
+import Network.Curlhs.Types
 
 
 -------------------------------------------------------------------------------

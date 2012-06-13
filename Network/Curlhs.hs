@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Network.Curlhs.Core
+-- Module      :  Network.Curlhs
 -- Copyright   :  Copyright © 2012 Krzysztof Kardzis
 -- License     :  ISC License (MIT/BSD-style, see LICENSE file for details)
 -- 
@@ -9,7 +9,7 @@
 -- Portability :  non-portable
 --
 --
--- Module "Network.Curlhs.Core" provides a mid-level interface to @libcurl@.
+-- Module "Network.Curlhs" provides a mid-level interface to @libcurl@.
 -- For a direct low-level bindings go to "Network.Curlhs.Base".
 --
 -- API of this module follows the API of @libcurl@ as defined in version
@@ -32,27 +32,26 @@
 --
 -- > import qualified Data.ByteString.Char8 as BS
 -- > import Data.IORef (newIORef, readIORef, atomicModifyIORef)
--- > import Control.Exception (bracket)
--- > import Network.Curlhs.Core
+-- > import Network.Curlhs
 -- > 
 -- > curlGET :: BS.ByteString -> IO BS.ByteString
--- > curlGET url = do
+-- > curlGET url = withCURL $ \curl -> do
 -- >   buff <- newIORef BS.empty
--- >   bracket (curl_easy_init) (curl_easy_cleanup) $ \curl -> do
--- >     curl_easy_setopt curl
--- >       [ CURLOPT_URL     url
--- >       , CURLOPT_VERBOSE True
--- >       , CURLOPT_WRITEFUNCTION $ Just (memwrite buff)
--- >       ]
--- >     curl_easy_perform curl
+-- >   curl_easy_setopt curl
+-- >     [ CURLOPT_URL     url
+-- >     , CURLOPT_VERBOSE True
+-- >     , CURLOPT_WRITEFUNCTION $ Just (memwrite buff)
+-- >     ]
+-- >   curl_easy_perform curl
 -- >   readIORef buff
--- > 
+-- >
+-- > memwrite :: IORef BS.ByteString -> CURL_write_callback
 -- > memwrite buff newbs = atomicModifyIORef buff $ \oldbuff ->
 -- >   (BS.append oldbuff newbs, CURL_WRITEFUNC_OK)
 --
 -------------------------------------------------------------------------------
 
-module Network.Curlhs.Core (
+module Network.Curlhs (
 
   -- * Global interface
 
@@ -65,80 +64,30 @@ module Network.Curlhs.Core (
   , CURL_version_info_data (..)
   , CURL_version (..)
 
-  -- ** Error codes
-  -- |  More about error codes in libcurl on
-  --    <http://curl.haxx.se/libcurl/c/libcurl-errors.html>
-  , curl_easy_strerror
-  , CURLcode (..)
-  , curl_share_strerror
-  , CURLSHcode (..)
-
   -- * Easy interface
   -- | See <http://curl.haxx.se/libcurl/c/libcurl-easy.html>
   --   for easy interface overview.
 
-  -- ** Init, reset, cleanup
-  , CURL
-  , withCURL
-  , curl_easy_reset
+  , module Network.Curlhs.Easy
 
-  -- ** Transfer
-  , curl_easy_perform
-  , curl_easy_recv
-  , curl_easy_send
+  -- * Multi interface
+  -- | See <http://curl.haxx.se/libcurl/c/libcurl-multi.html>
+  --   for multi interface overview.
 
-  -- ** Get info
-  , curl_easy_getinfo
-  , CURLinfo (..)
-
-  -- ** Set options
-  , curl_easy_setopt
-  , CURLoption (..)
-
-  -- *** Callbacks
-  , CURL_write_callback, CURL_write_response (..)
-  , CURL_read_callback , CURL_read_response  (..)
-
-  -- *** Constants
-  , CURLproto     (..)
-  , CURLproxy     (..)
-  , CURLnetrc     (..)
-  , CURLauth      (..)
-  , CURLtlsauth   (..) |7214:----|
-  , CURLredir     (..)
-  , CURLhttpver   (..)
-  , CURLftpcreate (..)
-  , CURLftpauth   (..)
-  , CURLftpssl    (..)
-  , CURLftpmethod (..)
-  , CURLrtspreq   (..)
-  , CURLtimecond  (..)
-  , CURLclosepol  (..)
-  , CURLipresolve (..)
-  , CURLusessl    (..)
-  , CURLsslver    (..)
-  , CURLsslopt    (..) |7250:----|
-  , CURLgssapi    (..) |7220:----|
-  , CURLsshauth   (..)
+  , module Network.Curlhs.Multi
 
   -- * Share interface
   -- | See <http://curl.haxx.se/libcurl/c/libcurl-share.html>
   --   for share interface overview.
 
-  -- ** Init, cleanup
-  , CURLSH
-  , withCURLSH
-
-  -- ** Set options
-  , curl_share_setopt
-  , CURLSHoption (..)
-
-  -- *** Constants
-  , CURLSHlockdata (..)
+  , module Network.Curlhs.Share
 
   ) where
 
-import Network.Curlhs.Types
 import Network.Curlhs.Easy
+import Network.Curlhs.Multi
 import Network.Curlhs.Share
+
+import Network.Curlhs.Core
+import Network.Curlhs.Types
 

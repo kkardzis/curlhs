@@ -66,17 +66,16 @@ library
     time       == 1.*
 
   exposed-modules:
+    Network.Curlhs
     Network.Curlhs.Base
-    Network.Curlhs.Core
+    Network.Curlhs.Easy
+    Network.Curlhs.Multi
+    Network.Curlhs.Share
 
   other-modules:
-    Network.Curlhs.Easy
-    -- Network.Curlhs.Multi
-    Network.Curlhs.Share
-    Network.Curlhs.Setopt
-    Network.Curlhs.Errors
+    Network.Curlhs.Core
+    Network.Curlhs.Easy2
     Network.Curlhs.Types
-    Network.Curlhs.Debug
 
   -- maybe not elegant, but convenient during tests
   -- if os(windows)

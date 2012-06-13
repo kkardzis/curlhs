@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Network.Curlhs.Setopt
+-- Module      :  Network.Curlhs.Easy2
 -- Copyright   :  Copyright © 2012 Krzysztof Kardzis
 -- License     :  ISC License (MIT/BSD-style, see LICENSE file for details)
 -- 
@@ -10,7 +10,7 @@
 --
 -------------------------------------------------------------------------------
 
-module Network.Curlhs.Setopt
+module Network.Curlhs.Easy2
   ( curl_easy_setopt
   , freeCallbacks
   ) where
@@ -29,9 +29,9 @@ import qualified Data.ByteString as BS
 import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.ByteString        (ByteString, useAsCString, packCStringLen)
 
-import Network.Curlhs.Errors
-import Network.Curlhs.Types
 import Network.Curlhs.Base
+import Network.Curlhs.Core
+import Network.Curlhs.Types
 
 
 -------------------------------------------------------------------------------

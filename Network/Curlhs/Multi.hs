@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Network.Curlhs.Debug
+-- Module      :  Network.Curlhs.Multi
 -- Copyright   :  Copyright © 2012 Krzysztof Kardzis
 -- License     :  ISC License (MIT/BSD-style, see LICENSE file for details)
 -- 
@@ -8,15 +8,11 @@
 -- Stability   :  experimental
 -- Portability :  non-portable
 --
+--
+-- TODO
 -------------------------------------------------------------------------------
 
-module Network.Curlhs.Debug
-  ( traceIO
+module Network.Curlhs.Multi
+  ( undefined
   ) where
-
-import Control.Concurrent (myThreadId)
-import Debug.Trace        (putTraceMsg)
-
-traceIO :: String -> IO ()
-traceIO s = myThreadId >>= \t -> putTraceMsg ("[" ++ show t ++ "] " ++ s)
 

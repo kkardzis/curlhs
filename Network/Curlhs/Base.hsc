@@ -13,7 +13,7 @@
 -- @libcurl@. It is basically a 1:1 mapping of the @libcurl@'s C API,
 -- a direct translation of \"curl/curl.h\" header files to Haskell FFI.
 -- A higher level interface, without ubiquitous pointers and all of that
--- C stuff, is provided through the module "Network.Curlhs.Core".
+-- C stuff, is provided through the module "Network.Curlhs".
 --
 -- Documentation about the library and/or particular functions may be found
 -- in the @libcurl@'s manual pages or on the @libcurl@'s project site

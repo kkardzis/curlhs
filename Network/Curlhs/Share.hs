@@ -33,9 +33,9 @@ module Network.Curlhs.Share (
 
   ) where
 
-import Foreign.Ptr        (Ptr, freeHaskellFunPtr, nullPtr)
+import Foreign.Ptr        (freeHaskellFunPtr)
 
-import Control.Exception  (throwIO, bracket, bracketOnError)
+import Control.Exception  (bracket, bracketOnError)
 import Control.Concurrent (MVar, newMVar, takeMVar, tryPutMVar, modifyMVar)
 
 import Network.Curlhs.Base
@@ -55,12 +55,6 @@ withCURLSH = bracket curl_share_init curl_share_cleanup
 curl_share_init :: IO CURLSH
 curl_share_init = do
   ccurlsh <- withGlobalInitCheck ccurl_share_init
-  if (ccurlsh == nullPtr)
-    then throwIO CURLE_FAILED_INIT -- should be some CURLSHE error
-    else newCURLSH ccurlsh
-
-newCURLSH :: Ptr CCURLSH -> IO CURLSH
-newCURLSH ccurlsh = do
   shlocks <- newSHLocks
   let getFLockPtr = wrap_ccurl_lock_function (lock_function shlocks)
   flock <- bracketOnError getFLockPtr freeHaskellFunPtr $ \fptr -> do

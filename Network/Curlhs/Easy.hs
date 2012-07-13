@@ -15,6 +15,8 @@ module Network.Curlhs.Easy (
   -- * Init, reset, cleanup
     CURL
   , withCURL
+  , curl_easy_init
+  , curl_easy_cleanup
   , curl_easy_reset
 
   -- * Transfer
@@ -80,9 +82,7 @@ import Data.ByteString.Unsafe (unsafeUseAsCStringLen)
 import Data.ByteString        (ByteString, packCStringLen)
 
 import Control.Applicative    ((<$>), (<*>))
-import Control.Concurrent     (newEmptyMVar, putMVar)
-import Control.Concurrent     (modifyMVar, modifyMVar_)
-import Control.Exception      (throwIO, bracket)
+import Control.Exception      (bracket)
 
 import Network.Curlhs.Base
 import Network.Curlhs.Core
@@ -92,22 +92,7 @@ import Network.Curlhs.Easy2
 
 -------------------------------------------------------------------------------
 withCURL :: (CURL -> IO a) -> IO a
-withCURL = bracket (withLock curl_easy_init) (withUnlock curl_easy_cleanup)
-
-withLock :: IO a -> IO a
-withLock takeCurlResource = modifyMVar curlGlobalLocks $ \locks ->
-  if (null locks) then (throwIO CURLE_FAILED_INIT) else do
-    curl <- takeCurlResource
-    lock <- newEmptyMVar
-    return ((lock:locks), curl)
-
-withUnlock :: (a -> IO ()) -> a -> IO ()
-withUnlock freeCurlResource curl = modifyMVar_ curlGlobalLocks $ \locks ->
-  if (null locks) then (error "something bad with 'curlhs'") else do
-    freeCurlResource curl
-    putMVar (head locks) ()
-    return (tail locks)
-
+withCURL = bracket curl_easy_init curl_easy_cleanup
 
 
 -------------------------------------------------------------------------------
@@ -115,9 +100,9 @@ withUnlock freeCurlResource curl = modifyMVar_ curlGlobalLocks $ \locks ->
 --   (<http://curl.haxx.se/libcurl/c/curl_easy_init.html>).
 -------------------------------------------------------------------------------
 curl_easy_init :: IO CURL
-curl_easy_init = ccurl_easy_init >>= \ccurl -> if (ccurl == nullPtr)
-  then throwIO CURLE_FAILED_INIT
-  else CURL ccurl
+curl_easy_init = do
+  ccurl <- withGlobalInitCheck ccurl_easy_init
+  CURL ccurl
     <$> newIORef Nothing
     <*> newIORef Nothing
 

@@ -57,6 +57,9 @@ module Network.Curlhs (
 
   -- ** Init and cleanup
     withLIBCURL
+  , curl_global_init
+  , curl_global_cleanup
+  , CURLglobal (..)
 
   -- ** Version info
   , curl_version

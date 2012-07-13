@@ -11,9 +11,10 @@
 -------------------------------------------------------------------------------
 
 module Network.Curlhs.Core
-  ( withLIBCURL
-  , withGlobalInitCheck 
-  , curlGlobalLocks  
+  ( withGlobalInitCheck 
+  , withLIBCURL
+  , curl_global_init
+  , curl_global_cleanup
   , curl_version
   , curl_version_info
 
@@ -36,8 +37,7 @@ import Data.List             (foldl')
 
 import Control.Applicative   ((<$>), (<*>))
 import Control.Concurrent    (myThreadId)
-import Control.Concurrent    (MVar, newMVar, takeMVar)
-import Control.Concurrent    (modifyMVar, modifyMVar_, tryTakeMVar)
+import Control.Concurrent    (MVar, newMVar, withMVar, modifyMVar_)
 import Control.Exception     (throwIO, bracket_)
 import Control.Monad         (when)
 
@@ -50,41 +50,25 @@ import Network.Curlhs.Types
 
 
 -------------------------------------------------------------------------------
-curlGlobalInitFlag :: MVar ()
-curlGlobalInitFlag = unsafePerformIO $ newMVar ()
-{-# NOINLINE curlGlobalInitFlag #-}
-
-curlGlobalLocks :: MVar ([MVar ()])
-curlGlobalLocks = unsafePerformIO $ newMVar []
-{-# NOINLINE curlGlobalLocks #-}
+curlGlobalInitRefCnt :: MVar Int
+curlGlobalInitRefCnt = unsafePerformIO $ newMVar 0
+{-# NOINLINE curlGlobalInitRefCnt #-}
 
 
 -------------------------------------------------------------------------------
-withGlobalInitCheck :: IO a -> IO a
-withGlobalInitCheck action = action
+withGlobalInitCheck :: IO (Ptr a) -> IO (Ptr a)
+withGlobalInitCheck takeCurlPtr =
+  withMVar curlGlobalInitRefCnt $ \refcnt ->
+    if (refcnt == 0) then throwIO CURLE_FAILED_INIT
+      else takeCurlPtr >>= \curlPtr -> if (curlPtr == nullPtr)
+        then throwIO CURLE_FAILED_INIT
+        else return curlPtr
 
 
 -------------------------------------------------------------------------------
 withLIBCURL :: IO a -> IO a
-withLIBCURL userIO = tryTakeMVar curlGlobalInitFlag >>= maybe userIO wrappedIO
-  where wrappedIO _ = bracket_ globalInit globalCleanup userIO
-
-globalInit :: IO ()
-globalInit = modifyMVar_ curlGlobalLocks $ \_ ->
-  curl_global_init [CURL_GLOBAL_ALL] >> newMVar () >>= \lock -> return [lock]
-
-globalCleanup :: IO ()
-globalCleanup = waitForLocks >> curl_global_cleanup
-
-waitForLocks :: IO ()
-waitForLocks = getLock >>= maybe (return ()) (\x -> takeMVar x >> waitForLocks)
-  where getLock = modifyMVar curlGlobalLocks $ \locks -> case locks of
-          [ ]   -> return ([], Nothing)
-          [_]   -> return ([], Nothing)
-          (x:_) -> return (locks, Just x)
-
-
-
+withLIBCURL =
+  bracket_ (curl_global_init [CURL_GLOBAL_ALL]) curl_global_cleanup
 
 
 -------------------------------------------------------------------------------
@@ -92,7 +76,10 @@ waitForLocks = getLock >>= maybe (return ()) (\x -> takeMVar x >> waitForLocks)
 --   (<http://curl.haxx.se/libcurl/c/curl_global_init.html>).
 -------------------------------------------------------------------------------
 curl_global_init :: [CURLglobal] -> IO ()
-curl_global_init xs = withCODE $ ccurl_global_init flags
+curl_global_init xs =
+  modifyMVar_ curlGlobalInitRefCnt $ \refcnt -> do
+    when (refcnt == 0) (withCODE $ ccurl_global_init flags)
+    return (refcnt+1)
   where
     flags = foldl' (.|.) 0 $ flip map xs $ \x -> case x of
       CURL_GLOBAL_ALL     -> cCURL_GLOBAL_ALL
@@ -107,7 +94,10 @@ curl_global_init xs = withCODE $ ccurl_global_init flags
 --   (<http://curl.haxx.se/libcurl/c/curl_global_cleanup.html>).
 -------------------------------------------------------------------------------
 curl_global_cleanup :: IO ()
-curl_global_cleanup = ccurl_global_cleanup
+curl_global_cleanup =
+  modifyMVar_ curlGlobalInitRefCnt $ \refcnt -> do
+    when (refcnt == 1) (ccurl_global_cleanup)
+    return $ if (refcnt == 0) then refcnt else (refcnt-1)
 
 
 -------------------------------------------------------------------------------

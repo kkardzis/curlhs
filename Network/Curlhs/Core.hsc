@@ -189,7 +189,7 @@ curl_easy_strerror code =
 
 
 -------------------------------------------------------------------------------
-#define hsc_curlcode(code) printf(#code " -> c" #code);
+#{let curlcode code = #code " -> c" #code}
 
 fromCURLcode :: CURLcode -> CCURLcode
 fromCURLcode x = case x of
@@ -276,7 +276,7 @@ fromCURLcode x = case x of
 
 
 -------------------------------------------------------------------------------
-#define hsc_ccurlcode(code) printf("| x == c" #code " = " #code);
+#{let ccurlcode code = "| x == c" #code " = " #code}
 
 fromCCURLcode :: CCURLcode -> CURLcode
 fromCCURLcode x
@@ -382,7 +382,7 @@ curl_share_strerror code =
 
 
 -------------------------------------------------------------------------------
-#define hsc_curlshcode(code) printf(#code " -> c" #code);
+#{let curlshcode code = #code " -> c" #code}
 
 fromCURLSHcode :: CURLSHcode -> CCURLSHcode
 fromCURLSHcode x = case x of
@@ -395,7 +395,7 @@ fromCURLSHcode x = case x of
 
 
 -------------------------------------------------------------------------------
-#define hsc_ccurlshcode(code) printf("| x == c" #code " = " #code);
+#{let ccurlshcode code = "| x == c" #code " = " #code}
 
 fromCCURLSHcode :: CCURLSHcode -> CURLSHcode
 fromCCURLSHcode x

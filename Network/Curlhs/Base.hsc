@@ -37,16 +37,11 @@
 
 module Network.Curlhs.Base where
 
-import Foreign.C.Types  (CChar, CInt, CUInt, CLong, CLLong, CDouble)
-import Foreign.C.Types  (CSize, CFile, CTime)
-import Foreign.Ptr      (Ptr, FunPtr, castPtr)
+import Foreign.C.Types
 import Foreign.Storable (Storable (..))
+import Foreign.Ptr      (Ptr, FunPtr, castPtr)
 
 import Control.Applicative ((<$>), (<*>))
-
-#if defined(WIN32) && !defined(__LWIP_OPT_H__)
-import Foreign.C.Types  (CUIntPtr)
-#endif
 
 
 -------------------------------------------------------------------------------

@@ -60,7 +60,7 @@ makeCallback Nothing ref setcb _ = withCODE $ do
 
 
 -------------------------------------------------------------------------------
-#define hsc_setopt(opt, fun) printf(#opt " x -> " #fun " c" #opt " x");
+#{let setopt opt, fun = #opt " x -> " #fun " c" #opt " x"}
 
 -------------------------------------------------------------------------------
 -- | Set options for a curl easy handle
@@ -334,7 +334,7 @@ fromUTCTime = truncate . utcTimeToPOSIXSeconds
 
 
 -------------------------------------------------------------------------------
-#define hsc_option(opt) printf(#opt " -> c" #opt);
+#{let option opt = #opt " -> c" #opt}
 
 class CURLenum a where
   fromCURLenum :: a -> CLong

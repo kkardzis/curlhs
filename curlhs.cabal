@@ -1,17 +1,17 @@
 name:           curlhs
-version:        0.0.0
+version:        0.0.0-dev
 synopsis:       bindings to libcurl, the multiprotocol file transfer library
 author:         Krzysztof Kardzis <kkardzis@gmail.com>
 maintainer:     Krzysztof Kardzis <kkardzis@gmail.com>
-copyright:      Copyright © 2012 Krzysztof Kardzis
+copyright:      Copyright © 2012-2013 Krzysztof Kardzis
 -- license:     ISC License (MIT/BSD-style, see LICENSE file for details)
 license:        OtherLicense
 license-file:   LICENSE
 category:       Network, Web, FFI
 stability:      Experimental
-build-type:     Custom
+build-type:     Simple
 cabal-version:  >=1.6
-tested-with:    GHC ==7.0.3
+tested-with:    GHC ==7.4.1
 homepage:       https://github.com/kkardzis/curlhs
 
 description:
@@ -37,52 +37,45 @@ description:
   /supported, fast, thoroughly documented and is already used by many        /
   /known, big and successful companies and numerous applications.            /
   .
-  Package @curlhs@ depends on @libcurl@ as an external library. To compile
-  and later use @curlhs@, it is required to first install @libcurl@ somewhere
-  on the system, best in place that is easy to locate by the compiler.
-  Information about how to compile and install @libcurl@ may be found on
-  its project site. A simple way may be to use one of the available
-  precompiled packages.
-  .
-  Current version of @curlhs@ follows @libcurl@ in version 7.25.0. It is
-  also possible to use @curlhs@ with older versions of @libcurl@, but some
-  features may not be available then (@curlhs@ should easily compile
-  with @libcurl@ from version 7.20.0 upward).
-  .
   Package is distributed under ISC License (MIT/BSD-style, see LICENSE file
   for details). It is marked as @OtherLicense@ due to limitations of Cabal.
 
 extra-source-files:
   README
+  Network/CURL000/curl-7.30.0/COPYING
+  Network/CURL000/curl-7.30.0/curl.h
+  Network/CURL000/curl-7.30.0/curlbuild.h
+  Network/CURL000/curl-7.30.0/curlrules.h
+  Network/CURL000/curl-7.30.0/curlver.h
+  Network/CURL000/curl-7.30.0/easy.h
+  Network/CURL000/curl-7.30.0/multi.h
+  Network/CURL000/curl-7.30.0/stdcheaders.h
+  Network/CURL000/curl-7.30.0/typecheck-gcc.h
 
 library
-  extra-libraries: curl
-  build-tools:     hsc2hs
-  ghc-options:     -Wall -fwarn-tabs
+  ghc-options: -Wall -fwarn-tabs
+  build-tools: hsc2hs
 
   build-depends:
-    bytestring == 0.9.*,
-    base       == 4.*,
-    time       == 1.*
+    base, rtld, bytestring, time
 
   exposed-modules:
-    Network.Curlhs
-    Network.Curlhs.Base
-    Network.Curlhs.Easy
-    Network.Curlhs.Multi
-    Network.Curlhs.Share
+    Network.CURL720
+    Network.CURL730
 
   other-modules:
-    Network.Curlhs.Core
-    Network.Curlhs.Easy2
-    Network.Curlhs.Types
+    Network.CURL000.LibCC
+    Network.CURL000.LibHS
+    Network.CURL000.LibLD
+    Network.CURL000.Types
 
-  -- maybe not elegant, but convenient during tests
-  -- if os(windows)
-  --   include-dirs:   .\curl-7.25.0-devel-mingw32\include
-  --   extra-lib-dirs: .\curl-7.25.0-devel-mingw32\bin
+  c-sources:
+    Network/CURL000/LibC0.c
+
+  include-dirs:
+    Network/CURL000
 
 source-repository head
-  type:     git
   location: https://github.com/kkardzis/curlhs
+  type:     git
 

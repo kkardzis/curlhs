@@ -566,8 +566,8 @@ data CURLoption
  -- CURLOPT_HTTPPOST                [CURL_httppost]
   | CURLOPT_REFERER                 String
   | CURLOPT_USERAGENT               String
- -- CURLOPT_HTTPHEADER              [String]
- -- CURLOPT_HTTP200ALIASES          [String]
+  | CURLOPT_HTTPHEADER              [String]
+  | CURLOPT_HTTP200ALIASES          [String]
   | CURLOPT_COOKIE                  String -- or better [String]
   | CURLOPT_COOKIEFILE              FilePath
   | CURLOPT_COOKIEJAR               FilePath
@@ -581,7 +581,7 @@ data CURLoption
 
   ---- SMTP OPTIONS -----------------------------------------------------------
   | CURLOPT_MAIL_FROM               String
- -- CURLOPT_MAIL_RCTP               [String]
+  | CURLOPT_MAIL_RCPT               [String]
   | CURLOPT_MAIL_AUTH               String
 
   ---- TFTP OPTIONS -----------------------------------------------------------
@@ -589,9 +589,9 @@ data CURLoption
 
   ---- FTP OPTIONS ------------------------------------------------------------
   | CURLOPT_FTPPORT                 String
- -- CURLOPT_QUOTE                   [String]
- -- CURLOPT_POSTQUOTE               [String]
- -- CURLOPT_PREQUOTE                [String]
+  | CURLOPT_QUOTE                   [String]
+  | CURLOPT_POSTQUOTE               [String]
+  | CURLOPT_PREQUOTE                [String]
   | CURLOPT_DIRLISTONLY             Bool
   | CURLOPT_APPEND                  Bool
   | CURLOPT_FTP_USE_EPRT            Bool
@@ -611,7 +611,7 @@ data CURLoption
   | CURLOPT_RTSP_SESSION_ID         String
   | CURLOPT_RTSP_STREAM_URI         String
   | CURLOPT_RTSP_TRANSPORT          String
- -- CURLOPT_RTSP_HEADER             [String]
+  | CURLOPT_RTSP_HEADER             [String]
   | CURLOPT_RTSP_CLIENT_CSEQ        CLong
   | CURLOPT_RTSP_SERVER_CSEQ        CLong
 
@@ -649,7 +649,7 @@ data CURLoption
   | CURLOPT_IPRESOLVE               CURLipresolve
   | CURLOPT_CONNECT_ONLY            Bool
   | CURLOPT_USE_SSL                 CURLusessl
- -- CURLOPT_RESOLVE                 [String]
+  | CURLOPT_RESOLVE                 [String]
   | CURLOPT_DNS_SERVERS             String -- or better [String]
   | CURLOPT_ACCEPTTIMEOUT_MS        CLong
 
@@ -693,7 +693,7 @@ data CURLoption
   | CURLOPT_NEW_DIRECTORY_PERMS     CLong
 
   ---- TELNET OPTIONS ---------------------------------------------------------
- -- CURLOPT_TELNETOPTIONS           [String]
+  | CURLOPT_TELNETOPTIONS           [String]
 
 
 -------------------------------------------------------------------------------

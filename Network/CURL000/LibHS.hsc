@@ -287,7 +287,7 @@ curl_easy_send (CURL ccurl _ _) bs =
 #define hsc_getopt(opt, foo) printf(#opt " -> getopt %d " #foo, opt)
 curl_easy_getinfo :: CURL -> CURLinfo a -> IO a
 curl_easy_getinfo (CURL ccurl _ _) opt =
-  let getopt :: Storable x => C.CURLinfo -> (Ptr x -> IO a) -> IO a
+  let getopt :: Storable x => CInt -> (Ptr x -> IO a) -> IO a
       getopt x fpeek = alloca $ \ptr -> getptr x (castPtr ptr) >> fpeek ptr
       getptr x ptr = withCURLE $ C.curl_easy_getinfo ccurl x ptr
   in case opt of
@@ -587,9 +587,9 @@ curl_easy_setopt curl@(CURL ccurl _ _) opts = forM_ opts $ \opt -> case opt of
 
   -----------------------------------------------------------------------------
   where
-    curlcb :: CURLCBT a -> C.CURLoption -> Maybe a -> IO ()
+    curlcb :: CURLCBT a -> CInt -> Maybe a -> IO ()
     curlcb cbt copt x = makeCB curl copt x cbt
-    enum :: CURLENUM a => C.CURLoption -> a -> IO ()
+    enum :: CURLENUM a => CInt -> a -> IO ()
     enum   copt x = setopt'Long ccurl copt (toCLong      x)
     bool   copt x = setopt'Long ccurl copt (fromBool     x)
     time   copt x = setopt'Long ccurl copt (fromUTCTime  x)
@@ -603,21 +603,21 @@ curl_easy_setopt curl@(CURL ccurl _ _) opts = forM_ opts $ \opt -> case opt of
 
 
 -------------------------------------------------------------------------------
-setopt'Long :: Ptr C.CURL -> C.CURLoption -> CLong -> IO ()
+setopt'Long :: Ptr C.CURL -> CInt -> CLong -> IO ()
 setopt'Long a b c = withCURLE $ C.curl_easy_setopt'Long a b c
 
-setopt'COff :: Ptr C.CURL -> C.CURLoption -> C.CURL_off_t -> IO ()
+setopt'COff :: Ptr C.CURL -> CInt -> C.CURL_off_t -> IO ()
 setopt'COff a b c = withCURLE $ C.curl_easy_setopt'COff a b c
 
-setopt'DPtr :: Ptr C.CURL -> C.CURLoption -> Ptr () -> IO ()
+setopt'DPtr :: Ptr C.CURL -> CInt -> Ptr () -> IO ()
 setopt'DPtr a b c = withCURLE $ C.curl_easy_setopt'DPtr a b c
 
-setopt'FPtr :: Ptr C.CURL -> C.CURLoption -> FunPtr () -> IO ()
+setopt'FPtr :: Ptr C.CURL -> CInt -> FunPtr () -> IO ()
 setopt'FPtr a b c = withCURLE $ C.curl_easy_setopt'FPtr a b c
 
 
 -------------------------------------------------------------------------------
-type CURLSL = (C.CURLoption, Ptr C.CURLslist)
+type CURLSL = (CInt, Ptr C.CURLslist)
 
 wrapSL :: Ptr C.CURLslist -> String -> IO (Ptr C.CURLslist)
 wrapSL sl xs = do
@@ -631,7 +631,7 @@ keepSL sl@(copt, ptr) sls = (tokeep, tofree) where
   tokeep = if (ptr==nullPtr) then tokeep0 else (sl:tokeep0)
   tofree = map snd tofree0
 
-makeSL :: CURL -> C.CURLoption -> [String] -> IO ()
+makeSL :: CURL -> CInt -> [String] -> IO ()
 makeSL (CURL ccurl _ slref) copt xs = do
   sl <- foldM wrapSL nullPtr xs
   setopt'DPtr ccurl copt (castPtr sl) `onException` (C.curl_slist_free_all sl)
@@ -663,7 +663,7 @@ keepCB cb@(CURLCB cbt fp) cbs = (tokeep, tofree) where
   tokeep = if (fp==nullFunPtr) then tokeep0 else (cb:tokeep0)
   tofree = map (\(CURLCB _ p) -> castFunPtr p) tofree0
 
-makeCB :: CURL -> C.CURLoption -> Maybe a -> CURLCBT a -> IO ()
+makeCB :: CURL -> CInt -> Maybe a -> CURLCBT a -> IO ()
 makeCB (CURL ccurl cbref _) copt mcb cbt = do
   fp <- maybe (return nullFunPtr) (wrapCB cbt) mcb
   let freefp = when (fp/=nullFunPtr) (freeHaskellFunPtr fp)

@@ -87,16 +87,12 @@ module Network.CURL000.LibCC
   , CURL_lock_function  , wrapCURL_lock_function
   , CURL_unlock_function, wrapCURL_unlock_function
 
-  , CURL
-  , CURLM
-  , CURLSH
-
-  , CURLinfo
-  , CURLoption
-  , CURL_off_t
+  , CURL, CURLM, CURLSH
 
   , CURLslist (..)
   , CURLcerts (..)
+
+  , CURL_off_t
 
   ) where
 

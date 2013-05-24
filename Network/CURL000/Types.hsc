@@ -9,6 +9,7 @@
 -- Portability :  non-portable
 --
 -------------------------------------------------------------------------------
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE EmptyDataDecls     #-}
 {-# LANGUAGE GADTs              #-}
@@ -36,9 +37,11 @@ import Foreign.Ptr
 -------------------------------------------------------------------------------
 class CURLENUM a where
   toCEnum :: a -> Int
+  enumlist :: [a]
 
 instance CURLENUM a => CURLENUM [a] where
   toCEnum = foldl' (.|.) 0 . map toCEnum
+  enumlist = []
 
 toCInt :: CURLENUM a => a -> CInt
 toCInt = fromIntegral . toCEnum
@@ -46,26 +49,28 @@ toCInt = fromIntegral . toCEnum
 toCLong :: CURLENUM a => a -> CLong
 toCLong = fromIntegral . toCEnum
 
-fromCInt :: (CURLENUM a, Enum a, Bounded a, Typeable a) => CInt -> a
+fromCIntMask :: CURLENUM a => CInt -> [a]
+fromCIntMask mask =
+  let checkBit x = if ((mask .&. (toCInt x)) == 0) then Nothing else Just x
+  in  mapMaybe checkBit enumlist
+
+fromCLongMask :: CURLENUM a => CLong -> [a]
+fromCLongMask mask =
+  let checkBit x = if ((mask .&. (toCLong x)) == 0) then Nothing else Just x
+  in  mapMaybe checkBit enumlist
+
+fromCInt :: (CURLENUM a, Typeable a) => CInt -> a
 fromCInt cval =
-  let enums = map (\enum -> (toCInt enum, enum)) [minBound .. maxBound]
+  let enums = map (\enum -> (toCInt enum, enum)) enumlist
       enumE = error $ concat ["<curlhs> unknown constant (", v, ") -> ", t]
       (v,t) = (show cval, show $ typeOf $ snd $ head enums)
   in  maybe enumE id $ lookup cval enums
 
-fromCIntMask :: (CURLENUM a, Enum a, Bounded a) => CInt -> [a]
-fromCIntMask mask =
-  let checkBit x = if ((mask .&. (toCInt x)) == 0) then Nothing else Just x
-  in  mapMaybe checkBit [minBound .. maxBound]
-
-fromCLongMask :: (CURLENUM a, Enum a, Bounded a) => CLong -> [a]
-fromCLongMask mask =
-  let checkBit x = if ((mask .&. (toCLong x)) == 0) then Nothing else Just x
-  in  mapMaybe checkBit [minBound .. maxBound]
-
 
 
 -------------------------------------------------------------------------------
+deriving instance Typeable CURLcode
+deriving instance Show CURLcode
 instance Exception CURLcode
 
 #{CURLENUM CURLcode              \
@@ -150,6 +155,8 @@ instance Exception CURLcode
 
 
 -------------------------------------------------------------------------------
+deriving instance Typeable CURLSHcode
+deriving instance Show CURLSHcode
 instance Exception CURLSHcode
 
 #{CURLENUM CURLSHcode  \
@@ -161,6 +168,8 @@ instance Exception CURLSHcode
 
 
 -------------------------------------------------------------------------------
+deriving instance Typeable CURLMcode
+deriving instance Show CURLMcode
 instance Exception CURLMcode
 
 #{CURLENUM CURLMcode       \
@@ -174,6 +183,8 @@ instance Exception CURLMcode
 
 
 -------------------------------------------------------------------------------
+deriving instance Show CURL_version
+
 #{CURLENUM CURL_version     \
 , CURL_VERSION_IPV6         \
 , CURL_VERSION_KERBEROS4    \

@@ -226,8 +226,8 @@ int curlOptFPtr(setoptFP setopt, void *handle, int opt, void (*val)()) {
       printf("  |%s\n", x);                                   \
     };                                                        \
   };                                                          \
-  printf("  deriving (Eq, Enum, Bounded, Show, Typeable)\n"); \
   printf("\ninstance CURLENUM " #type " where\n");            \
+  printf("  enumlist = [ " #__VA_ARGS__ " ]\n");              \
   printf("  toCEnum x = case x of\n");                        \
   { char *x, xs[] = #__VA_ARGS__;                             \
     int i=1, vs[] = {__VA_ARGS__};                            \

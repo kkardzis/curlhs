@@ -183,9 +183,9 @@ instance Exception CURLMcode
 
 
 -------------------------------------------------------------------------------
-deriving instance Show CURL_version
+deriving instance Show CURLfeature
 
-#{CURLENUM CURL_version     \
+#{CURLENUM CURLfeature      \
 , CURL_VERSION_IPV6         \
 , CURL_VERSION_KERBEROS4    \
 , CURL_VERSION_SSL          \
@@ -193,13 +193,13 @@ deriving instance Show CURL_version
 , CURL_VERSION_NTLM         \
 , CURL_VERSION_GSSNEGOTIATE \
 , CURL_VERSION_DEBUG        \
+, CURL_VERSION_CURLDEBUG    \
 , CURL_VERSION_ASYNCHDNS    \
 , CURL_VERSION_SPNEGO       \
 , CURL_VERSION_LARGEFILE    \
 , CURL_VERSION_IDN          \
 , CURL_VERSION_SSPI         \
 , CURL_VERSION_CONV         \
-, CURL_VERSION_CURLDEBUG    \
 , CURL_VERSION_TLSAUTH_SRP  \
 , CURL_VERSION_NTLM_WB      }
 
@@ -275,6 +275,7 @@ deriving instance Show CURL_version
 , CURL_REDIR_GET_ALL  \
 , CURL_REDIR_POST_301 \
 , CURL_REDIR_POST_302 \
+, CURL_REDIR_POST_303 \
 , CURL_REDIR_POST_ALL }
 
 
@@ -337,6 +338,7 @@ deriving instance Show CURL_version
 , CURL_TIMECOND_LASTMOD      }
 
 
+{-
 -------------------------------------------------------------------------------
 #{CURLENUM CURLclosepol               \
 , CURLCLOSEPOLICY_NONE                \
@@ -345,6 +347,7 @@ deriving instance Show CURL_version
 , CURLCLOSEPOLICY_LEAST_TRAFFIC       \
 , CURLCLOSEPOLICY_SLOWEST             \
 , CURLCLOSEPOLICY_CALLBACK            }
+-}
 
 
 -------------------------------------------------------------------------------
@@ -390,6 +393,7 @@ deriving instance Show CURL_version
 , CURLSSH_AUTH_PASSWORD  \
 , CURLSSH_AUTH_HOST      \
 , CURLSSH_AUTH_KEYBOARD  \
+, CURLSSH_AUTH_AGENT     \
 , CURLSSH_AUTH_DEFAULT   }
 
 
@@ -415,7 +419,7 @@ data CURL_version_info = CURL_version_info
   { curl_version_info_version         :: String
   , curl_version_info_version_num     :: Int
   , curl_version_info_host            :: String
-  , curl_version_info_features        :: [CURL_version]
+  , curl_version_info_features        :: [CURLfeature]
   , curl_version_info_ssl_version     :: String
   , curl_version_info_ssl_version_num :: Int
   , curl_version_info_libz_version    :: String
@@ -454,6 +458,7 @@ data CURLinfo a where
   CURLINFO_CONTENT_LENGTH_DOWNLOAD :: CURLinfo Double     -- CDouble
   CURLINFO_CONTENT_LENGTH_UPLOAD   :: CURLinfo Double     -- CDouble
   CURLINFO_CONTENT_TYPE            :: CURLinfo String     -- Ptr CChar
+  -- CURLINFO_PRIVATE
   CURLINFO_HTTPAUTH_AVAIL          :: CURLinfo [CURLauth] -- CLong
   CURLINFO_PROXYAUTH_AVAIL         :: CURLinfo [CURLauth] -- CLong
   CURLINFO_OS_ERRNO                :: CURLinfo CLong      -- CLong

@@ -158,7 +158,7 @@ peekCString0 ptr = if (ptr==nullPtr) then return [] else peekCAString ptr
 peekCStringL :: Ptr (Ptr CChar) -> IO [String]
 peekCStringL ptr = peekArray0 nullPtr ptr >>= mapM peekCAString
 
-peekCFeatures :: CInt -> IO [CURL_version]
+peekCFeatures :: CInt -> IO [CURLfeature]
 peekCFeatures = return . fromCIntMask
 
 peekCUInt :: CUInt -> IO Int

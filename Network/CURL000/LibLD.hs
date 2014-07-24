@@ -18,10 +18,10 @@ import Network.CURL000.LibCC (curlADRTAB, curlSYMTAB, curlTABLEN)
 import Network.CURL000.LibHS (curl_global_init, curl_global_cleanup)
 import Network.CURL000.LibHS (curl_version)
 
-import Data.List (stripPrefix)
+import Text.ParserCombinators.ReadP (readP_to_S, string)
+import Text.Read.Lex (readDecP)
 
 import Control.Concurrent (MVar, newMVar)
-
 import System.IO.Unsafe (unsafePerformIO)
 
 import System.Info (os)
@@ -75,21 +75,21 @@ libname CURL729 = "libcurl 7.29.0"
 libname CURL730 = "libcurl 7.30.0"
 
 readapi :: String -> Maybe CURLAPI
-readapi xs = do
-  num <- fmap (takeWhile (/='.')) (stripPrefix "libcurl/7." xs)
-  case num of
-    "20" -> Just CURL720
-    "21" -> Just CURL721
-    "22" -> Just CURL722
-    "23" -> Just CURL723
-    "24" -> Just CURL724
-    "25" -> Just CURL725
-    "26" -> Just CURL726
-    "27" -> Just CURL727
-    "28" -> Just CURL728
-    "29" -> Just CURL729
-    "30" -> Just CURL730
-    _    -> Nothing
+readapi xs =
+  case (readP_to_S (string "libcurl/7." >> readDecP) xs) of
+    [(20,_)] -> Just CURL720
+    [(21,_)] -> Just CURL721
+    [(22,_)] -> Just CURL722
+    [(23,_)] -> Just CURL723
+    [(24,_)] -> Just CURL724
+    [(25,_)] -> Just CURL725
+    [(26,_)] -> Just CURL726
+    [(27,_)] -> Just CURL727
+    [(28,_)] -> Just CURL728
+    [(29,_)] -> Just CURL729
+    [(30,_)] -> Just CURL730
+    [(mv,_)] -> if (mv > (30::Int)) then Just CURL730 else Nothing
+    _ -> Nothing
 
 
 -------------------------------------------------------------------------------

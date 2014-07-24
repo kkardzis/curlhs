@@ -117,7 +117,7 @@ foreign import ccall "&curlADRTAB" curlADRTAB :: Ptr (FunPtr ())
 foreign import ccall "&curlSYMTAB" curlSYMTAB :: Ptr SYMTABENTRY
 
 curlTABLEN :: Int
-curlTABLEN = #{const SYMTABLEN}
+curlTABLEN = #{const TABLEN}
 
 peekFP :: Int -> IO (FunPtr a)
 peekFP fid = do

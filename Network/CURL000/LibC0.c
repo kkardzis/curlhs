@@ -24,10 +24,11 @@
 enum { CURL720, CURL721, CURL722, CURL723, CURL724
      , CURL725, CURL726, CURL727, CURL728, CURL729
      , CURL730
-     , CURLXXX
      };
 
+#define CURLXXX CURL730
 #define SYMTAB curlSYMTAB
+
 SYMTABENTRY curlSYMTAB[] =
   { {CURL720, CURLXXX, "curl_easy_cleanup"}
   , {CURL720, CURLXXX, "curl_easy_duphandle"}
@@ -90,7 +91,9 @@ SYMTABENTRY curlSYMTAB[] =
   , {CURL720, CURLXXX, "curl_version_info"}
   };
 
-void* curlADRTAB[TABLEN] = {NULL};
+/* Force section .data instead of default .bss, because with .bss something  */
+/* wrong happens during linking in ghci/runghc (at least on FreeBSD).        */
+void* __attribute__((section(".data"))) curlADRTAB[TABLEN] = {};
 
 
 /* ------------------------------------------------------------------------- */

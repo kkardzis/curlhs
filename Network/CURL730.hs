@@ -540,7 +540,6 @@ module Network.CURL730
       , CURLSHOPT_UNSHARE
       )
 
-  -- *** Constants
   , CURLSHlockdata
       ( CURL_LOCK_DATA_COOKIE
       , CURL_LOCK_DATA_DNS

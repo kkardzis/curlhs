@@ -740,18 +740,17 @@ curl_share_cleanup curlsh@(CURLSH _ mvar) =
 -- | Set options for a shared object
 --   (<http://curl.haxx.se/libcurl/c/curl_share_setopt.html>).
 -------------------------------------------------------------------------------
-curl_share_setopt :: CURLSH -> [CURLSHoption] -> IO ()
-curl_share_setopt curlsh@(CURLSH _ mvar) opts =
+curl_share_setopt :: CURLSH -> CURLSHoption a -> a -> IO ()
+curl_share_setopt curlsh@(CURLSH _ mvar) opt x =
   withMVar mvar $ \(ccurlsh,_,_) -> do
     let func = "curl_share_setopt"
     when (ccurlsh==nullPtr) $ do
       desc <- C.curl_share_strerror #{const CURLSHE_INVALID} >>= peekCString0
       throwCURLSHE curlsh func desc CURLSHE_INVALID
-    let withCHECK = checkCURLSHE curlsh func
-    let enum copt x = C.curl_share_setopt'Long ccurlsh copt (toCLong x)
-    flip mapM_ opts $ \opt -> withCHECK $ case opt of
-      #{setopt CURLSHOPT_SHARE  , enum}
-      #{setopt CURLSHOPT_UNSHARE, enum}
+    let enum = C.curl_share_setopt'Long ccurlsh
+    checkCURLSHE curlsh func $ case opt of
+      CURLSHOPT_SHARE   -> enum #{const CURLSHOPT_SHARE  } (toCLong x)
+      CURLSHOPT_UNSHARE -> enum #{const CURLSHOPT_UNSHARE} (toCLong x)
 
 
 -------------------------------------------------------------------------------

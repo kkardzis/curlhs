@@ -45,7 +45,6 @@ module Network.CURL720
   --   <http://curl.haxx.se/libcurl/c/libcurl-errors.html>
   , curl_easy_strerror , CURLcode   (..)
   , curl_multi_strerror, CURLMcode  (..)
-  , curl_share_strerror, CURLSHcode (..)
 
 
   -----------------------------------------------------------------------------
@@ -479,10 +478,10 @@ module Network.CURL720
   --   for share interface overview.
   -----------------------------------------------------------------------------
 
-  -- ** Init / cleanup
-  , CURLSH, withCURLSH
+  -- ** Init / Cleanup
   , curl_share_init
   , curl_share_cleanup
+  , CURLSH
 
   -- ** Set options
   , curl_share_setopt
@@ -497,6 +496,12 @@ module Network.CURL720
       , CURL_LOCK_DATA_DNS
       , CURL_LOCK_DATA_SSL_SESSION
       )
+
+  -- ** Exceptions
+  -- | More about error codes in libcurl on
+  --   <http://curl.haxx.se/libcurl/c/libcurl-errors.html>
+  , CURLSHE (..)
+  , CURLSHC (..)
 
 
   ) where

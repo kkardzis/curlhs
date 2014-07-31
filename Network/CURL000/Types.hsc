@@ -18,7 +18,8 @@ module Network.CURL000.Types where
 
 import qualified Network.CURL000.LibCC as C
 
-import Control.Exception (Exception)
+import Control.Exception  (Exception)
+import Control.Concurrent (MVar)
 
 import Data.Time.Clock (UTCTime)
 import Data.ByteString (ByteString)
@@ -27,6 +28,7 @@ import Data.Maybe      (mapMaybe)
 import Data.List       (foldl')
 import Data.Bits       ((.|.), (.&.))
 import Data.Int        (Int64)
+import Data.Unique     (Unique, hashUnique)
 
 import Foreign.C.Types
 import Foreign.Ptr
@@ -152,19 +154,6 @@ instance Exception CURLcode
 , CURLE_RTSP_SESSION_ERROR       \
 , CURLE_FTP_BAD_FILE_LIST        \
 , CURLE_CHUNK_FAILED             }
-
-
--------------------------------------------------------------------------------
-deriving instance Typeable CURLSHcode
-deriving instance Show CURLSHcode
-instance Exception CURLSHcode
-
-#{CURLENUM CURLSHcode  \
-, CURLSHE_BAD_OPTION   \
-, CURLSHE_IN_USE       \
-, CURLSHE_INVALID      \
-, CURLSHE_NOMEM        \
-, CURLSHE_NOT_BUILT_IN }
 
 
 -------------------------------------------------------------------------------
@@ -398,20 +387,59 @@ deriving instance Show CURLfeature
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLSHlockdata    \
-, CURL_LOCK_DATA_COOKIE      \
-, CURL_LOCK_DATA_DNS         \
-, CURL_LOCK_DATA_SSL_SESSION }
+data CURLSH = CURLSH Unique (MVar ((Ptr C.CURLSH),(FunPtr ()),(FunPtr ())))
+
+instance Show CURLSH where
+  showsPrec p (CURLSH u _) = showString "CURLSH#" . showsPrec p (hashUnique u)
+
+instance Eq CURLSH where
+  (CURLSH u1 _) == (CURLSH u2 _) = u1 == u2
 
 
 -------------------------------------------------------------------------------
-data CURLSH = CURLSH (Ptr C.CURLSH) (FunPtr ()) (FunPtr ())
+data CURLSHE = CURLSHE CURLSH String String CURLSHC
+  deriving (Eq, Typeable)
+
+instance Exception CURLSHE
+
+instance Show CURLSHE where
+  showsPrec p (CURLSHE curlsh func desc code) =
+    showsPrec p code . showString " (" . showString func . showString " "
+    . showsPrec p curlsh . showString ") " . showString desc
+
+
+-------------------------------------------------------------------------------
+data CURLSHC
+  = CURLSHE_FAILED_INIT
+  | CURLSHE_BAD_OPTION
+  | CURLSHE_IN_USE
+  | CURLSHE_INVALID
+  | CURLSHE_NOMEM
+  | CURLSHE_NOT_BUILT_IN
+  | CURLSHE_UNKNOWN_ERROR
+  deriving (Show, Eq)
+
+toCURLSHC :: CInt -> CURLSHC
+toCURLSHC x = case x of
+  #{const CURLSHE_BAD_OPTION  } -> CURLSHE_BAD_OPTION
+  #{const CURLSHE_IN_USE      } -> CURLSHE_IN_USE
+  #{const CURLSHE_INVALID     } -> CURLSHE_INVALID
+  #{const CURLSHE_NOMEM       } -> CURLSHE_NOMEM
+  #{const CURLSHE_NOT_BUILT_IN} -> CURLSHE_NOT_BUILT_IN
+  _                             -> CURLSHE_UNKNOWN_ERROR
 
 
 -------------------------------------------------------------------------------
 data CURLSHoption
   = CURLSHOPT_SHARE   CURLSHlockdata
   | CURLSHOPT_UNSHARE CURLSHlockdata
+
+
+-------------------------------------------------------------------------------
+#{CURLENUM CURLSHlockdata    \
+, CURL_LOCK_DATA_COOKIE      \
+, CURL_LOCK_DATA_DNS         \
+, CURL_LOCK_DATA_SSL_SESSION }
 
 
 -------------------------------------------------------------------------------

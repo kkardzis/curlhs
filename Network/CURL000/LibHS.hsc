@@ -63,7 +63,7 @@ module Network.CURL000.LibHS
   , curl_share_cleanup
   , curl_share_init
   , curl_share_setopt
-  , curl_share_strerror
+ -- curl_share_strerror
  -- curl_slist_append
  -- curl_slist_free_all
  -- curl_strequal
@@ -73,9 +73,7 @@ module Network.CURL000.LibHS
   , curl_version_info
 
   , CURL
-  , CURLSH
   , withCURL
-  , withCURLSH
 
   ) where
 
@@ -90,10 +88,12 @@ import Data.IORef             (IORef, newIORef, atomicModifyIORef)
 import Data.Time.Clock        (UTCTime)
 import Data.Time.Clock.POSIX  (utcTimeToPOSIXSeconds, posixSecondsToUTCTime)
 import Data.List              (partition)
+import Data.Unique            (newUnique)
 
 import Control.Applicative ((<$>), (<*>))
 import Control.Concurrent  (MVar, newMVar, takeMVar, tryPutMVar, modifyMVar)
-import Control.Exception   (throwIO, bracket, onException)
+import Control.Concurrent  (withMVar, modifyMVar_)
+import Control.Exception   (throwIO, bracket, bracketOnError, onException)
 import Control.Monad       (when, forM_, foldM)
 
 import Foreign.Marshal.Alloc
@@ -191,17 +191,6 @@ curl_multi_strerror code = C.curl_multi_strerror (toCInt code) >>= peekCAString
 
 -- withCURLME :: IO CInt -> IO ()
 -- withCURLME io = io >>= \x -> when (x/=0) (throwIO (fromCInt x :: CURLMcode))
-
-
--------------------------------------------------------------------------------
--- | Returns a string describing error code
---   (<http://curl.haxx.se/libcurl/c/curl_share_strerror.html>).
--------------------------------------------------------------------------------
-curl_share_strerror :: CURLSHcode -> IO String
-curl_share_strerror code = C.curl_share_strerror (toCInt code) >>= peekCAString
-
-withCURLSHE :: IO CInt -> IO ()
-withCURLSHE io = io >>= \x -> when (x/=0) (throwIO (fromCInt x :: CURLSHcode))
 
 
 -------------------------------------------------------------------------------
@@ -598,8 +587,10 @@ curl_easy_setopt curl@(CURL ccurl _ _) opts = forM_ opts $ \opt -> case opt of
     slist  copt x = makeSL curl copt x
     string copt x = withCAString x $ \p -> setopt'DPtr ccurl copt (castPtr p)
     fromUTCTime = truncate . utcTimeToPOSIXSeconds
-    curlsh copt (Just (CURLSH ccurlsh _ _)) = setopt'DPtr ccurl copt (castPtr ccurlsh)
     curlsh copt Nothing = setopt'DPtr ccurl copt nullPtr
+    curlsh copt (Just (CURLSH _ mvar)) =
+      withMVar mvar $ \(ccurlsh,_,_) ->
+        setopt'DPtr ccurl copt (castPtr ccurlsh)
 
 
 -------------------------------------------------------------------------------
@@ -700,17 +691,35 @@ read_callback fread buff size nmemb _ = do
 --   (<http://curl.haxx.se/libcurl/c/curl_share_init.html>).
 -------------------------------------------------------------------------------
 curl_share_init :: IO CURLSH
-curl_share_init = do
-  shlocks <- newSHLocks
-  ccurlsh <- C.curl_share_init >>= checkNULL
-  f1 <- fmap castFunPtr $ C.wrapCURL_lock_function   (lock_function   shlocks)
-  f2 <- fmap castFunPtr $ C.wrapCURL_unlock_function (unlock_function shlocks)
-  setshopt'FPtr ccurlsh #{const CURLSHOPT_LOCKFUNC  } f1
-  setshopt'FPtr ccurlsh #{const CURLSHOPT_UNLOCKFUNC} f2
-  return (CURLSH ccurlsh f1 f2)
-
-withCURLSH :: (CURLSH -> IO a) -> IO a
-withCURLSH = bracket curl_share_init curl_share_cleanup
+curl_share_init = bracketOnError createcurlsh curl_share_cleanup setupcurlsh
+  where
+  -----------------
+  createcurlsh = do
+    ccurlsh <- C.curl_share_init
+    (f1,f2) <- if (ccurlsh == nullPtr)
+      then return (nullFunPtr, nullFunPtr)
+      else do
+        shlocks <- newSHLocks
+        f1 <- C.wrapCURL_lock_function   (lock_function   shlocks)
+        f2 <- C.wrapCURL_unlock_function (unlock_function shlocks)
+        return (castFunPtr f1, castFunPtr f2)
+    uid <- newUnique; mvar <- newMVar (ccurlsh,f1,f2)
+    return (CURLSH uid mvar)
+  ------------------------------------
+  setupcurlsh curlsh@(CURLSH _ mvar) =
+    withMVar mvar $ \(ccurlsh,f1,f2) -> do
+      let func = "curl_share_init"
+      if (ccurlsh == nullPtr)
+        then do
+          let getstrerror x = C.curl_easy_strerror x >>= peekCString0
+          desc <- getstrerror #{const CURLE_FAILED_INIT}
+          throwCURLSHE curlsh func desc CURLSHE_FAILED_INIT
+        else do
+          let withCHECK = checkCURLSHE curlsh func
+          let setshopt = C.curl_share_setopt'FPtr ccurlsh
+          withCHECK $ setshopt #{const CURLSHOPT_LOCKFUNC  } f1
+          withCHECK $ setshopt #{const CURLSHOPT_UNLOCKFUNC} f2
+          return curlsh
 
 
 -------------------------------------------------------------------------------
@@ -718,10 +727,13 @@ withCURLSH = bracket curl_share_init curl_share_cleanup
 --   (<http://curl.haxx.se/libcurl/c/curl_share_cleanup.html>).
 -------------------------------------------------------------------------------
 curl_share_cleanup :: CURLSH -> IO ()
-curl_share_cleanup (CURLSH ccurlsh flock funlock) = do
-  withCURLSHE $ C.curl_share_cleanup ccurlsh
-  freeHaskellFunPtr flock
-  freeHaskellFunPtr funlock
+curl_share_cleanup curlsh@(CURLSH _ mvar) =
+  let withCHECK = checkCURLSHE curlsh "curl_share_cleanup"
+  in  modifyMVar_ mvar $ \(ccurlsh,f1,f2) -> do
+        when (ccurlsh/=nullPtr) (withCHECK $ C.curl_share_cleanup ccurlsh)
+        when (f1/=nullFunPtr) (freeHaskellFunPtr f1)
+        when (f2/=nullFunPtr) (freeHaskellFunPtr f2)
+        return (nullPtr,nullFunPtr,nullFunPtr)
 
 
 -------------------------------------------------------------------------------
@@ -729,20 +741,28 @@ curl_share_cleanup (CURLSH ccurlsh flock funlock) = do
 --   (<http://curl.haxx.se/libcurl/c/curl_share_setopt.html>).
 -------------------------------------------------------------------------------
 curl_share_setopt :: CURLSH -> [CURLSHoption] -> IO ()
-curl_share_setopt (CURLSH ccurlsh _ _) opts =
-  let enum :: CURLENUM a => CInt -> a -> IO ()
-      enum copt x = setshopt'Long ccurlsh copt (toCLong x)
-  in  flip mapM_ opts $ \opt -> case opt of
-        #{setopt CURLSHOPT_SHARE  , enum}
-        #{setopt CURLSHOPT_UNSHARE, enum}
+curl_share_setopt curlsh@(CURLSH _ mvar) opts =
+  withMVar mvar $ \(ccurlsh,_,_) -> do
+    let func = "curl_share_setopt"
+    when (ccurlsh==nullPtr) $ do
+      desc <- C.curl_share_strerror #{const CURLSHE_INVALID} >>= peekCString0
+      throwCURLSHE curlsh func desc CURLSHE_INVALID
+    let withCHECK = checkCURLSHE curlsh func
+    let enum copt x = C.curl_share_setopt'Long ccurlsh copt (toCLong x)
+    flip mapM_ opts $ \opt -> withCHECK $ case opt of
+      #{setopt CURLSHOPT_SHARE  , enum}
+      #{setopt CURLSHOPT_UNSHARE, enum}
 
 
 -------------------------------------------------------------------------------
-setshopt'Long :: Ptr C.CURLSH -> CInt -> CLong -> IO ()
-setshopt'Long a b c = withCURLSHE $ C.curl_share_setopt'Long a b c
+throwCURLSHE :: CURLSH -> String -> String -> CURLSHC -> IO a
+throwCURLSHE curlsh func desc code = throwIO (CURLSHE curlsh func desc code)
 
-setshopt'FPtr :: Ptr C.CURLSH -> CInt -> FunPtr () -> IO ()
-setshopt'FPtr a b c = withCURLSHE $ C.curl_share_setopt'FPtr a b c
+checkCURLSHE :: CURLSH -> String -> (IO CInt) -> IO ()
+checkCURLSHE curlsh func action =
+  action >>= \code -> when (code/=0) $ do
+    desc <- C.curl_share_strerror code >>= peekCString0
+    throwCURLSHE curlsh func desc (toCURLSHC code)
 
 
 -------------------------------------------------------------------------------
@@ -766,8 +786,6 @@ lookupSHLock mvar shlockid =
       Just shlock -> return (shlocks, shlock)
       Nothing     -> newMVar () >>= \nl -> return ((shlockid, nl):shlocks, nl)
 
-
--------------------------------------------------------------------------------
 lock_function :: SHLocks -> C.CURL_lock_function
 lock_function shlocks _ccurl lockdata _lockaccess _usrptr =
   lookupSHLock shlocks lockdata >>= getSHLock

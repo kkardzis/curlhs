@@ -430,9 +430,9 @@ toCURLSHC x = case x of
 
 
 -------------------------------------------------------------------------------
-data CURLSHoption a where
-  CURLSHOPT_SHARE   :: CURLSHoption CURLSHlockdata
-  CURLSHOPT_UNSHARE :: CURLSHoption CURLSHlockdata
+data CURLSHoption
+  = CURLSHOPT_SHARE   CURLSHlockdata
+  | CURLSHOPT_UNSHARE CURLSHlockdata
 
 
 -------------------------------------------------------------------------------

@@ -23,7 +23,7 @@ module Network.CURL000.LibHS
   , curl_easy_reset
   , curl_easy_send
   , curl_easy_setopt
-  , curl_easy_strerror
+ -- curl_easy_strerror
  -- curl_easy_unescape
  -- curl_escape
  -- curl_formadd
@@ -52,7 +52,7 @@ module Network.CURL000.LibHS
  -- curl_multi_socket
  -- curl_multi_socket_action
  -- curl_multi_socket_all
-  , curl_multi_strerror
+ -- curl_multi_strerror
  -- curl_multi_timeout
  -- curl_multi_wait
  -- curl_mvaprintf
@@ -72,9 +72,6 @@ module Network.CURL000.LibHS
   , curl_version
   , curl_version_info
 
-  , CURL
-  , withCURL
-
   ) where
 
 import qualified Network.CURL000.LibCC as C
@@ -93,7 +90,7 @@ import Data.Unique            (newUnique)
 import Control.Applicative ((<$>), (<*>))
 import Control.Concurrent  (MVar, newMVar, takeMVar, tryPutMVar, modifyMVar)
 import Control.Concurrent  (withMVar, modifyMVar_)
-import Control.Exception   (throwIO, bracket, bracketOnError, onException)
+import Control.Exception   (throwIO, bracketOnError)
 import Control.Monad       (when, forM_, foldM)
 
 import Foreign.Marshal.Alloc
@@ -112,7 +109,9 @@ import Foreign.Ptr
 --   (<http://curl.haxx.se/libcurl/c/curl_global_init.html>).
 -------------------------------------------------------------------------------
 curl_global_init :: IO ()
-curl_global_init = withCURLE $ C.curl_global_init #{const CURL_GLOBAL_ALL}
+curl_global_init = do
+  code <- C.curl_global_init #{const CURL_GLOBAL_ALL}
+  when (code/=0) (error "<curlhs> curl_global_init failed")
 
 
 -------------------------------------------------------------------------------
@@ -171,52 +170,33 @@ peekCLong :: CLong -> IO Int
 peekCLong = return . fromIntegral
 
 
--------------------------------------------------------------------------------
--- | Returns a string describing error code
---   (<http://curl.haxx.se/libcurl/c/curl_easy_strerror.html>).
--------------------------------------------------------------------------------
-curl_easy_strerror :: CURLcode -> IO String
-curl_easy_strerror code = C.curl_easy_strerror (toCInt code) >>= peekCAString
-
-withCURLE :: IO CInt -> IO ()
-withCURLE io = io >>= \x -> when (x/=0) (throwIO (fromCInt x :: CURLcode))
-
-
--------------------------------------------------------------------------------
--- | Returns a string describing error code
---   (<http://curl.haxx.se/libcurl/c/curl_multi_strerror.html>).
--------------------------------------------------------------------------------
-curl_multi_strerror :: CURLMcode -> IO String
-curl_multi_strerror code = C.curl_multi_strerror (toCInt code) >>= peekCAString
-
--- withCURLME :: IO CInt -> IO ()
--- withCURLME io = io >>= \x -> when (x/=0) (throwIO (fromCInt x :: CURLMcode))
-
 
 -------------------------------------------------------------------------------
 -- | Start a libcurl easy session
 --   (<http://curl.haxx.se/libcurl/c/curl_easy_init.html>).
 -------------------------------------------------------------------------------
 curl_easy_init :: IO CURL
-curl_easy_init = CURL
-  <$> (C.curl_easy_init >>= checkNULL)
-  <*> (newIORef [])
-  <*> (newIORef [])
+curl_easy_init = do
+  ccurl <- C.curl_easy_init; curlmvar <- newMVar ccurl
+  uid <- newUnique; cbref <- newIORef []; slref <- newIORef []
+  let curl = CURL uid curlmvar cbref slref
+  if (ccurl/=nullPtr) then return curl else do
+    desc <- C.curl_easy_strerror #{const CURLE_FAILED_INIT} >>= peekCString0
+    throwCURLE curl "curl_easy_init" desc CURLE_FAILED_INIT
 
-checkNULL :: Ptr a -> IO (Ptr a)
-checkNULL x = if (x==nullPtr) then throwIO CURLE_FAILED_INIT else return x
 
-withCURL :: (CURL -> IO a) -> IO a
-withCURL = bracket curl_easy_init curl_easy_cleanup
+-------------------------------------------------------------------------------
+throwCURLE :: CURL -> String -> String -> CURLC -> IO a
+throwCURLE curl func desc code = throwIO (CURLE curl func desc code)
 
-data CURL = CURL (Ptr C.CURL) (IORef [CURLCB]) (IORef [CURLSL])
+checkCURLE :: CURL -> String -> (IO CInt) -> IO ()
+checkCURLE curl func action =
+  action >>= \code -> when (code/=0) $ do
+    desc <- C.curl_easy_strerror code >>= peekCString0
+    throwCURLE curl func desc (toCURLC code)
 
-freeCURL :: CURL -> IO ()
-freeCURL (CURL _ cbref slref) = do
-  fcbs <- atomicModifyIORef cbref (\cbs -> ([], cbs))
-  fsls <- atomicModifyIORef slref (\sls -> ([], sls))
-  mapM_ (\(CURLCB _ fp) -> freeHaskellFunPtr fp) fcbs
-  mapM_ (C.curl_slist_free_all . snd) fsls
+withCCURL :: CURL -> (Ptr C.CURL -> IO a) -> IO a
+withCCURL (CURL _ curlmvar _ _) = withMVar curlmvar
 
 
 -------------------------------------------------------------------------------
@@ -224,8 +204,10 @@ freeCURL (CURL _ cbref slref) = do
 --   (<http://curl.haxx.se/libcurl/c/curl_easy_reset.html>).
 -------------------------------------------------------------------------------
 curl_easy_reset :: CURL -> IO ()
-curl_easy_reset curl@(CURL ccurl _ _) =
-  C.curl_easy_reset ccurl >> freeCURL curl
+curl_easy_reset (CURL _ curlmvar cbref slref) =
+  modifyMVar_ curlmvar $ \ccurl -> do
+    when (ccurl/=nullPtr) (C.curl_easy_reset ccurl)
+    freeCURL cbref slref >> return ccurl
 
 
 -------------------------------------------------------------------------------
@@ -233,8 +215,15 @@ curl_easy_reset curl@(CURL ccurl _ _) =
 --   (<http://curl.haxx.se/libcurl/c/curl_easy_cleanup.html>).
 -------------------------------------------------------------------------------
 curl_easy_cleanup :: CURL -> IO ()
-curl_easy_cleanup curl@(CURL ccurl _ _) =
-  C.curl_easy_cleanup ccurl >> freeCURL curl
+curl_easy_cleanup (CURL _ curlmvar cbref slref) =
+  modifyMVar_ curlmvar $ \ccurl -> do
+    when (ccurl/=nullPtr) (C.curl_easy_cleanup ccurl)
+    freeCURL cbref slref >> return nullPtr
+
+freeCURL :: IORef [CURLCB] -> IORef [CURLSL] -> IO ()
+freeCURL cbref slref = do
+  atomicModifyIORef cbref (\cbs -> ([],cbs)) >>= mapM_ freeCB
+  atomicModifyIORef slref (\sls -> ([],sls)) >>= mapM_ freeSL
 
 
 -------------------------------------------------------------------------------
@@ -242,7 +231,8 @@ curl_easy_cleanup curl@(CURL ccurl _ _) =
 --   (<http://curl.haxx.se/libcurl/c/curl_easy_perform.html>).
 -------------------------------------------------------------------------------
 curl_easy_perform :: CURL -> IO ()
-curl_easy_perform (CURL ccurl _ _) = withCURLE $ C.curl_easy_perform ccurl
+curl_easy_perform curl =
+  withCCURL curl (checkCURLE curl "curl_easy_perform" . C.curl_easy_perform)
 
 
 -------------------------------------------------------------------------------
@@ -250,9 +240,10 @@ curl_easy_perform (CURL ccurl _ _) = withCURLE $ C.curl_easy_perform ccurl
 --   (<http://curl.haxx.se/libcurl/c/curl_easy_recv.html>).
 -------------------------------------------------------------------------------
 curl_easy_recv :: CURL -> Int -> IO ByteString
-curl_easy_recv (CURL ccurl _ _) len =
-  alloca $ \nptr -> allocaBytes len $ \buff -> do
-    withCURLE $ C.curl_easy_recv ccurl buff (fromIntegral len) nptr
+curl_easy_recv curl len =
+  withCCURL curl $ \ccurl -> alloca $ \nptr -> allocaBytes len $ \buff -> do
+    let check = checkCURLE curl "curl_easy_recv"
+    check $ C.curl_easy_recv ccurl buff (fromIntegral len) nptr
     n <- fmap fromIntegral (peek nptr)
     packCStringLen (castPtr buff, n)
 
@@ -262,9 +253,10 @@ curl_easy_recv (CURL ccurl _ _) len =
 --   (<http://curl.haxx.se/libcurl/c/curl_easy_send.html>).
 -------------------------------------------------------------------------------
 curl_easy_send :: CURL -> ByteString -> IO Int
-curl_easy_send (CURL ccurl _ _) bs =
-  alloca $ \nptr -> do
-    withCURLE $ unsafeUseAsCStringLen bs $ \(cs, cl) ->
+curl_easy_send curl bs =
+  withCCURL curl $ \ccurl -> alloca $ \nptr -> do
+    let check = checkCURLE curl "curl_easy_send"
+    check $ unsafeUseAsCStringLen bs $ \(cs, cl) ->
       C.curl_easy_send ccurl (castPtr cs) (fromIntegral cl) nptr
     fmap fromIntegral (peek nptr)
 
@@ -275,10 +267,11 @@ curl_easy_send (CURL ccurl _ _) bs =
 -------------------------------------------------------------------------------
 #define hsc_getopt(opt, foo) printf(#opt " -> getopt %d " #foo, opt)
 curl_easy_getinfo :: CURL -> CURLinfo a -> IO a
-curl_easy_getinfo (CURL ccurl _ _) opt =
+curl_easy_getinfo curl opt = withCCURL curl $ \ccurl ->
   let getopt :: Storable x => CInt -> (Ptr x -> IO a) -> IO a
       getopt x fpeek = alloca $ \ptr -> getptr x (castPtr ptr) >> fpeek ptr
-      getptr x ptr = withCURLE $ C.curl_easy_getinfo ccurl x ptr
+      getptr x ptr = check $ C.curl_easy_getinfo ccurl x ptr
+      check = checkCURLE curl "curl_easy_getinfo"
   in case opt of
     #{getopt CURLINFO_EFFECTIVE_URL          , getString}
     #{getopt CURLINFO_RESPONSE_CODE          , getCLong }
@@ -368,9 +361,12 @@ peekCURLslist ptr =
 -- | Set options for a curl easy handle
 --   (<http://curl.haxx.se/libcurl/c/curl_easy_setopt.html>).
 -------------------------------------------------------------------------------
-#define hsc_setopt(opt, foo) printf(#opt " x -> " #foo " %d x", opt)
 curl_easy_setopt :: CURL -> [CURLoption] -> IO ()
-curl_easy_setopt curl@(CURL ccurl _ _) opts = forM_ opts $ \opt -> case opt of
+curl_easy_setopt curl@(CURL _ _ cbref slref) opts =
+  withCCURL curl $ \ccurl -> forM_ opts $ \opt ->
+    checkCURLE curl "curl_easy_setopt" $ case opt of
+
+  #define hsc_setopt(opt, foo) printf(#opt " x -> " #foo " ccurl %d x", opt)
 
   ---- CALLBACK OPTIONS -------------------------------------------------------
   #{setopt CURLOPT_WRITEFUNCTION          , curlcb FWRITE}
@@ -574,93 +570,77 @@ curl_easy_setopt curl@(CURL ccurl _ _) opts = forM_ opts $ \opt -> case opt of
   ---- TELNET OPTIONS ---------------------------------------------------------
   #{setopt CURLOPT_TELNETOPTIONS          , slist    }
 
-  -----------------------------------------------------------------------------
   where
-    curlcb :: CURLCBT a -> CInt -> Maybe a -> IO ()
-    curlcb cbt copt x = makeCB curl copt x cbt
-    enum :: CURLENUM a => CInt -> a -> IO ()
-    enum   copt x = setopt'Long ccurl copt (toCLong      x)
-    bool   copt x = setopt'Long ccurl copt (fromBool     x)
-    time   copt x = setopt'Long ccurl copt (fromUTCTime  x)
-    clong  copt x = setopt'Long ccurl copt (fromIntegral x)
-    int64  copt x = setopt'COff ccurl copt (fromIntegral x)
-    slist  copt x = makeSL curl copt x
-    string copt x = withCAString x $ \p -> setopt'DPtr ccurl copt (castPtr p)
+    ---------------------------------------------------------------------------
+    enum  ccurl copt x = C.curl_easy_setopt'Long ccurl copt (toCLong      x)
+    bool  ccurl copt x = C.curl_easy_setopt'Long ccurl copt (fromBool     x)
+    time  ccurl copt x = C.curl_easy_setopt'Long ccurl copt (fromUTCTime  x)
+    clong ccurl copt x = C.curl_easy_setopt'Long ccurl copt (fromIntegral x)
+    int64 ccurl copt x = C.curl_easy_setopt'COff ccurl copt (fromIntegral x)
     fromUTCTime = truncate . utcTimeToPOSIXSeconds
-    curlsh copt Nothing = setopt'DPtr ccurl copt nullPtr
-    curlsh copt (Just (CURLSH _ mvar)) =
+    ---------------------------------------------------------------------------
+    string ccurl copt x = withCAString x $ \p ->
+      C.curl_easy_setopt'DPtr ccurl copt (castPtr p)
+    ---------------------------------------------------------------------------
+    slist ccurl copt x = makeSL slref ccurl copt x
+    ---------------------------------------------------------------------------
+    curlcb :: CURLCBT a -> Ptr C.CURL -> CInt -> Maybe a -> IO CInt
+    curlcb cbt ccurl copt x = makeCB cbref cbt ccurl copt x
+    ---------------------------------------------------------------------------
+    curlsh ccurl copt Nothing = C.curl_easy_setopt'DPtr ccurl copt nullPtr
+    curlsh ccurl copt (Just (CURLSH _ mvar)) =
       withMVar mvar $ \(ccurlsh,_,_) ->
-        setopt'DPtr ccurl copt (castPtr ccurlsh)
+        C.curl_easy_setopt'DPtr ccurl copt (castPtr ccurlsh)
 
 
 -------------------------------------------------------------------------------
-setopt'Long :: Ptr C.CURL -> CInt -> CLong -> IO ()
-setopt'Long a b c = withCURLE $ C.curl_easy_setopt'Long a b c
+wrapSL :: [String] -> IO (Maybe (Ptr C.CURLslist))
+wrapSL = foldM wrap (Just nullPtr)
+  where
+  wrap Nothing _ = return Nothing
+  wrap (Just sl) xs =
+    withCAString xs (C.curl_slist_append sl) >>= \nsl ->
+      if (nsl/=nullPtr) then return (Just nsl) else do
+         when (sl/=nullPtr) (C.curl_slist_free_all sl)
+         return Nothing
 
-setopt'COff :: Ptr C.CURL -> CInt -> C.CURL_off_t -> IO ()
-setopt'COff a b c = withCURLE $ C.curl_easy_setopt'COff a b c
+freeSL :: CURLSL -> IO ()
+freeSL (_,sl) = when (sl/=nullPtr) (C.curl_slist_free_all sl)
 
-setopt'DPtr :: Ptr C.CURL -> CInt -> Ptr () -> IO ()
-setopt'DPtr a b c = withCURLE $ C.curl_easy_setopt'DPtr a b c
-
-setopt'FPtr :: Ptr C.CURL -> CInt -> FunPtr () -> IO ()
-setopt'FPtr a b c = withCURLE $ C.curl_easy_setopt'FPtr a b c
-
-
--------------------------------------------------------------------------------
-type CURLSL = (CInt, Ptr C.CURLslist)
-
-wrapSL :: Ptr C.CURLslist -> String -> IO (Ptr C.CURLslist)
-wrapSL sl xs = do
-  nsl <- withCAString xs (C.curl_slist_append sl)
-  when (nsl==nullPtr) (C.curl_slist_free_all sl)
-  return nsl
-
-keepSL :: CURLSL -> [CURLSL] -> ([CURLSL], [Ptr C.CURLslist])
-keepSL sl@(copt, ptr) sls = (tokeep, tofree) where
-  (tokeep0, tofree0) = partition ((==copt) . fst) sls
-  tokeep = if (ptr==nullPtr) then tokeep0 else (sl:tokeep0)
-  tofree = map snd tofree0
-
-makeSL :: CURL -> CInt -> [String] -> IO ()
-makeSL (CURL ccurl _ slref) copt xs = do
-  sl <- foldM wrapSL nullPtr xs
-  setopt'DPtr ccurl copt (castPtr sl) `onException` (C.curl_slist_free_all sl)
-  fsls <- atomicModifyIORef slref (keepSL (copt, sl))
-  mapM_ C.curl_slist_free_all fsls
+makeSL :: IORef [CURLSL] -> Ptr C.CURL -> CInt -> [String] -> IO CInt
+makeSL slref ccurl copt xs =
+  let cons sl (tokeep, tofree) = ((copt,sl):tokeep, tofree)
+      keep 0 sl sls = cons sl $ partition ((==copt) . fst) sls
+      keep _ sl sls = cons sl $ (sls,[])
+  in  wrapSL xs >>= \msl -> case msl of
+        Nothing -> return #{const CURLE_OUT_OF_MEMORY}
+        Just sl -> do
+          code <- C.curl_easy_setopt'DPtr ccurl copt (castPtr sl)
+          atomicModifyIORef slref (keep code sl) >>= mapM_ freeSL
+          return code
 
 
 -------------------------------------------------------------------------------
-data CURLCB where
-  CURLCB :: CURLCBT a -> FunPtr () -> CURLCB
-
-data CURLCBT a where
-  FWRITE :: CURLCBT CURL_write_callback
-  FREAD  :: CURLCBT CURL_read_callback
-
 wrapCB :: CURLCBT a -> a -> IO (FunPtr ())
 wrapCB cbt = case cbt of
   FWRITE -> fmap castFunPtr . C.wrapCURL_write_callback . write_callback
   FREAD  -> fmap castFunPtr . C.wrapCURL_read_callback  . read_callback
 
-compCB :: CURLCBT a -> CURLCBT b -> Bool
-compCB FWRITE FWRITE = True
-compCB FREAD  FREAD  = True
-compCB _ _ = False
+freeCB :: CURLCB -> IO ()
+freeCB (CURLCB _ fp) = when (fp/=nullFunPtr) (freeHaskellFunPtr fp)
 
-keepCB :: CURLCB -> [CURLCB] -> ([CURLCB], [FunPtr ()])
-keepCB cb@(CURLCB cbt fp) cbs = (tokeep, tofree) where
-  (tokeep0, tofree0) = partition (\(CURLCB t _) -> (compCB t cbt)) cbs
-  tokeep = if (fp==nullFunPtr) then tokeep0 else (cb:tokeep0)
-  tofree = map (\(CURLCB _ p) -> castFunPtr p) tofree0
-
-makeCB :: CURL -> CInt -> Maybe a -> CURLCBT a -> IO ()
-makeCB (CURL ccurl cbref _) copt mcb cbt = do
-  fp <- maybe (return nullFunPtr) (wrapCB cbt) mcb
-  let freefp = when (fp/=nullFunPtr) (freeHaskellFunPtr fp)
-  setopt'FPtr ccurl copt fp `onException` freefp
-  ffps <- atomicModifyIORef cbref (keepCB (CURLCB cbt fp))
-  mapM_ freeHaskellFunPtr ffps
+makeCB
+  :: IORef [CURLCB] -> CURLCBT a -> Ptr C.CURL -> CInt -> Maybe a -> IO CInt
+makeCB cbref cbt ccurl copt mcb =
+  let comp FWRITE (CURLCB FWRITE _) = True; comp FWRITE _ = False
+      comp FREAD  (CURLCB FREAD  _) = True; comp FREAD  _ = False
+      cons fp (tokeep, tofree) = ((CURLCB cbt fp):tokeep, tofree)
+      keep 0 fp cbs = cons fp $ partition (comp cbt) cbs
+      keep _ fp cbs = cons fp $ (cbs,[])
+  in  maybe (return nullFunPtr) (wrapCB cbt) mcb >>= \fp -> do
+        code <- C.curl_easy_setopt'FPtr ccurl copt fp
+        atomicModifyIORef cbref (keep code fp) >>= mapM_ freeCB
+        return code
 
 
 -------------------------------------------------------------------------------
@@ -683,7 +663,6 @@ read_callback fread buff size nmemb _ = do
     CURL_READFUNC_ABORT -> return #{const CURL_READFUNC_ABORT}
     CURL_READFUNC_OK bs -> unsafeUseAsCStringLen (BS.take buffLen bs)
       (\(cs, cl) -> copyBytes buff cs cl >> return (fromIntegral cl))
-
 
 
 -------------------------------------------------------------------------------
@@ -740,6 +719,7 @@ curl_share_cleanup curlsh@(CURLSH _ mvar) =
 -- | Set options for a shared object
 --   (<http://curl.haxx.se/libcurl/c/curl_share_setopt.html>).
 -------------------------------------------------------------------------------
+#define hsc_curlshopt(opt, foo) printf(#opt " x -> " #foo " %d x", opt)
 curl_share_setopt :: CURLSH -> [CURLSHoption] -> IO ()
 curl_share_setopt curlsh@(CURLSH _ mvar) opts =
   withMVar mvar $ \(ccurlsh,_,_) -> do
@@ -749,8 +729,8 @@ curl_share_setopt curlsh@(CURLSH _ mvar) opts =
       throwCURLSHE curlsh func desc CURLSHE_INVALID
     let enum copt x = C.curl_share_setopt'Long ccurlsh copt (toCLong x)
     flip mapM_ opts $ \opt -> checkCURLSHE curlsh func $ case opt of
-      #{setopt CURLSHOPT_SHARE  , enum}
-      #{setopt CURLSHOPT_UNSHARE, enum}
+      #{curlshopt CURLSHOPT_SHARE  , enum}
+      #{curlshopt CURLSHOPT_UNSHARE, enum}
 
 
 -------------------------------------------------------------------------------

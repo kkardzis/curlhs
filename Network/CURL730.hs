@@ -42,11 +42,13 @@ module Network.CURL730
       , CURL_VERSION_NTLM_WB
       )
 
+{-
   -- ** Exceptions
   -- | More about error codes in libcurl on
   --   <http://curl.haxx.se/libcurl/c/libcurl-errors.html>
   , curl_easy_strerror , CURLcode   (..)
   , curl_multi_strerror, CURLMcode  (..)
+-}
 
 
   -----------------------------------------------------------------------------
@@ -56,10 +58,10 @@ module Network.CURL730
   -----------------------------------------------------------------------------
 
   -- ** Init / Cleanup
-  , CURL, withCURL
   , curl_easy_init
   , curl_easy_cleanup
   , curl_easy_reset
+  , CURL
 
   -- ** Transfer
   , curl_easy_perform
@@ -513,6 +515,12 @@ module Network.CURL730
       , CURLSSH_AUTH_AGENT
       , CURLSSH_AUTH_DEFAULT
       )
+
+  -- ** Exceptions
+  -- | More about error codes in libcurl on
+  --   <http://curl.haxx.se/libcurl/c/libcurl-errors.html>
+  , CURLE (..)
+  , CURLC (..)
 
 
   -----------------------------------------------------------------------------

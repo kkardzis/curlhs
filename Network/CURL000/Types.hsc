@@ -38,31 +38,31 @@ import Foreign.Ptr
 
 
 -------------------------------------------------------------------------------
-class CURLENUM a where
-  toCEnum :: a -> Int
+class ENUM a where
+  toENUM :: a -> Int
   enumlist :: [a]
 
-instance CURLENUM a => CURLENUM [a] where
-  toCEnum = foldl' (.|.) 0 . map toCEnum
+instance ENUM a => ENUM [a] where
+  toENUM = foldl' (.|.) 0 . map toENUM
   enumlist = []
 
-toCInt :: CURLENUM a => a -> CInt
-toCInt = fromIntegral . toCEnum
+toCInt :: ENUM a => a -> CInt
+toCInt = fromIntegral . toENUM
 
-toCLong :: CURLENUM a => a -> CLong
-toCLong = fromIntegral . toCEnum
+toCLong :: ENUM a => a -> CLong
+toCLong = fromIntegral . toENUM
 
-fromCIntMask :: CURLENUM a => CInt -> [a]
+fromCIntMask :: ENUM a => CInt -> [a]
 fromCIntMask mask =
   let checkBit x = if ((mask .&. (toCInt x)) == 0) then Nothing else Just x
   in  mapMaybe checkBit enumlist
 
-fromCLongMask :: CURLENUM a => CLong -> [a]
+fromCLongMask :: ENUM a => CLong -> [a]
 fromCLongMask mask =
   let checkBit x = if ((mask .&. (toCLong x)) == 0) then Nothing else Just x
   in  mapMaybe checkBit enumlist
 
-fromCInt :: (CURLENUM a, Typeable a) => CInt -> a
+fromCInt :: (ENUM a, Typeable a) => CInt -> a
 fromCInt cval =
   let enums = map (\enum -> (toCInt enum, enum)) enumlist
       enumE = error $ concat ["<curlhs> unknown constant (", v, ") -> ", t]
@@ -77,7 +77,7 @@ deriving instance Typeable CURLMcode
 deriving instance Show CURLMcode
 instance Exception CURLMcode
 
-#{CURLENUM CURLMcode       \
+#{ENUM CURLMcode           \
 , CURLM_CALL_MULTI_PERFORM \
 , CURLM_BAD_HANDLE         \
 , CURLM_BAD_EASY_HANDLE    \
@@ -91,7 +91,7 @@ instance Exception CURLMcode
 -------------------------------------------------------------------------------
 deriving instance Show CURLfeature
 
-#{CURLENUM CURLfeature      \
+#{ENUM CURLfeature          \
 , CURL_VERSION_IPV6         \
 , CURL_VERSION_KERBEROS4    \
 , CURL_VERSION_SSL          \
@@ -111,38 +111,38 @@ deriving instance Show CURLfeature
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLproto \
-, CURLPROTO_ALL      \
-, CURLPROTO_HTTP     \
-, CURLPROTO_HTTPS    \
-, CURLPROTO_FTP      \
-, CURLPROTO_FTPS     \
-, CURLPROTO_SCP      \
-, CURLPROTO_SFTP     \
-, CURLPROTO_TELNET   \
-, CURLPROTO_LDAP     \
-, CURLPROTO_LDAPS    \
-, CURLPROTO_DICT     \
-, CURLPROTO_FILE     \
-, CURLPROTO_TFTP     \
-, CURLPROTO_IMAP     \
-, CURLPROTO_IMAPS    \
-, CURLPROTO_POP3     \
-, CURLPROTO_POP3S    \
-, CURLPROTO_SMTP     \
-, CURLPROTO_SMTPS    \
-, CURLPROTO_RTSP     \
-, CURLPROTO_RTMP     \
-, CURLPROTO_RTMPT    \
-, CURLPROTO_RTMPE    \
-, CURLPROTO_RTMPTE   \
-, CURLPROTO_RTMPS    \
-, CURLPROTO_RTMPTS   \
-, CURLPROTO_GOPHER   }
+#{ENUM CURLproto   \
+, CURLPROTO_ALL    \
+, CURLPROTO_HTTP   \
+, CURLPROTO_HTTPS  \
+, CURLPROTO_FTP    \
+, CURLPROTO_FTPS   \
+, CURLPROTO_SCP    \
+, CURLPROTO_SFTP   \
+, CURLPROTO_TELNET \
+, CURLPROTO_LDAP   \
+, CURLPROTO_LDAPS  \
+, CURLPROTO_DICT   \
+, CURLPROTO_FILE   \
+, CURLPROTO_TFTP   \
+, CURLPROTO_IMAP   \
+, CURLPROTO_IMAPS  \
+, CURLPROTO_POP3   \
+, CURLPROTO_POP3S  \
+, CURLPROTO_SMTP   \
+, CURLPROTO_SMTPS  \
+, CURLPROTO_RTSP   \
+, CURLPROTO_RTMP   \
+, CURLPROTO_RTMPT  \
+, CURLPROTO_RTMPE  \
+, CURLPROTO_RTMPTE \
+, CURLPROTO_RTMPS  \
+, CURLPROTO_RTMPTS \
+, CURLPROTO_GOPHER }
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLproxy        \
+#{ENUM CURLproxy            \
 , CURLPROXY_HTTP            \
 , CURLPROXY_HTTP_1_0        \
 , CURLPROXY_SOCKS4          \
@@ -152,14 +152,14 @@ deriving instance Show CURLfeature
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLnetrc  \
+#{ENUM CURLnetrc      \
 , CURL_NETRC_IGNORED  \
 , CURL_NETRC_OPTIONAL \
 , CURL_NETRC_REQUIRED }
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLauth     \
+#{ENUM CURLauth         \
 , CURLAUTH_BASIC        \
 , CURLAUTH_DIGEST       \
 , CURLAUTH_DIGEST_IE    \
@@ -172,12 +172,12 @@ deriving instance Show CURLfeature
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLtlsauth \
-, CURL_TLSAUTH_SRP     }
+#{ENUM CURLtlsauth \
+, CURL_TLSAUTH_SRP }
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLredir  \
+#{ENUM CURLredir      \
 , CURL_REDIR_GET_ALL  \
 , CURL_REDIR_POST_301 \
 , CURL_REDIR_POST_302 \
@@ -186,35 +186,35 @@ deriving instance Show CURLfeature
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLhttpver   \
+#{ENUM CURLhttpver       \
 , CURL_HTTP_VERSION_NONE \
 , CURL_HTTP_VERSION_1_0  \
 , CURL_HTTP_VERSION_1_1  }
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLftpcreate   \
+#{ENUM CURLftpcreate       \
 , CURLFTP_CREATE_DIR_NONE  \
 , CURLFTP_CREATE_DIR       \
 , CURLFTP_CREATE_DIR_RETRY }
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLftpauth \
-, CURLFTPAUTH_DEFAULT  \
-, CURLFTPAUTH_SSL      \
-, CURLFTPAUTH_TLS      }
+#{ENUM CURLftpauth    \
+, CURLFTPAUTH_DEFAULT \
+, CURLFTPAUTH_SSL     \
+, CURLFTPAUTH_TLS     }
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLftpssl    \
+#{ENUM CURLftpssl        \
 , CURLFTPSSL_CCC_NONE    \
 , CURLFTPSSL_CCC_PASSIVE \
 , CURLFTPSSL_CCC_ACTIVE  }
  
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLftpmethod  \
+#{ENUM CURLftpmethod      \
 , CURLFTPMETHOD_DEFAULT   \
 , CURLFTPMETHOD_MULTICWD  \
 , CURLFTPMETHOD_NOCWD     \
@@ -222,7 +222,7 @@ deriving instance Show CURLfeature
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLrtspreq       \
+#{ENUM CURLrtspreq           \
 , CURL_RTSPREQ_OPTIONS       \
 , CURL_RTSPREQ_DESCRIBE      \
 , CURL_RTSPREQ_ANNOUNCE      \
@@ -237,7 +237,7 @@ deriving instance Show CURLfeature
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLtimecond      \
+#{ENUM CURLtimecond          \
 , CURL_TIMECOND_NONE         \
 , CURL_TIMECOND_IFMODSINCE   \
 , CURL_TIMECOND_IFUNMODSINCE \
@@ -246,7 +246,7 @@ deriving instance Show CURLfeature
 
 {-
 -------------------------------------------------------------------------------
-#{CURLENUM CURLclosepol               \
+#{ENUM CURLclosepol                   \
 , CURLCLOSEPOLICY_NONE                \
 , CURLCLOSEPOLICY_OLDEST              \
 , CURLCLOSEPOLICY_LEAST_RECENTLY_USED \
@@ -257,22 +257,22 @@ deriving instance Show CURLfeature
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLipresolve  \
+#{ENUM CURLipresolve      \
 , CURL_IPRESOLVE_WHATEVER \
 , CURL_IPRESOLVE_V4       \
 , CURL_IPRESOLVE_V6       }
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLusessl \
-, CURLUSESSL_NONE     \
-, CURLUSESSL_TRY      \
-, CURLUSESSL_CONTROL  \
-, CURLUSESSL_ALL      }
+#{ENUM CURLusessl    \
+, CURLUSESSL_NONE    \
+, CURLUSESSL_TRY     \
+, CURLUSESSL_CONTROL \
+, CURLUSESSL_ALL     }
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLsslver     \
+#{ENUM CURLsslver         \
 , CURL_SSLVERSION_DEFAULT \
 , CURL_SSLVERSION_TLSv1   \
 , CURL_SSLVERSION_SSLv2   \
@@ -280,19 +280,19 @@ deriving instance Show CURLfeature
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLsslopt    \
+#{ENUM CURLsslopt        \
 , CURLSSLOPT_ALLOW_BEAST }
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLgssapi               \
+#{ENUM CURLgssapi                   \
 , CURLGSSAPI_DELEGATION_NONE        \
 , CURLGSSAPI_DELEGATION_POLICY_FLAG \
 , CURLGSSAPI_DELEGATION_FLAG        }
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLsshauth   \
+#{ENUM CURLsshauth       \
 , CURLSSH_AUTH_ANY       \
 , CURLSSH_AUTH_NONE      \
 , CURLSSH_AUTH_PUBLICKEY \
@@ -353,7 +353,7 @@ data CURLSHoption
 
 
 -------------------------------------------------------------------------------
-#{CURLENUM CURLSHlockdata    \
+#{ENUM CURLSHlockdata        \
 , CURL_LOCK_DATA_COOKIE      \
 , CURL_LOCK_DATA_DNS         \
 , CURL_LOCK_DATA_SSL_SESSION }

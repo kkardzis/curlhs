@@ -117,27 +117,3 @@ int curlOptFPtr(setoptFP setopt, void *handle, int opt, void (*val)()) {
   return setopt(handle, opt, val);
 };
 
-
-/* ------------------------------------------------------------------------- */
-/* constant import macros (for hsc2hs)                                       */
-/* ------------------------------------------------------------------------- */
-
-#define hsc_CURLENUM(type, ...)                               \
-  printf("data " #type "\n");                                 \
-  { char *x, xs[] = #__VA_ARGS__;                             \
-    printf("  = %s\n", strtok(xs,","));                       \
-    while ((x=strtok(NULL,",")) != NULL) {                    \
-      printf("  |%s\n", x);                                   \
-    };                                                        \
-  };                                                          \
-  printf("\ninstance CURLENUM " #type " where\n");            \
-  printf("  enumlist = [ " #__VA_ARGS__ " ]\n");              \
-  printf("  toCEnum x = case x of\n");                        \
-  { char *x, xs[] = #__VA_ARGS__;                             \
-    int i=1, vs[] = {__VA_ARGS__};                            \
-    printf("    %s -> %d\n", strtok(xs,","), vs[0]);          \
-    while ((x=strtok(NULL,",")) != NULL) {                    \
-      printf("   %s -> %d\n", x, vs[i++]);                    \
-    };                                                        \
-  };                                                          \
-

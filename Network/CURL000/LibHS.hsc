@@ -632,7 +632,8 @@ freeCB (CURLCB _ fp) = when (fp/=nullFunPtr) (freeHaskellFunPtr fp)
 makeCB
   :: IORef [CURLCB] -> CURLCBT a -> Ptr C.CURL -> CInt -> Maybe a -> IO CInt
 makeCB cbref cbt ccurl copt mcb =
-  let comp FWRITE (CURLCB FWRITE _) = True; comp FWRITE _ = False
+  let comp :: CURLCBT a -> CURLCB -> Bool
+      comp FWRITE (CURLCB FWRITE _) = True; comp FWRITE _ = False
       comp FREAD  (CURLCB FREAD  _) = True; comp FREAD  _ = False
       cons fp (tokeep, tofree) = ((CURLCB cbt fp):tokeep, tofree)
       keep 0 fp cbs = cons fp $ partition (comp cbt) cbs

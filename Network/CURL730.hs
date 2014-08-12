@@ -11,13 +11,11 @@
 -------------------------------------------------------------------------------
 
 module Network.CURL730
-  ( -- * Run-Time Linking
-    CURLAPI(CURL730), RTLD(..)
+  ( module Network.CURLXXX
 
-
-  -----------------------------------------------------------------------------
-  -- * Global interface
-  -----------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- * Global interface
+-------------------------------------------------------------------------------
  
   -- ** Version info
   , curl_version
@@ -42,20 +40,11 @@ module Network.CURL730
       , CURL_VERSION_NTLM_WB
       )
 
-{-
-  -- ** Exceptions
-  -- | More about error codes in libcurl on
-  --   <http://curl.haxx.se/libcurl/c/libcurl-errors.html>
-  , curl_easy_strerror , CURLcode   (..)
-  , curl_multi_strerror, CURLMcode  (..)
--}
-
-
-  -----------------------------------------------------------------------------
-  -- * Easy interface
-  -- | See <http://curl.haxx.se/libcurl/c/libcurl-easy.html>
-  --   for easy interface overview.
-  -----------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- * Easy interface
+-- | See <http://curl.haxx.se/libcurl/c/libcurl-easy.html>
+--   for easy interface overview.
+-------------------------------------------------------------------------------
 
   -- ** Init / Cleanup
   , curl_easy_init
@@ -523,18 +512,19 @@ module Network.CURL730
   , CURLC (..)
 
 
-  -----------------------------------------------------------------------------
-  -- * Multi interface
-  -- | See <http://curl.haxx.se/libcurl/c/libcurl-multi.html>
-  --   for multi interface overview.
-  -----------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- * Multi interface
+-- | See <http://curl.haxx.se/libcurl/c/libcurl-multi.html>
+--   for multi interface overview.
+-------------------------------------------------------------------------------
+-- | TODO
 
 
-  -----------------------------------------------------------------------------
-  -- * Share interface
-  -- | See <http://curl.haxx.se/libcurl/c/libcurl-share.html>
-  --   for share interface overview.
-  -----------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- * Share interface
+-- | See <http://curl.haxx.se/libcurl/c/libcurl-share.html>
+--   for share interface overview.
+-------------------------------------------------------------------------------
 
   -- ** Init / Cleanup
   , curl_share_init
@@ -564,6 +554,6 @@ module Network.CURL730
   ) where
 
 import Network.CURL000.LibHS
-import Network.CURL000.LibLD
 import Network.CURL000.Types
+import Network.CURLXXX
 

@@ -109,8 +109,6 @@ import System.RTLD
 
 #include "LibC0.c"
 
-#{let alignof type = "(%ld)", (long) offsetof (struct {char x; type y;}, y)}
-
 
 -------------------------------------------------------------------------------
 foreign import ccall "&curlADRTAB" curlADRTAB :: Ptr (FunPtr ())

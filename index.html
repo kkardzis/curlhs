@@ -1,47 +1,106 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>curlhs by kkardzis</title>
-
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <script src="javascripts/scale.fix.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-
+    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
+    <title>curlhs by kkardzis</title>
   </head>
+
   <body>
-    <div class="wrapper">
-      <header>
-        <h1>curlhs</h1>
-        <p>Haskell bindings to curl library (libcurl)</p>
-        <p class="view"><a href="https://github.com/kkardzis/curlhs">View the Project on GitHub <small>kkardzis/curlhs</small></a></p>
-        <ul>
-          <li><a href="https://github.com/kkardzis/curlhs/zipball/master">Download <strong>ZIP File</strong></a></li>
-          <li><a href="https://github.com/kkardzis/curlhs/tarball/master">Download <strong>TAR Ball</strong></a></li>
-          <li><a href="https://github.com/kkardzis/curlhs">View On <strong>GitHub</strong></a></li>
-        </ul>
-      </header>
-      <section>
-        <h1>
-<a name="networkcurl-" class="anchor" href="#networkcurl-"><span class="octicon octicon-link"></span></a>Network.CURL <a href="https://travis-ci.org/kkardzis/curlhs"><img src="https://travis-ci.org/kkardzis/curlhs.svg" alt="Build Status"></a>
+    <div id="container">
+      <div class="inner">
+
+        <header>
+          <h1>curlhs</h1>
+          <h2>Haskell bindings to curl library (libcurl)</h2>
+        </header>
+
+        <section id="downloads" class="clearfix">
+          <a href="https://github.com/kkardzis/curlhs/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
+          <a href="https://github.com/kkardzis/curlhs/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
+          <a href="https://github.com/kkardzis/curlhs" id="view-on-github" class="button"><span>View on GitHub</span></a>
+        </section>
+
+        <hr>
+
+        <section id="main_content">
+          <h1>
+<a name="networkcurl" class="anchor" href="#networkcurl"><span class="octicon octicon-link"></span></a>Network.CURL</h1>
+
+<p>Package <em>curlhs</em> provides Haskell bindings to <em>libcurl</em>, the multiprotocol
+file transfer library which powers the popular tool <em>curl</em> (see
+<a href="http://curl.haxx.se">http://curl.haxx.se</a> and <a href="http://curl.haxx.se/libcurl">http://curl.haxx.se/libcurl</a> for more info).</p>
+
+<h1>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h1>
+
+<h2>
+<a name="from-hackage-" class="anchor" href="#from-hackage-"><span class="octicon octicon-link"></span></a>From Hackage <a href="https://hackage.haskell.org/package/curlhs"><img src="https://img.shields.io/hackage/v/curlhs.svg" alt="Hackage"></a>
+</h2>
+
+<pre><code>$ cabal update &amp;&amp; cabal install curlhs
+</code></pre>
+
+<h2>
+<a name="from-github-" class="anchor" href="#from-github-"><span class="octicon octicon-link"></span></a>From GitHub <a href="https://travis-ci.org/kkardzis/curlhs"><img src="https://travis-ci.org/kkardzis/curlhs.svg" alt="Build Status"></a>
+</h2>
+
+<pre><code>$ git clone https://github.com/kkardzis/curlhs.git
+$ git clone https://github.com/kkardzis/rtld.git
+$ cabal update &amp;&amp; cabal install ./rtld ./curlhs
+</code></pre>
+
+<h1>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h1>
+
+<pre><code>ghci&gt; :m Network.CURL720
+ghci&gt; loadlib CURL720 &gt;&gt; curl_version
+"libcurl/7.37.1 OpenSSL/1.0.1e zlib/1.2.8"
+</code></pre>
+
+<p><em>curlhs</em> must be explicitly linked with <em>libcurl</em> at runtime.
+<code>loadlib CURL720</code> in the example above first tries to load <em>libcurl</em>
+binary image into memory, than checks its version (in this case it must
+be 7.20 or higher). Loader looks for <em>libcurl.so</em> on UNIX-like systems,
+<em>libcurl.dll</em> on Windows and <em>libcurl.dylib</em> on OS X respectively.</p>
+
+<p><a href="http://en.wikipedia.org/wiki/Dynamic_loading">Dynamic loading</a>
+mechanisms are used behind the scenes. Search path used to locate
+so/dll/dylib is the default path used by the OS during linking.
+Just place required so/dll/dylib into one of that places.</p>
+
+<h1>
+<a name="license-" class="anchor" href="#license-"><span class="octicon octicon-link"></span></a>License <a href="https://github.com/kkardzis/curlhs/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-ISC-green.svg" alt="ISC License"></a>
 </h1>
 
-<p>This package provides a Haskell bindings to libcurl, the multiprotocol file
-transfer library which powers the popular tool curl (see <a href="http://curl.haxx.se">http://curl.haxx.se</a>
-and <a href="http://curl.haxx.se/libcurl/">http://curl.haxx.se/libcurl/</a> for more info).</p>
-      </section>
-    </div>
-    <footer>
-      <p>Project maintained by <a href="https://github.com/kkardzis">kkardzis</a></p>
-      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
-    </footer>
-    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
-              <script type="text/javascript">
+<p>Copyright (c) 2012-2014 Krzysztof Kardzis</p>
+
+<p>Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.</p>
+
+<p>THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.</p>
+        </section>
+
+        <footer>
+          curlhs is maintained by <a href="https://github.com/kkardzis">kkardzis</a><br>
+          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
+        </footer>
+
+                  <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
             document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
           </script>
@@ -52,5 +111,7 @@ and <a href="http://curl.haxx.se/libcurl/">http://curl.haxx.se/libcurl/</a> for 
             } catch(err) {}
           </script>
 
+      </div>
+    </div>
   </body>
 </html>

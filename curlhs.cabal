@@ -11,7 +11,7 @@ category:       Network
 stability:      Experimental
 build-type:     Simple
 cabal-version:  >=1.6
-homepage:       https://github.com/kkardzis/curlhs
+homepage:       https://kkardzis.github.com/curlhs
 
 description:
   Package @curlhs@ provides a mid-level interface to @libcurl@, the

@@ -3,7 +3,13 @@
 [travis.svg]: https://travis-ci.org/kkardzis/curlhs.svg
 [travis.htm]: https://travis-ci.org/kkardzis/curlhs
 
-This package provides a Haskell bindings to libcurl, the multiprotocol file
-transfer library which powers the popular tool curl (see http://curl.haxx.se
-and http://curl.haxx.se/libcurl/ for more info).
+Package *curlhs* provides Haskell bindings to *libcurl*, the multiprotocol
+file transfer library which powers the popular tool *curl*
+(see http://curl.haxx.se/libcurl for more info).
+
+
+[![Analytics][analytics.svg]][analytics.htm]
+
+[analytics.svg]: https://ga-beacon.appspot.com/UA-53767359-1/curlhs/readme
+[analytics.htm]: https://github.com/igrigorik/ga-beacon
 

@@ -18,10 +18,7 @@
 /* ------------------------------------------------------------------------- */
 /* global symbol table (for run-time linking)                                */
 /* ------------------------------------------------------------------------- */
-enum { CURL720, CURL721, CURL722, CURL723, CURL724
-     , CURL725, CURL726, CURL727, CURL728, CURL729
-     , CURL730
-     };
+enum { CURL720, CURL730 };
 
 #define CURLXXX CURL730
 #define SYMTAB curlSYMTAB
@@ -69,7 +66,8 @@ SYMTABENTRY curlSYMTAB[] =
   , {CURL720, CURLXXX, "curl_multi_socket_all"}
   , {CURL720, CURLXXX, "curl_multi_strerror"}
   , {CURL720, CURLXXX, "curl_multi_timeout"}
-  , {CURL728, CURLXXX, "curl_multi_wait"}
+ // {CURL728, CURLXXX, "curl_multi_wait"}
+  , {CURL730, CURLXXX, "curl_multi_wait"}
   , {CURL720, CURLXXX, "curl_mvaprintf"}
   , {CURL720, CURLXXX, "curl_mvfprintf"}
   , {CURL720, CURLXXX, "curl_mvprintf"}

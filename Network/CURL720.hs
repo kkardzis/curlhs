@@ -14,6 +14,21 @@
 module Network.CURL720
   ( module Network.CURLXXX
 
+  -- |
+  -- To use functions from this module it is required to explicitly link
+  -- with @libcurl\/7.20@ (or newer) at runtime. So first things first:
+  --
+  -- > main = withlib CURL720 $ do
+  -- >   ...
+  --
+  -- Without such statement any use of the 'curl*' functions will fail.
+  -- Runtime linker will first try to load @libcurl@ binary image into
+  -- memory and after succesful loading, library version will be checked.
+  -- Standard dynamic loader search path is used to locate required
+  -- so\/dll\/dylib. Just install libcurl.so\/dll\/dylib into one of
+  -- the searched places (could be current directory).
+
+ 
 -------------------------------------------------------------------------------
 -- * Global interface
 -------------------------------------------------------------------------------

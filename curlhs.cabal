@@ -38,6 +38,8 @@ description:
   .
   Package is distributed under ISC License (MIT/BSD-style, see LICENSE file
   for details). It is marked as @OtherLicense@ due to limitations of Cabal.
+  .
+  <<https://ga-beacon.appspot.com/UA-53767359-1/hackage/curlhs>>
 
 extra-source-files:
   Network/CURL000/curl-7.30.0/COPYING

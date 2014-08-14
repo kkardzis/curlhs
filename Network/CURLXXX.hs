@@ -8,6 +8,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable
 --
+-- <<https://ga-beacon.appspot.com/UA-53767359-1/hackage/curlhs/CURLXXX>>
 -------------------------------------------------------------------------------
 
 module Network.CURLXXX (

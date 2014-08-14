@@ -7,7 +7,7 @@ file transfer library which powers the popular tool *curl*
 
 [![Analytics][ga.img]][ga.htm]
 
-[ga.img]: https://ga-beacon.appspot.com/UA-53767359-1/curlhs/readme
+[ga.img]: https://ga-beacon.appspot.com/UA-53767359-1/github/curlhs
 [ga.htm]: https://github.com/igrigorik/ga-beacon
 
 [travis.img]: https://travis-ci.org/kkardzis/curlhs.svg

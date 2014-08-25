@@ -1,6 +1,6 @@
 module Network.CURL000Spec where
 
-import Network.CURL000
+--import Network.CURL000
 
 import Test.Hspec
 

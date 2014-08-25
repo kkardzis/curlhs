@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- |
--- Module      :  Network.CURLXXX
+-- Module      :  Network.CURL000
 -- Copyright   :  Copyright © 2012-2014 Krzysztof Kardzis
 -- License     :  ISC License (MIT/BSD-style, see LICENSE file for details)
 -- 
@@ -8,10 +8,10 @@
 -- Stability   :  experimental
 -- Portability :  non-portable
 --
--- <<https://ga-beacon.appspot.com/UA-53767359-1/hackage/curlhs/CURLXXX>>
+-- <<http://ga-beacon.appspot.com/UA-53767359-1/hackage/curlhs/CURL000>>
 -------------------------------------------------------------------------------
 
-module Network.CURLXXX (
+module Network.CURL000 (
   -----------------------------------------------------------------------------
   -- * Run-Time Linking
   -----------------------------------------------------------------------------

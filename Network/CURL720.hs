@@ -8,11 +8,11 @@
 -- Stability   :  experimental
 -- Portability :  non-portable
 --
--- <<https://ga-beacon.appspot.com/UA-53767359-1/hackage/curlhs/CURL720>>
+-- <<http://ga-beacon.appspot.com/UA-53767359-1/hackage/curlhs/CURL720>>
 -------------------------------------------------------------------------------
 
 module Network.CURL720
-  ( module Network.CURLXXX
+  ( module Network.CURL000
 
   -- |
   -- To use functions from this module it is required to explicitly link
@@ -521,5 +521,5 @@ module Network.CURL720
 
 import Network.CURL000.LibHS
 import Network.CURL000.Types
-import Network.CURLXXX
+import Network.CURL000
 

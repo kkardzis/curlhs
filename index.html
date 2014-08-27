@@ -1,85 +1,106 @@
 <!DOCTYPE html>
 <html>
+
   <head>
     <meta charset='utf-8'>
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-    <title>curlhs by kkardzis</title>
+    <meta name="description" content="curlhs : Haskell bindings to curl library (libcurl)">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>curlhs</title>
   </head>
 
   <body>
-    <div id="container">
-      <div class="inner">
 
-        <header>
-          <h1>curlhs</h1>
-          <h2>Haskell bindings to curl library (libcurl)</h2>
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/kkardzis/curlhs">View on GitHub</a>
+
+          <h1 id="project_title">curlhs</h1>
+          <h2 id="project_tagline">Haskell bindings to curl library (libcurl)</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/kkardzis/curlhs/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/kkardzis/curlhs/tarball/master">Download this project as a tar.gz file</a>
+            </section>
         </header>
+    </div>
 
-        <section id="downloads" class="clearfix">
-          <a href="https://github.com/kkardzis/curlhs/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
-          <a href="https://github.com/kkardzis/curlhs/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
-          <a href="https://github.com/kkardzis/curlhs" id="view-on-github" class="button"><span>View on GitHub</span></a>
-        </section>
-
-        <hr>
-
-        <section id="main_content">
-          <h1>
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
 <a name="networkcurl" class="anchor" href="#networkcurl"><span class="octicon octicon-link"></span></a>Network.CURL</h1>
 
-<p>Package <em>curlhs</em> provides Haskell bindings to <em>libcurl</em>, the multiprotocol
-file transfer library which powers the popular tool <em>curl</em>
-(see <a href="http://curl.haxx.se/libcurl">http://curl.haxx.se/libcurl</a> for more info).</p>
+<p><a href="https://kkardzis.github.io/curlhs"><em>curlhs</em></a> is a Haskell package that provides a Haskell
+interface to <a href="http://curl.haxx.se/libcurl/"><em>libcurl</em></a>, the multiprotocol file transfer
+library. And <em>libcurl</em> ...</p>
+
+<blockquote>
+<p><em>libcurl</em> is most probably the most portable, most powerful
+and most often used C-based multi-platform file transfer
+library on this planet - be it open source or commercial.</p>
+</blockquote>
 
 <h1>
 <a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h1>
 
-<h2>
-<a name="from-hackage-" class="anchor" href="#from-hackage-"><span class="octicon octicon-link"></span></a>From Hackage <a href="https://hackage.haskell.org/package/curlhs"><img src="https://img.shields.io/hackage/v/curlhs.svg" alt="Hackage"></a>
-</h2>
+<p><a href="https://kkardzis.github.io/curlhs"><em>curlhs</em></a> is written in the <a href="http://www.haskell.org/">Haskell</a>
+programming language and requires the Haskell compiler <a href="http://www.haskell.org/ghc/">GHC</a>
+and the Haskell's package manager <a href="http://www.haskell.org/cabal/">Cabal</a> to build and install.
+The easiest way to get them is with a binary installer of the
+<a href="http://www.haskell.org/platform/">Haskell Platform</a>.</p>
 
-<pre><code>$ cabal update &amp;&amp; cabal install curlhs
-</code></pre>
+<p>If you have the right setup, then getting <em>curlhs</em>
+should be as simple as running two commands:</p>
 
-<h2>
-<a name="from-github-" class="anchor" href="#from-github-"><span class="octicon octicon-link"></span></a>From GitHub <a href="https://travis-ci.org/kkardzis/curlhs"><img src="https://travis-ci.org/kkardzis/curlhs.svg" alt="Build Status"></a>
-</h2>
+<div class="highlight highlight-sh"><pre><span class="nv">$ </span>cabal update
+<span class="nv">$ </span>cabal install curlhs
+</pre></div>
 
-<pre><code>$ git clone https://github.com/kkardzis/curlhs.git
-$ git clone https://github.com/kkardzis/rtld.git
-$ cabal update &amp;&amp; cabal install ./rtld ./curlhs
-</code></pre>
+<p>This will download and install the latest <em>curlhs</em>
+package from <a href="https://hackage.haskell.org/package/curlhs">Hackage</a>.</p>
 
-<h1>
-<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h1>
-
-<pre><code>ghci&gt; :m Network.CURL720
-ghci&gt; loadlib CURL720 &gt;&gt; curl_version
-"libcurl/7.37.1 OpenSSL/1.0.1e zlib/1.2.8"
-</code></pre>
-
-<p><em>curlhs</em> must be explicitly linked with <em>libcurl</em> at runtime.
-<code>loadlib CURL720</code> in the example above first tries to load <em>libcurl</em>
-binary image into memory, than checks its version (in this case it must
-be 7.20 or higher). Loader looks for <em>libcurl.so</em> on UNIX-like systems,
-<em>libcurl.dll</em> on Windows and <em>libcurl.dylib</em> on OS X respectively.</p>
-
-<p><a href="http://en.wikipedia.org/wiki/Dynamic_loading">Dynamic loading</a>
-mechanisms are used behind the scenes. Search path used to locate
-so/dll/dylib is the default path used by the OS during linking.
-Just place required so/dll/dylib into one of that places.</p>
+<p>You don't need <a href="http://curl.haxx.se/libcurl/"><em>libcurl</em></a> to install <a href="https://kkardzis.github.io/curlhs"><em>curlhs</em></a>,
+and you don't need it also to build programs that use <em>curlhs</em>. But you need
+to have an appropriate version of <em>libcurl</em> in scope to execute those programs
+later. The <a href="http://en.wikipedia.org/wiki/Dynamic_loading">dynamic loading</a>
+mechanisms are used behind the scenes to link/load <em>libcurl</em> at runtime.</p>
 
 <h1>
-<a name="license-" class="anchor" href="#license-"><span class="octicon octicon-link"></span></a>License <a href="https://github.com/kkardzis/curlhs/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-ISC-green.svg" alt="ISC License"></a>
-</h1>
+<a name="documentation" class="anchor" href="#documentation"><span class="octicon octicon-link"></span></a>Documentation</h1>
 
+<p>As usual for Haskell packages, the first place to search for documentation
+is <a href="https://hackage.haskell.org/package/curlhs">Hackage</a>. More docs, like examples and tutorials,
+may be found directly on <a href="https://github.com/kkardzis/curlhs">GitHub</a> project page.
+Start with README.</p>
+
+<p>In addition, the main <a href="http://curl.haxx.se/libcurl/"><em>libcurl</em></a> website contains a vast
+amount of documentation and other resources. It is highly recommended
+to be familiar with those materials to use <em>curlhs</em>.</p>
+
+<h1>
+<a name="example" class="anchor" href="#example"><span class="octicon octicon-link"></span></a>Example</h1>
+
+<div class="highlight highlight-hs"><pre><span class="nf">ghci</span><span class="o">&gt;</span> <span class="kt">:</span><span class="n">m</span> <span class="kt">Network</span><span class="o">.</span><span class="kt">CURL720</span>
+<span class="nf">ghci</span><span class="o">&gt;</span> <span class="n">loadlib</span> <span class="kt">CURL720</span>
+<span class="nf">ghci</span><span class="o">&gt;</span> <span class="n">curl_version</span>
+<span class="s">"libcurl/7.37.1 OpenSSL/1.0.1e zlib/1.2.8"</span>
+</pre></div>
+
+<p><em>curlhs</em> must be explicitly linked with <em>libcurl</em> at runtime. <code>loadlib CURL720</code>
+in the example above first tries to load <em>libcurl</em> binary image into memory,
+than checks its version (in this case it must be libcurl/7.20 or higher).
+Loader looks for <em>libcurl.so</em> on UNIX-like systems, <em>libcurl.dll</em> on Windows
+and <em>libcurl.dylib</em> on OS X respectively. For more info please search the
+docs on <a href="https://github.com/kkardzis/curlhs">GitHub</a>.</p>
+
+<h1>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h1>
+
+<blockquote>
 <p>Copyright (c) 2012-2014 Krzysztof Kardzis</p>
 
 <p>Permission to use, copy, modify, and/or distribute this software for any
@@ -93,16 +114,21 @@ ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
 WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.</p>
+</blockquote>
 
 <p><a href="https://github.com/igrigorik/ga-beacon"><img src="https://ga-beacon.appspot.com/UA-53767359-1/curlhs" alt="Analytics"></a></p>
-        </section>
+      </section>
+    </div>
 
-        <footer>
-          curlhs is maintained by <a href="https://github.com/kkardzis">kkardzis</a><br>
-          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.
-        </footer>
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">curlhs maintained by <a href="https://github.com/kkardzis">kkardzis</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
 
-                  <script type="text/javascript">
+              <script type="text/javascript">
             var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
             document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
           </script>
@@ -113,7 +139,6 @@ OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.</p>
             } catch(err) {}
           </script>
 
-      </div>
-    </div>
+
   </body>
 </html>

@@ -246,12 +246,11 @@ I would be grateful for any comments or concerns you may have.
 
 
 
-![GA](https://ga-beacon.appspot.com/UA-53767359-1/curlhs/tutorial)
-
 [haskell.htm]:  http://www.haskell.org/
 [ghc.htm]:      http://www.haskell.org/ghc/
 [cabal.htm]:    http://www.haskell.org/cabal/
 [platform.htm]: http://www.haskell.org/platform/
-[hackage.htm]:  http://hackage.haskell.org/package/curlhs
+[hackage.htm]:  https://hackage.haskell.org/package/curlhs
 [travis.htm]:   https://travis-ci.org/kkardzis/curlhs
 
+![GA](https://ga-beacon.appspot.com/UA-53767359-1/curlhs/docs/tutorial)

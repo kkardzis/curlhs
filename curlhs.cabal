@@ -14,12 +14,15 @@ license-file:  LICENSE
 stability:     Experimental
 build-type:    Simple
 cabal-version: >=1.8
+-- should be >=1.18 actually, because of 'extra-doc-files', but oh well...
 
 description:
-  Package @curlhs@ provides a mid-level interface to @libcurl@, the
-  multiprotocol file transfer library that powers the popular tool @curl@
+  Package @curlhs@ provides a mid-level Haskell interface to @libcurl@, the
+  multiprotocol file transfer library which powers the popular tool @curl@
   (please see <http://curl.haxx.se/> for more info). As described on the
-  @libcurl@'s project site (<http://curl.haxx.se/libcurl/>):
+  @libcurl@ project site (<http://curl.haxx.se/libcurl/>):
+  .
+  >
   .
   /libcurl is a free and easy-to-use client-side URL transfer library,       /
   /supporting DICT, FILE, FTP, FTPS, GOPHER, HTTP, HTTPS, IMAP, IMAPS, LDAP, /
@@ -38,8 +41,14 @@ description:
   /supported, fast, thoroughly documented and is already used by many        /
   /known, big and successful companies and numerous applications.            /
   .
-  Package is distributed under ISC License (MIT/BSD-style, see LICENSE file
-  for details). It is marked as @OtherLicense@ due to limitations of Cabal.
+  >
+  .
+  More info about @curlhs@, such as tutorials or examples, may be found
+  in the <docs> section (if on Hackage try <docs/docs> or <src/docs>).
+  .
+  Package is distributed under the
+  <http://choosealicense.com/licenses/isc/ ISC License>
+  (MIT\/BSD-style, see <src/LICENSE LICENSE> file for details).
   .
   <<http://ga-beacon.appspot.com/UA-53767359-1/hackage/curlhs>>
 
@@ -47,17 +56,12 @@ description:
 -------------------------------------------------------------------------------
 extra-source-files:
   Network/CURL000/curl-7.30.0/COPYING
-  Network/CURL000/curl-7.30.0/curl.h
-  Network/CURL000/curl-7.30.0/curlbuild.h
-  Network/CURL000/curl-7.30.0/curlrules.h
-  Network/CURL000/curl-7.30.0/curlver.h
-  Network/CURL000/curl-7.30.0/easy.h
-  Network/CURL000/curl-7.30.0/multi.h
-  Network/CURL000/curl-7.30.0/stdcheaders.h
-  Network/CURL000/curl-7.30.0/typecheck-gcc.h
-  doc/tutorial.md
-  README.md
+  Network/CURL000/curl-7.30.0/*.h
 
+extra-doc-files:
+  docs/index.htm
+  docs/*.md
+  README.md
 
 -------------------------------------------------------------------------------
 library

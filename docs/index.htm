@@ -1,0 +1,85 @@
+<!DOCTYPE html><!-- Simple Markdown Browser by Krzysztof Kardzis -->
+<html ng-app="App" ng-controller="AppCtrl">
+
+<head>
+<meta charset="utf-8">
+<title ng-bind="mdpage"></title>
+<link rel="stylesheet" ng-href="{{github1css}}">
+<link rel="stylesheet" ng-href="{{github2css}}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/2.0.2/octicons.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'UA-53767359-2', 'auto');
+</script>
+</head>
+
+<body>
+
+<div ng-show="ready" class="container" style="padding-top:20px">
+  <div id="readme" class="boxed-group ng-cloak">
+    <h3>
+      <span class="octicon octicon-book"></span>
+      <a ng-href="{{mdfile}}">{{mdfile}}</a>
+    </h3>
+    <article class="markdown-body" ng-bind-html="mdhtml"></article>
+  </div>
+</div>
+
+<script>
+angular.module('App', []).controller('AppCtrl',
+function ($scope, $http, $location, $anchorScroll, $sce, $timeout) {
+  $http.get('https://cors-anywhere.herokuapp.com/https://github.com').
+    error(function(raw) { $scope.ready = true; }).
+    success(function(raw) {
+      var reg = /href="([^"]+github2?-[^"]+\.css)"/g;
+      var cs1; if (cs1=reg.exec(raw)) {$scope.github1css = cs1[1];};
+      var cs2; if (cs2=reg.exec(raw)) {$scope.github2css = cs2[1];};
+      var css = getComputedStyle(document.getElementById('readme'));
+      var check = function () {
+        var ready = css.position === 'relative';
+        if (ready) { $scope.ready = true; } else { $timeout(check, 10); };
+      }; $timeout(check, 10);
+    });
+  $scope.cache = {};
+  $scope.$on('$locationChangeSuccess', function() {
+    var mdfile = $location.path().replace(/^\//, '') || 'README.md';
+    var mdlink = $location.absUrl().replace(/\/\#\//, '/');
+    var mdpage = 'curlhs: ' + mdfile;
+    ga('send', 'pageview', {'location': mdlink, 'title': mdpage});
+    var mdshow = function () {
+      $scope.mdfile = mdfile; $scope.mdpage = mdpage;
+      $scope.mdhtml = $scope.cache[mdfile]
+      $timeout($anchorScroll);
+    };
+    if ($scope.cache[mdfile]) { mdshow(); } else {
+      var onfail = function(data, statusnum, headers, config, statustxt) {
+        $scope.mdfile = mdfile; $scope.mdpage = mdpage;
+        $scope.mdhtml = $sce.trustAsHtml
+          ( '<h1>' + statusnum.toString() + ' - ' + statustxt + '</h1>'
+          + '<pre>' + config.method + ' ' + config.url + '</pre>'
+          + '<pre>' + JSON.stringify(headers(), null, 2) + '</pre>');
+      };
+      $http.get(mdfile).error(onfail).success(function(raw) {
+        var cfg = {'headers':{'content-type':'text/plain'}};
+        var url = 'https://api.github.com/markdown/raw';
+        var ext; if (ext=/\.([^\.]+)$/.exec(mdfile)) {ext = ext[1];};
+        if (ext !== 'md') {raw = '```' + ext + '\n' + raw + '\n```';};
+        raw = raw.replace('UA-53767359-1', 'UA-53767359-1/hackage');
+        $http.post(url, raw, cfg).error(onfail).success(function(data) {
+          $scope.cache[mdfile] = $sce.trustAsHtml(data
+            .replace(/(href="#)([^"]+")/g,'$1/'+mdfile+'#$2 id="$2')
+            .replace(/(href="(?![\/#]))([^":]+")/g,'$1#/$2')
+          ); mdshow();
+        });
+      });
+    };
+  });
+});
+</script>
+
+</body>
+</html>

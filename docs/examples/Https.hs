@@ -23,7 +23,7 @@ main = withlib CURL720 $ do
     -- default bundle, then the CURLOPT_CAPATH option might come handy for
     -- you.
 
-    , CURLOPT_SSL_VERIFYHOST 2 -- (TODO: should be Bool)
+    , CURLOPT_SSL_VERIFYHOST True
     -- If the site you're connecting to uses a different host name that what
     -- they have mentioned in their server certificate's commonName (or
     -- subjectAltName) fields, libcurl will refuse to connect. You can skip

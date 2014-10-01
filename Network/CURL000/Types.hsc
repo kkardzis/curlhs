@@ -628,7 +628,7 @@ data CURLoption
   | CURLOPT_ISSUERCERT              FilePath
   | CURLOPT_CAPATH                  FilePath
   | CURLOPT_CRLFILE                 FilePath
-  | CURLOPT_SSL_VERIFYHOST          CLong
+  | CURLOPT_SSL_VERIFYHOST          Bool
   | CURLOPT_CERTINFO                Bool
   | CURLOPT_RANDOM_FILE             FilePath
   | CURLOPT_EGDSOCKET               String

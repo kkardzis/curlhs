@@ -542,7 +542,7 @@ curl_easy_setopt curl@(CURL _ _ cbref slref) opts =
   #{setopt CURLOPT_ISSUERCERT             , string   }
   #{setopt CURLOPT_CAPATH                 , string   }
   #{setopt CURLOPT_CRLFILE                , string   }
-  #{setopt CURLOPT_SSL_VERIFYHOST         , clong    }
+  #{setopt CURLOPT_SSL_VERIFYHOST         , bool2    }
   #{setopt CURLOPT_CERTINFO               , bool     }
   #{setopt CURLOPT_RANDOM_FILE            , string   }
   #{setopt CURLOPT_EGDSOCKET              , string   }
@@ -574,10 +574,12 @@ curl_easy_setopt curl@(CURL _ _ cbref slref) opts =
     ---------------------------------------------------------------------------
     enum  ccurl copt x = C.curl_easy_setopt'Long ccurl copt (toCLong      x)
     bool  ccurl copt x = C.curl_easy_setopt'Long ccurl copt (fromBool     x)
+    bool2 ccurl copt x = C.curl_easy_setopt'Long ccurl copt (fromBool2    x)
     time  ccurl copt x = C.curl_easy_setopt'Long ccurl copt (fromUTCTime  x)
     clong ccurl copt x = C.curl_easy_setopt'Long ccurl copt (fromIntegral x)
     int64 ccurl copt x = C.curl_easy_setopt'COff ccurl copt (fromIntegral x)
     fromUTCTime = truncate . utcTimeToPOSIXSeconds
+    fromBool2 False = 0; fromBool2 True = 2
     ---------------------------------------------------------------------------
     string ccurl copt x = withCAString x $ \p ->
       C.curl_easy_setopt'DPtr ccurl copt (castPtr p)

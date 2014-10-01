@@ -9,7 +9,15 @@ and basic usage of *curlhs* and *libcurl*.
 
 # Examples
 
-TODO
+### simple HTTP
+
+[Simple.hs](examples/Simple.hs)
+shows how to get a remote web page in only four libcurl function calls.
+
+### simple HTTPS
+
+[Https.hs](examples/Https.hs)
+gets a single HTTPS page.
 
 
 

@@ -59,6 +59,7 @@ extra-source-files:
   Network/CURL000/curl-7.30.0/*.h
 
 extra-doc-files:
+  docs/examples/*.hs
   docs/index.htm
   docs/*.md
   README.md

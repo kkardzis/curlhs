@@ -1,5 +1,5 @@
 name:          curlhs
-version:       0.0.0-dev
+version:       0.1.2
 synopsis:      bindings to libcurl, the multiprotocol file transfer library
 homepage:      https://kkardzis.github.com/curlhs
 category:      Network
@@ -17,10 +17,10 @@ cabal-version: >=1.8
 -- should be >=1.18 actually, because of 'extra-doc-files', but oh well...
 
 description:
-  Package @curlhs@ provides a mid-level Haskell interface to @libcurl@, the
-  multiprotocol file transfer library which powers the popular tool @curl@
-  (please see <http://curl.haxx.se/> for more info). As described on the
-  @libcurl@ project site (<http://curl.haxx.se/libcurl/>):
+  Package @curlhs@ provides a mid-level Haskell interface to @libcurl@,
+  the multiprotocol file transfer library which powers the popular tool
+  @curl@ (please see <http://curl.haxx.se/> for more info about @curl@
+  and @libcurl@). As described on the @libcurl@ project site:
   .
   >
   .
@@ -97,6 +97,11 @@ test-suite hspec
   ghc-options:    -Wall -fwarn-tabs
   main-is:        Spec.hs
   hs-source-dirs: test
+
+  other-modules:
+    Network.CURL000Spec
+    Network.CURL720Spec
+    Network.CURL730Spec
 
 
 -------------------------------------------------------------------------------

@@ -60,10 +60,11 @@ ghci> curl_version
 *** Exception: <curlhs> failed to call 'curl_version' (NULL)
 ```
 
-Obviously not what was expected. But what's wrong?
+Obviously that's not what was expected. But what's wrong?
 The short answer is that *libcurl* was not loaded before use.
-*curlhs* depends on *libcurl*, but does not link with it at compile/build
-time like usually. It is required to explicitly load *libcurl* at runtime.
+*curlhs* depends on *libcurl*, but does not link with *libcurl* at compile/build
+time like most libraries would. Instead, it is necessary to explicitly load 
+*libcurl* at runtime.
 So let's try:
 
 ```hs
@@ -72,7 +73,7 @@ ghci> loadlib CURL720
 ```
 
 What now? Let's assume we are on Windows, where *libcurl* is not installed
-by default. Dynamic loader searchs for "libcurl.dll", but it cannot find
+by default. The dynamic loader searchs for "libcurl.dll", but it cannot find
 it in the default search path. It's time to install *libcurl*.
 
 
@@ -84,17 +85,18 @@ Using *libcurl* from Haskell was always a pain on Windows. But not anymore.
 With *curlhs* it's now easy to use them together. All that *curlhs* needs
 to work is a "libcurl.dll" with its dependencies like SSL, SSH etc.
 
-*libcurl* can be build from sources of course, but the recommended
+*libcurl* can be build from source of course, but the recommended
 way is to search for the precompiled binaries for Windows.
 Good place to start may be at <http://www.confusedbycode.com/curl/>.
 
-Be carefull however. *libcurl* uses many different libraries behind the scenes 
-to do its work, some of them may be optional, some none. It may be build
+Be careful. *libcurl* uses many different libraries behind the scenes 
+to do its work, some (but not all) of which are optional. *libcurl* may be built
 with different implementations of SSL for example, or even without SSL
-support at all. The same with other features, so pay attention to how
+support at all. Similarly, other features may only be available if they were selected
+at compile time for *libcurl*, so pay attention to how
 a package was build and that all dependencies are included.
 
-Good choice, though not the latest now, are these packages from
+A good choice for *libcurl*, although not the latest version, are these packages from
 <http://curl.haxx.se/download.html>:
 
 * <http://curl.haxx.se/gknw.net/7.34.0/dist-w32/curl-7.34.0-devel-mingw32.zip>
@@ -110,16 +112,16 @@ For Win32 for example in 'curl-7.34.0-devel-mingw32\bin\' we have:
 * ssleay32.dll
 * zlib1.dll
 
-Where to put those dll's? Please refer to the `LoadLibrary` function
+Where should we put those DLLs? Please refer to the `LoadLibrary` function
 documentation on MSDN for exhaustive information about the default
 search path used to locate the libraries in Windows. Three notable
-places where Windows looks for the dll's are:
+places where Windows looks for the DLLs are:
 
 * the directory from which the application was loaded (where the exe is)
 * the directories listed in the PATH environment variable
 * the current directory
 
-That's it. To test just `cd` into the directory where those dll's
+That's it. To test just `cd` to the directory where those DLLs
 are placed and run GHCi from there.
 
 
@@ -128,8 +130,8 @@ are placed and run GHCi from there.
 In the unix world *libcurl* is a widely used library and is probably
 installed by default, or as a dependency for some tool, notably the
 popular tool *curl*. To check it, use the command `curl --version`.
-In case *libcurl* is not installed, the easiest way to get it and its
-dependencies, is with the system package manager like *apt-get*, *yum*
+If *libcurl* has not been installed, the easiest way to install it and its
+dependencies is with the system package manager like *apt-get*, *yum*
 or similar. For example:
 
 ```sh
@@ -144,7 +146,7 @@ Please refer to the `dlopen` man page for more information.
 
 ### BSD
 
-Like on Linux systems: first check if *libcurl* is not installed already,
+As with Linux systems: first check if *libcurl* is installed,
 for example with `curl --version`, and if it's not, use the system package
 manager to install it. For example:
 

@@ -3,12 +3,12 @@
 -- Module      :  Network.CURL720
 -- Copyright   :  Copyright © 2012-2014 Krzysztof Kardzis
 -- License     :  ISC License (MIT/BSD-style, see LICENSE file for details)
--- 
+--
 -- Maintainer  :  Krzysztof Kardzis <kkardzis@gmail.com>
 -- Stability   :  experimental
 -- Portability :  non-portable
 --
--- <<http://ga-beacon.appspot.com/UA-53767359-1/hackage/curlhs/CURL720>>
+-- <<https://ga-beacon.appspot.com/UA-53767359-1/curlhs/Network-CURL720>>
 -------------------------------------------------------------------------------
 
 module Network.CURL720
@@ -23,13 +23,13 @@ module Network.CURL720
   --
   -- Without that, any foreign call to @libcurl@ will fail.
   --
-  -- More info may be found in the <docs>.
+  -- More info may be found in the <docs/#/README.md docs>.
 
- 
+
 -------------------------------------------------------------------------------
 -- * Global interface
 -------------------------------------------------------------------------------
- 
+
   -- ** Version info
   , curl_version
   , curl_version_info

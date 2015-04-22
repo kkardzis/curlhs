@@ -66,7 +66,7 @@ SYMTABENTRY curlSYMTAB[] =
   , {CURL720, CURLXXX, "curl_multi_socket_all"}
   , {CURL720, CURLXXX, "curl_multi_strerror"}
   , {CURL720, CURLXXX, "curl_multi_timeout"}
- // {CURL728, CURLXXX, "curl_multi_wait"}
+/*, {CURL728, CURLXXX, "curl_multi_wait"} */
   , {CURL730, CURLXXX, "curl_multi_wait"}
   , {CURL720, CURLXXX, "curl_mvaprintf"}
   , {CURL720, CURLXXX, "curl_mvfprintf"}
@@ -86,9 +86,7 @@ SYMTABENTRY curlSYMTAB[] =
   , {CURL720, CURLXXX, "curl_version_info"}
   };
 
-/* Force section .data instead of default .bss, because with .bss something  */
-/* wrong happens during linking in ghci/runghc (at least on FreeBSD).        */
-void* __attribute__((section(".data"))) curlADRTAB[TABLEN] = {};
+void* curlADRTAB[TABLEN] = {NULL};
 
 
 /* ------------------------------------------------------------------------- */
@@ -98,17 +96,17 @@ typedef int (*setoptFP)(void *, int, ...);
 
 int curlOptLong(setoptFP setopt, void *handle, int opt, long val) {
   return setopt(handle, opt, val);
-};
+}
 
 int curlOptCOff(setoptFP setopt, void *handle, int opt, curl_off_t val) {
   return setopt(handle, opt, val);
-};
+}
 
 int curlOptDPtr(setoptFP setopt, void *handle, int opt, void *val) {
   return setopt(handle, opt, val);
-};
+}
 
 int curlOptFPtr(setoptFP setopt, void *handle, int opt, void (*val)()) {
   return setopt(handle, opt, val);
-};
+}
 

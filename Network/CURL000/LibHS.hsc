@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Network.CURL000.LibHS
--- Copyright   :  Copyright © 2012-2014 Krzysztof Kardzis
+-- Copyright   :  Copyright (c) 2012-2015 Krzysztof Kardzis
 -- License     :  ISC License (MIT/BSD-style, see LICENSE file for details)
--- 
+--
 -- Maintainer  :  Krzysztof Kardzis <kkardzis@gmail.com>
 -- Stability   :  experimental
 -- Portability :  non-portable

@@ -101,11 +101,13 @@ import Foreign.C.String
 import Foreign.C.Types
 import Foreign.Ptr
 
-import Control.Applicative ((<$>), (<*>))
-import Control.Monad       (when)
+import Control.Applicative
+import Control.Monad
 
 import System.IO.Unsafe (unsafePerformIO)
 import System.RTLD
+
+import Prelude
 
 #include "LibC0.c"
 

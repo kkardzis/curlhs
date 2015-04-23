@@ -87,7 +87,7 @@ import Data.Time.Clock.POSIX  (utcTimeToPOSIXSeconds, posixSecondsToUTCTime)
 import Data.List              (partition)
 import Data.Unique            (newUnique)
 
-import Control.Applicative ((<$>), (<*>))
+import Control.Applicative
 import Control.Concurrent  (MVar, newMVar, takeMVar, tryPutMVar, modifyMVar)
 import Control.Concurrent  (withMVar, modifyMVar_)
 import Control.Exception   (throwIO, bracketOnError)
@@ -100,6 +100,8 @@ import Foreign.Storable
 import Foreign.C.String
 import Foreign.C.Types
 import Foreign.Ptr
+
+import Prelude
 
 #include "LibC0.c"
 

@@ -39,7 +39,7 @@ import Foreign.Ptr
 
 -------------------------------------------------------------------------------
 class ENUM a where
-  toENUM :: a -> Int
+  toENUM :: a -> CULong
   enumlist :: [a]
 
 instance ENUM a => ENUM [a] where

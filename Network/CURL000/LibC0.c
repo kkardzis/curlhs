@@ -110,3 +110,26 @@ int curlOptFPtr(setoptFP setopt, void *handle, int opt, void (*val)()) {
   return setopt(handle, opt, val);
 }
 
+
+/* ------------------------------------------------------------------------- */
+#undef hsc_ENUM
+#define hsc_ENUM(type, ...)                           \
+  printf("data " #type "\n");                         \
+  { char *x, xs[] = #__VA_ARGS__;                     \
+    printf("  = %s\n", strtok(xs,","));               \
+    while ((x=strtok(NULL,",")) != NULL) {            \
+      printf("  |%s\n", x);                           \
+    };                                                \
+  };                                                  \
+  printf("\n");                                       \
+  printf("instance ENUM " #type " where\n");          \
+  printf("  enumlist = [ " #__VA_ARGS__ " ]\n");      \
+  printf("  toENUM x = case x of\n");                 \
+  { char  *x, xs[] = #__VA_ARGS__;                    \
+    unsigned long vs[] = {__VA_ARGS__}; int i=1;      \
+    printf("    %s -> %lu\n", strtok(xs,","), vs[0]); \
+    while ((x=strtok(NULL,",")) != NULL) {            \
+      printf("   %s -> %lu\n", x, vs[i++]);           \
+    };                                                \
+  };                                                  \
+

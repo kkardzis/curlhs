@@ -24,7 +24,7 @@ main = hspec spec
 spec :: Spec
 spec = runIO (testlib CURL730) >>= \x -> case x of
   Left  xs -> it "cannot test this module" (pendingWith xs)
-  Right () -> before (loadlib CURL730) $ after (freelib CURL730) $ do
+  Right () -> before_ (loadlib CURL730) $ after_ (freelib CURL730) $ do
 
   ----------------------------
   describe "curl_version" $ do

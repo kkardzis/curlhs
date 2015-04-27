@@ -94,7 +94,7 @@ library
 -------------------------------------------------------------------------------
 test-suite hspec
   type:           exitcode-stdio-1.0
-  build-depends:  base==4.*, hspec==1.*, curlhs
+  build-depends:  base==4.*, hspec==2.*, curlhs
   ghc-options:    -Wall -fwarn-tabs
   main-is:        Spec.hs
   hs-source-dirs: test

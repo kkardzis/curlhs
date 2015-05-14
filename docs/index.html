@@ -35,7 +35,7 @@ function ($scope, $http, $location, $anchorScroll, $sce, $timeout) {
   $http.get('https://cors-anywhere.herokuapp.com/https://github.com').
     error(function(raw) { $scope.ready = true; }).
     success(function(raw) {
-      var reg = /href="([^"]+github2?-[^"]+\.css)"/g;
+      var reg = /href="([^"]+github2?[^"]+\.css)"/g;
       var cs1; if (cs1=reg.exec(raw)) {$scope.github1css = cs1[1];};
       var cs2; if (cs2=reg.exec(raw)) {$scope.github2css = cs2[1];};
       var css = getComputedStyle(document.getElementById('readme'));

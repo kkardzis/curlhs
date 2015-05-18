@@ -15,13 +15,8 @@ module Network.CURL720
   ( module Network.CURL000
 
   -- |
-  -- Using functions from this module requires an explicit linking
-  -- with @libcurl\/7.20@ or newer at program runtime:
-  --
-  -- > main = withlib CURL720 $ do
-  -- >   ...
-  --
-  -- Without that, any foreign call to @libcurl@ will fail.
+  -- This module exports __libcurl 7.20 API__. Version 7.20 or higher
+  -- of the @libcurl[.dll|.so|.dylib]@ is required at program runtime.
   --
   -- More info may be found in the <docs/#/README.md docs>.
 

@@ -8,7 +8,7 @@ module Https where
 import Network.CURL720
 
 
-main = withlib CURL720 $ do
+main = do
   curl <- curl_easy_init
   curl_easy_setopt curl
     [ CURLOPT_URL "https://httpbin.org/get"

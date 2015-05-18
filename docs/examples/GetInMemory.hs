@@ -16,9 +16,7 @@ import Data.IORef
 import Network.CURL720
 
 
-main = withlib CURL720 $ do
-  lbs <- curlGET "http://httpbin.org/get"
-  BL.putStrLn lbs
+main = curlGET "http://httpbin.org/get" >>= BL.putStrLn
 
 
 curlGET :: String -> IO BL.ByteString
@@ -28,10 +26,10 @@ curlGET url =
     curl_easy_setopt curl
       [ CURLOPT_URL url
       -- specify URL to get
- 
+
       , CURLOPT_WRITEFUNCTION $ Just (memwrite ref)
       -- send all data to this function
- 
+
       , CURLOPT_USERAGENT "libcurl-agent/1.0"
       -- some servers don't like requests that are made without a user-agent
       -- field, so we provide one

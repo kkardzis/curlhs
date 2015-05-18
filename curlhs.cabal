@@ -90,6 +90,15 @@ library
   include-dirs:
     Network/CURL000
 
+  if os(windows)
+    cc-options: -DWINRTLD -DSONAME="libcurl.dll"
+
+  if os(osx)
+    cc-options: -DOSXRTLD -DSONAME="libcurl.dylib"
+
+  if os(linux) || os(freebsd)
+    cc-options: -DUNIRTLD -DSONAME="libcurl.so" -DSONAME0="libcurl.so.4"
+
 
 -------------------------------------------------------------------------------
 test-suite hspec
@@ -100,7 +109,6 @@ test-suite hspec
   hs-source-dirs: test
 
   other-modules:
-    Network.CURL000Spec
     Network.CURL720Spec
     Network.CURL730Spec
 

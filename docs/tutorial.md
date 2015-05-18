@@ -46,13 +46,9 @@ Tested on Windows, FreeBSD and Linux ([travis-ci][travis.htm]).
 
 # Does it work?
 
-To see if *curlhs* works, let's try to check *libcurl* version. Run GHCi:
-
-```sh
-$ ghci
-```
-
-The simple call to `curl_version` should return the *libcurl* version string:
+To see if *curlhs* works, let's try to check *libcurl* version. The simple
+call to `curl_version` should return the *libcurl* version string, but...
+let's assume we are on Windows, where *libcurl* is not installed by default:
 
 ```hs
 ghci> :m Network.CURL720
@@ -60,20 +56,16 @@ ghci> curl_version
 *** Exception: <curlhs> failed to call 'curl_version' (NULL)
 ```
 
-Obviously that's not what was expected. But what's wrong? The short answer
-is that *libcurl* was not loaded before use. *curlhs* depends on *libcurl*,
-but does not link with *libcurl* at compile/build time like most libraries
-would. Instead, it is necessary to explicitly load *libcurl* at runtime.
-So let's try:
+Obviously that's not what was expected. But what's wrong? *curlhs* depends
+on *libcurl*, but does not link with *libcurl* at compile/build time like most
+libraries would. Instead, it uses dynamic loader mechanisms to explicitly load
+*libcurl* at runtime. This may fail when loaded *libcurl* is not compatible
+with *curlhs* or when there is no *libcurl* at all.
 
-```hs
-ghci> loadlib CURL720
-*** Exception: <curlhs> failed to load libcurl/7.20 ["libcurl.dll"]
-```
+In the above example the dynamic loader searchs for "libcurl.dll", but it
+cannot find it in the default search path.
 
-What now? Let's assume we are on Windows, where *libcurl* is not installed
-by default. The dynamic loader searchs for "libcurl.dll", but it cannot find
-it in the default search path. It's time to install *libcurl*.
+It's time to install *libcurl*.
 
 
 # Where is *libcurl*?
@@ -167,27 +159,18 @@ Disclaimer: this platform was not tested, sorry.
 
 # It works? Really?
 
-Now, when *libcurl* is in the scope, let's try again. Let's assume we
-are on Windows with "libcurl/7.34" like in the example above. Run GHCi,
-import one of the *curlhs* modules, load *libcurl*, and finally check
-its version:
+Now, when *libcurl* is in the scope, let's try again. Let's assume we are
+on Windows with "libcurl/7.34" like in the example above. Run GHCi, import
+one of the *curlhs* modules and finally check the *libcurl* version:
 
 ```hs
 ghci> :m Network.CURL720
-ghci> loadlib CURL720
 ghci> curl_version
 "libcurl/7.34.0 OpenSSL/1.0.0k zlib/1.2.8 libidn/1.18 libssh2/1.4.3 librtmp/2.3"
 ```
 
-Excellent! But what if...
+Excellent!
 
-```hs
-ghci> freelib CURL720
-ghci> curl_version
-*** Exception: <curlhs> failed to call 'curl_version' (NULL)
-```
-
-Nice.
 
 
 # Hello World!
@@ -196,7 +179,6 @@ This is about the file transfer library, so let's try to download something:
 
 ```hs
 ghci> :m Network.CURL720
-ghci> loadlib CURL720
 ghci> c <- curl_easy_init
 ghci> curl_easy_setopt c [CURLOPT_URL "http://httpbin.org/get"]
 ghci> curl_easy_perform c

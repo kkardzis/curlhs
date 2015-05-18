@@ -22,6 +22,7 @@ enum { CURL720, CURL730 };
 
 #define CURLXXX CURL730
 #define SYMTAB curlSYMTAB
+#define ADRTAB curlADRTAB
 
 SYMTABENTRY curlSYMTAB[] =
   { {CURL720, CURLXXX, "curl_easy_cleanup"}
@@ -132,4 +133,79 @@ int curlOptFPtr(setoptFP setopt, void *handle, int opt, void (*val)()) {
       printf("   %s -> %lu\n", x, vs[i++]);           \
     };                                                \
   };                                                  \
+
+
+
+/* ------------------------------------------------------------------------- */
+/* ######################################################################### */
+/* ------------------------------------------------------------------------- */
+#ifndef hsc_const
+
+/* ------------------------------------------------------------------------- */
+#if defined(OSXRTLD) || defined(UNIRTLD)
+
+#include <dlfcn.h>
+#define DYNLOAD(lib) dlopen(lib,RTLD_LAZY)
+#define DYNFREE(lib) dlclose(lib)
+#define DYNFUNC(h,n) dlsym(h,n)
+
+static void dyninit(void) __attribute__((constructor));
+static void dynfini(void) __attribute__((destructor));
+
+#elif defined(WINRTLD)
+
+#include <windows.h>
+#define DYNLOAD(lib) LoadLibrary(lib)
+#define DYNFREE(lib) FreeLibrary(lib)
+#define DYNFUNC(h,f) GetProcAddress(h,f)
+
+static void dyninit(void) __attribute__((constructor));
+
+#else
+
+#error "Platform not Supported"
+
+#define DYNLOAD(lib) NULL
+#define DYNFREE(lib) NULL
+#define DYNFUNC(h,f) NULL
+
+#endif /* RTLD */
+
+
+/* ------------------------------------------------------------------------- */
+static void *dynlib = NULL;
+
+static void dyninit(void) {
+#if defined(SONAME0) && defined(SONAME)
+  if ((dynlib = DYNLOAD(SONAME0)) || (dynlib = DYNLOAD(SONAME))) {
+#elif defined(SONAME)
+  if (dynlib = DYNLOAD(SONAME)) {
+#else
+  if (0) {
+#endif
+    typedef CURLcode (*INIT)(long flags);
+    typedef curl_version_info_data *(*VTAG)(CURLversion type);
+    INIT init = (INIT) DYNFUNC(dynlib, "curl_global_init");
+    VTAG vtag = (VTAG) DYNFUNC(dynlib, "curl_version_info");
+    if (vtag && init && !(init(CURL_GLOBAL_ALL))) {
+      curl_version_info_data *dt = vtag(CURLVERSION_FIRST);
+      if ((dt->version_num >= 0x071400) && (dt->version_num < 0x080000)) {
+        int i; for (i=0; i<TABLEN; i++) {
+          ADRTAB[i] = DYNFUNC(dynlib, SYMTAB[i].name);
+        }
+      }
+    }
+  }
+}
+
+static void dynfini(void) {
+  if (dynlib) {
+    typedef void (*EXIT)(void);
+    EXIT exit = (EXIT) DYNFUNC(dynlib, "curl_global_cleanup");
+    if (exit) { exit(); };
+    DYNFREE(dynlib);
+  }
+}
+
+#endif /* hsc_const */
 

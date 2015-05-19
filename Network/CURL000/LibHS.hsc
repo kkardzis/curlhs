@@ -614,7 +614,7 @@ freeSL (_,sl) = when (sl/=nullPtr) (C.curl_slist_free_all sl)
 makeSL :: IORef [CURLSL] -> Ptr C.CURL -> CInt -> [String] -> IO CInt
 makeSL slref ccurl copt xs =
   let cons sl (tokeep, tofree) = ((copt,sl):tokeep, tofree)
-      keep 0 sl sls = cons sl $ partition ((==copt) . fst) sls
+      keep 0 sl sls = cons sl $ partition ((/=copt) . fst) sls
       keep _ sl sls = cons sl $ (sls,[])
   in  wrapSL xs >>= \msl -> case msl of
         Nothing -> return #{const CURLE_OUT_OF_MEMORY}
@@ -637,8 +637,8 @@ makeCB
   :: IORef [CURLCB] -> CURLCBT a -> Ptr C.CURL -> CInt -> Maybe a -> IO CInt
 makeCB cbref cbt ccurl copt mcb =
   let comp :: CURLCBT a -> CURLCB -> Bool
-      comp FWRITE (CURLCB FWRITE _) = True; comp FWRITE _ = False
-      comp FREAD  (CURLCB FREAD  _) = True; comp FREAD  _ = False
+      comp FWRITE (CURLCB FWRITE _) = False; comp FWRITE _ = True
+      comp FREAD  (CURLCB FREAD  _) = False; comp FREAD  _ = True
       cons fp (tokeep, tofree) = ((CURLCB cbt fp):tokeep, tofree)
       keep 0 fp cbs = cons fp $ partition (comp cbt) cbs
       keep _ fp cbs = cons fp $ (cbs,[])

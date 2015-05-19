@@ -138,7 +138,7 @@ module Network.CURL730
      -- CURLOPT_CLOSESOCKETDATA
      -- CURLOPT_PROGRESSFUNCTION
      -- CURLOPT_PROGRESSDATA
-     -- CURLOPT_HEADERFUNCTION
+      , CURLOPT_HEADERFUNCTION
      -- CURLOPT_HEADERDATA
      -- CURLOPT_DEBUGFUNCTION
      -- CURLOPT_DEBUGDATA
@@ -347,8 +347,9 @@ module Network.CURL730
       )
 
   -- *** Callbacks
-  , CURL_write_callback, CURL_write_response (..)
-  , CURL_read_callback , CURL_read_response  (..)
+  , CURL_write_callback , CURL_write_response  (..)
+  , CURL_read_callback  , CURL_read_response   (..)
+  , CURL_header_callback, CURL_header_response (..)
 
   -- *** Constants
   , CURLproto

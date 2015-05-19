@@ -371,8 +371,9 @@ curl_easy_setopt curl@(CURL _ _ cbref slref) opts =
   #define hsc_setopt(opt, foo) printf(#opt " x -> " #foo " ccurl %d x", opt)
 
   ---- CALLBACK OPTIONS -------------------------------------------------------
-  #{setopt CURLOPT_WRITEFUNCTION          , curlcb FWRITE}
-  #{setopt CURLOPT_READFUNCTION           , curlcb FREAD }
+  #{setopt CURLOPT_WRITEFUNCTION          , curlcb FWRITE }
+  #{setopt CURLOPT_READFUNCTION           , curlcb FREAD  }
+  #{setopt CURLOPT_HEADERFUNCTION         , curlcb FHEADER}
 
   ---- BEHAVIOR OPTIONS -------------------------------------------------------
   #{setopt CURLOPT_VERBOSE                , bool     }
@@ -627,8 +628,9 @@ makeSL slref ccurl copt xs =
 -------------------------------------------------------------------------------
 wrapCB :: CURLCBT a -> a -> IO (FunPtr ())
 wrapCB cbt = case cbt of
-  FWRITE -> fmap castFunPtr . C.wrapCURL_write_callback . write_callback
-  FREAD  -> fmap castFunPtr . C.wrapCURL_read_callback  . read_callback
+  FWRITE  -> fmap castFunPtr . C.wrapCURL_write_callback  . write_callback
+  FREAD   -> fmap castFunPtr . C.wrapCURL_read_callback   . read_callback
+  FHEADER -> fmap castFunPtr . C.wrapCURL_header_callback . header_callback
 
 freeCB :: CURLCB -> IO ()
 freeCB (CURLCB _ fp) = when (fp/=nullFunPtr) (freeHaskellFunPtr fp)
@@ -637,8 +639,9 @@ makeCB
   :: IORef [CURLCB] -> CURLCBT a -> Ptr C.CURL -> CInt -> Maybe a -> IO CInt
 makeCB cbref cbt ccurl copt mcb =
   let comp :: CURLCBT a -> CURLCB -> Bool
-      comp FWRITE (CURLCB FWRITE _) = False; comp FWRITE _ = True
-      comp FREAD  (CURLCB FREAD  _) = False; comp FREAD  _ = True
+      comp FWRITE  (CURLCB FWRITE  _) = False; comp FWRITE  _ = True
+      comp FREAD   (CURLCB FREAD   _) = False; comp FREAD   _ = True
+      comp FHEADER (CURLCB FHEADER _) = False; comp FHEADER _ = True
       cons fp (tokeep, tofree) = ((CURLCB cbt fp):tokeep, tofree)
       keep 0 fp cbs = cons fp $ partition (comp cbt) cbs
       keep _ fp cbs = cons fp $ (cbs,[])
@@ -668,6 +671,15 @@ read_callback fread buff size nmemb _ = do
     CURL_READFUNC_ABORT -> return #{const CURL_READFUNC_ABORT}
     CURL_READFUNC_OK bs -> unsafeUseAsCStringLen (BS.take buffLen bs)
       (\(cs, cl) -> copyBytes buff cs cl >> return (fromIntegral cl))
+
+
+-------------------------------------------------------------------------------
+header_callback :: CURL_header_callback -> C.CURL_header_callback
+header_callback fheader ptr size nmemb _ = do
+  stat <- packCStringLen (ptr, fromIntegral (size * nmemb)) >>= fheader
+  return $ case stat of
+    CURL_HEADERFUNC_OK   -> (size * nmemb)
+    CURL_HEADERFUNC_FAIL -> 0
 
 
 -------------------------------------------------------------------------------

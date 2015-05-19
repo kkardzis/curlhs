@@ -449,7 +449,7 @@ data CURLoption
  -- CURLOPT_CLOSESOCKETDATA
  -- CURLOPT_PROGRESSFUNCTION
  -- CURLOPT_PROGRESSDATA
- -- CURLOPT_HEADERFUNCTION
+  | CURLOPT_HEADERFUNCTION          (Maybe CURL_header_callback)
  -- CURLOPT_HEADERDATA
  -- CURLOPT_DEBUGFUNCTION
  -- CURLOPT_DEBUGDATA
@@ -676,6 +676,14 @@ data CURL_read_response
   deriving (Eq)
 
 
+type CURL_header_callback = ByteString -> IO CURL_header_response
+
+data CURL_header_response
+  = CURL_HEADERFUNC_OK
+  | CURL_HEADERFUNC_FAIL
+  deriving (Eq)
+
+
 
 -------------------------------------------------------------------------------
 data CURLC
@@ -848,8 +856,9 @@ data CURLCB where
   CURLCB :: CURLCBT a -> FunPtr () -> CURLCB
 
 data CURLCBT a where
-  FWRITE :: CURLCBT CURL_write_callback
-  FREAD  :: CURLCBT CURL_read_callback
+  FWRITE  :: CURLCBT CURL_write_callback
+  FREAD   :: CURLCBT CURL_read_callback
+  FHEADER :: CURLCBT CURL_header_callback
 
 type CURLSL = (CInt, Ptr C.CURLslist)
 

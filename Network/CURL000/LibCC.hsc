@@ -81,8 +81,9 @@ module Network.CURL000.LibCC
   , curl_version
   , curl_version_info
 
-  , CURL_write_callback, wrapCURL_write_callback
-  , CURL_read_callback , wrapCURL_read_callback
+  , CURL_write_callback , wrapCURL_write_callback
+  , CURL_read_callback  , wrapCURL_read_callback
+  , CURL_header_callback, wrapCURL_header_callback
 
   , CURL_lock_function  , wrapCURL_lock_function
   , CURL_unlock_function, wrapCURL_unlock_function
@@ -439,8 +440,9 @@ instance Storable CURLcerts where
 -------------------------------------------------------------------------------
 -- Callbacks
 -------------------------------------------------------------------------------
-#{WRAP CURL_write_callback, Ptr CChar -> CSize -> CSize -> Ptr () -> IO CSize}
-#{WRAP CURL_read_callback , Ptr CChar -> CSize -> CSize -> Ptr () -> IO CSize}
+#{WRAP CURL_write_callback , Ptr CChar -> CSize -> CSize -> Ptr () -> IO CSize}
+#{WRAP CURL_read_callback  , Ptr CChar -> CSize -> CSize -> Ptr () -> IO CSize}
+#{WRAP CURL_header_callback, Ptr CChar -> CSize -> CSize -> Ptr () -> IO CSize}
 
 
 #{WRAP CURL_lock_function                                          \

@@ -63,6 +63,7 @@ extra-doc-files:
   docs/index.html
   docs/*.md
   README.md
+  CHANGELOG.md
   LICENSE
 
 -------------------------------------------------------------------------------

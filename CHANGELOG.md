@@ -1,7 +1,7 @@
 # Change Log (curlhs)
 
 
-## [Unreleased][HEAD]
+## [Release 0.1.6][0.1.6] 2015-05-20
 
 ### Added
 - Support for `CURLOPT_HEADERFUNCTION` added ([Issue #5]).
@@ -75,7 +75,8 @@ or *slist type* option was used on the same handle.
 
 
 
-[HEAD]:  https://github.com/kkardzis/curlhs/compare/curlhs-0.1.5...HEAD
+[HEAD]:  https://github.com/kkardzis/curlhs/compare/curlhs-0.1.6...HEAD
+[0.1.6]: https://github.com/kkardzis/curlhs/compare/curlhs-0.1.5...curlhs-0.1.6
 [0.1.5]: https://github.com/kkardzis/curlhs/compare/curlhs-0.1.4...curlhs-0.1.5
 [0.1.4]: https://github.com/kkardzis/curlhs/compare/curlhs-0.1.3...curlhs-0.1.4
 [0.1.3]: https://github.com/kkardzis/curlhs/compare/curlhs-0.1.2...curlhs-0.1.3
